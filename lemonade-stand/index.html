@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍋 Lemonade Stand Idle Clicker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+  body { background: #fff8e1; color: #333; padding: 20px; max-width: 500px; margin: auto; }
+  h1 { text-align: center; color: #d35400; margin-bottom: 10px; }
+  .stats { display: flex; justify-content: space-between; margin-bottom: 15px; }
+  .stat-box { background: #ffeaa7; padding: 10px; border-radius: 8px; text-align: center; flex: 1; margin: 0 5px; }
+  .click-btn {
+    width: 100%; padding: 30px; font-size: 22px; border: none; border-radius: 12px;
+    background: linear-gradient(#f9ca24, #f0932b); color: white; cursor: pointer;
+    margin-bottom: 20px; box-shadow: 0 4px 0 #d68910; transition: transform 0.05s;
+  }
+  .click-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #d68910; }
+  .upgrades h2 { font-size: 18px; margin-bottom: 10px; color: #d35400; }
+  .upgrade {
+    display: flex; justify-content: space-between; padding: 10px; margin: 5px 0;
+    background: #fff; border-radius: 8px; border: 2px solid #ddd;
+  }
+  .upgrade button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .upgrade button { background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  .upgrade button:hover:not(:disabled) { background: #219150; }
+  #name { background: transparent; border: none; color: #d35400; font-size: 22px; font-weight: bold; text-align: center; width: 100%; }
+</style>
+</head>
+<body>
+  <h1>🍋 Lemonade Stand</h1>
+  <div class="stats">
+    <div class="stat-box"><div style="color:#d35400">Coins</div><div id="coins" style="font-size:22px; font-weight:bold">0</div></div>
+    <div class="stat-box"><div>Per Click</div><div id="per-click" style="font-size:22px; font-weight:bold">1</div></div>
+    <div class="stat-box"><div>Per Sec</div><div id="per-sec" style="font-size:22px; font-weight:bold">0</div></div>
+  </div>
+  <button class="click-btn" id="sell-btn">🟡 SELL LEMONADE</button>
+  <div class="upgrades">
+    <h2>Upgrades</h2>
+    <div id="upgrades"></div>
+  </div>
+<script>
+  const state = { coins: 0, perClick: 1, perSec: 0, upgrades: {} };
+  const items = [
+    { id: 'lemons', name: 'Better Lemons', cost: 10, click: 1, desc: '+1 per click' },
+    { id: 'sugar', name: 'Sugar Rush', cost: 25, click: 2, desc: '+2 per click' },
+    { id: 'tipjar', name: 'Tip Jar', cost: 50, sec: 1, desc: '+1 coin/sec' },
+    { id: 'helper', name: 'Hired Helper', cost: 150, sec: 3, desc: '+3 coin/sec' },
+    { id: 'franchise', name: 'Franchise', cost: 500, sec: 10, desc: '+10 coin/sec' }
+  ];
+  const save = JSON.parse(localStorage.getItem('lemon') || 'null');
+  if (save) Object.assign(state, save);
+  const render = () => {
+    document.getElementById('coins').textContent = Math.floor(state.coins);
+    document.getElementById('per-click').textContent = state.perClick;
+    document.getElementById('per-sec').textContent = state.perSec;
+    const list = document.getElementById('upgrades');
+    list.innerHTML = '';
+    items.forEach(it => {
+      const owned = state.upgrades[it.id] || 0;
+      const nextCost = Math.floor(it.cost * Math.pow(1.15, owned));
+      const canBuy = state.coins >= nextCost;
+      const div = document.createElement('div');
+      div.className = 'upgrade';
+      div.innerHTML = `<div><strong>${it.name}</strong> ${it.desc}<br><small>Owned: ${owned} | Next: ${nextCost} coins</small></div>
+        <button ${canBuy?'':'disabled'} onclick="buy('${it.id}')">Buy</button>`;
+      list.appendChild(div);
+    });
+  };
+  const addCoins = (n) => { state.coins += n; render(); };
+  const buy = (id) => {
+    const it = items.find(x => x.id === id);
+    const owned = state.upgrades[id] || 0;
+    const cost = Math.floor(it.cost * Math.pow(1.15, owned));
+    if (state.coins < cost) return;
+    state.coins -= cost;
+    state.upgrades[id] = owned + 1;
+    if (it.click) state.perClick += it.click;
+    if (it.sec) state.perSec += it.sec;
+    localStorage.setItem('lemon', JSON.stringify(state));
+    render();
+  };
+  document.getElementById('sell-btn').onclick = () => addCoins(state.perClick);
+  setInterval(() => { addCoins(state.perSec / 10); }, 100);
+  render();
+</script>
+</body>
+</html>

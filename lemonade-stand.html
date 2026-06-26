@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍋 Lemonade Stand</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --yellow: #fdd835;
+  --orange: #f57f17;
+  --cream: #fff8e1;
+  --green: #43a047;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--cream);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+header {
+  background: linear-gradient(135deg, #f9a825, #f57f17);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  position: relative;
+}
+
+header h1 { font-size: 1.4em; text-shadow: 1px 2px 4px rgba(0,0,0,0.3); letter-spacing: 1px; }
+
+#save-dot {
+  position: absolute;
+  right: 16px;
+  font-size: 0.72em;
+  opacity: 0.8;
+  color: #fff9c4;
+}
+
+.game {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── LEFT PANEL ── */
+.left {
+  width: 270px;
+  min-width: 270px;
+  background: white;
+  border-right: 2px solid #ffe082;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.money-box {
+  text-align: center;
+  width: 100%;
+  background: linear-gradient(135deg, #fffde7, #fff3e0);
+  border: 2px solid #ffe082;
+  border-radius: 12px;
+  padding: 12px 8px;
+}
+
+#money-main {
+  font-size: 1.9em;
+  font-weight: 800;
+  color: #e65100;
+  line-height: 1;
+}
+
+#money-ps { font-size: 0.82em; color: #999; margin-top: 3px; }
+
+/* Clicker */
+.click-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 160px;
+}
+
+#lemon-btn {
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 68px;
+  line-height: 1;
+  background: radial-gradient(circle at 38% 33%, #fff176, #fdd835 40%, #f9a825 75%, #ef6c00);
+  box-shadow:
+    0 8px 24px rgba(239,108,0,0.45),
+    0 3px 8px rgba(0,0,0,0.2),
+    inset 0 -5px 12px rgba(0,0,0,0.12),
+    inset 0 5px 10px rgba(255,255,255,0.28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.07s, box-shadow 0.07s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#lemon-btn:hover {
+  box-shadow:
+    0 12px 32px rgba(239,108,0,0.55),
+    0 5px 12px rgba(0,0,0,0.25),
+    inset 0 -5px 12px rgba(0,0,0,0.12),
+    inset 0 5px 10px rgba(255,255,255,0.28);
+}
+
+#lemon-btn:active { transform: scale(0.88); box-shadow: 0 3px 8px rgba(239,108,0,0.3); }
+
+.float-num {
+  position: absolute;
+  font-weight: 800;
+  font-size: 1em;
+  color: #e65100;
+  pointer-events: none;
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9);
+  animation: float-up 0.9s ease-out forwards;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+@keyframes float-up {
+  0%   { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  30%  { opacity: 1; transform: translate(-50%, -18px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -64px) scale(0.9); }
+}
+
+/* Stats */
+.stats {
+  width: 100%;
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.8em;
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-label { color: #888; }
+.stat-val { font-weight: 700; color: #333; }
+
+/* Milestone */
+.milestone {
+  width: 100%;
+  padding: 9px 12px;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border: 2px solid #f9a825;
+  border-radius: 10px;
+  font-size: 0.78em;
+}
+
+.ms-top { display: flex; justify-content: space-between; margin-bottom: 5px; color: #e65100; font-weight: 700; }
+
+.bar { height: 7px; background: #ffcc80; border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, #f9a825, #f57f17); border-radius: 4px; transition: width 0.4s ease; }
+
+/* Reset btn */
+#reset-btn {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #ffccbc;
+  background: #fff3e0;
+  color: #bf360c;
+  border-radius: 8px;
+  font-size: 0.72em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#reset-btn:hover { background: #ffe0b2; }
+
+/* ── RIGHT PANEL ── */
+.right {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid #ffe082;
+}
+.section:last-child { border-right: none; }
+
+.sec-hdr {
+  background: linear-gradient(135deg, #f9a825, #ef6c00);
+  color: white;
+  padding: 7px 14px;
+  font-size: 0.78em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  flex-shrink: 0;
+}
+
+.sec-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.sec-body::-webkit-scrollbar { width: 4px; }
+.sec-body::-webkit-scrollbar-thumb { background: #ffe082; border-radius: 2px; }
+
+/* Building card */
+.b-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 2px solid #e8e8e8;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+  width: 100%;
+}
+.b-card:hover:not(:disabled) { border-color: #fdd835; background: #fffde7; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(249,168,37,0.25); }
+.b-card:disabled { opacity: 0.42; cursor: not-allowed; }
+.b-card.afford { border-color: #f9a825; background: #fffde7; }
+
+.b-icon { font-size: 1.7em; width: 34px; text-align: center; flex-shrink: 0; }
+.b-info { flex: 1; min-width: 0; }
+.b-name { font-weight: 700; font-size: 0.86em; color: #333; }
+.b-desc { font-size: 0.71em; color: #999; margin-top: 1px; }
+.b-cost { font-size: 0.76em; font-weight: 700; color: #e65100; margin-top: 3px; }
+.b-count { font-size: 1.35em; font-weight: 800; color: #f9a825; min-width: 22px; text-align: right; flex-shrink: 0; }
+
+/* Upgrade card */
+.u-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 2px solid #e8e8e8;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+  width: 100%;
+}
+.u-card:hover:not(:disabled):not(.done) { border-color: #a5d6a7; background: #f1f8e9; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(67,160,71,0.2); }
+.u-card:disabled:not(.done) { opacity: 0.42; cursor: not-allowed; }
+.u-card.afford { border-color: #66bb6a; background: #f1f8e9; }
+.u-card.done { background: #e8f5e9; border-color: #a5d6a7; opacity: 0.58; cursor: default; }
+
+.u-icon { font-size: 1.35em; width: 26px; text-align: center; flex-shrink: 0; }
+.u-info { flex: 1; min-width: 0; }
+.u-name { font-weight: 700; font-size: 0.84em; color: #333; }
+.u-desc { font-size: 0.71em; color: #999; margin-top: 1px; }
+.u-cost { font-size: 0.78em; font-weight: 700; flex-shrink: 0; }
+.u-cost.green { color: #43a047; }
+.u-cost.check { color: #66bb6a; font-size: 1em; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 55px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #388e3c, #2e7d32);
+  color: white;
+  padding: 9px 20px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.88em;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  z-index: 9999;
+  pointer-events: none;
+  animation: toast-show 0.25s ease, toast-hide 0.3s ease 2.2s forwards;
+  white-space: nowrap;
+}
+
+@keyframes toast-show { from { opacity:0; transform:translateX(-50%) translateY(-12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+@keyframes toast-hide { to { opacity:0; transform:translateX(-50%) translateY(-8px); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍋 Lemonade Stand</h1>
+  <span id="save-dot">auto-saves</span>
+</header>
+
+<div class="game">
+
+  <!-- LEFT -->
+  <div class="left">
+    <div class="money-box">
+      <div id="money-main">$0.00</div>
+      <div id="money-ps">$0.00 per second</div>
+    </div>
+
+    <div class="click-wrap" id="click-wrap">
+      <button id="lemon-btn">🍋</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-row"><span class="stat-label">Per click</span><span class="stat-val" id="s-click">$0.10</span></div>
+      <div class="stat-row"><span class="stat-label">Per second</span><span class="stat-val" id="s-ps">$0.00</span></div>
+      <div class="stat-row"><span class="stat-label">Total earned</span><span class="stat-val" id="s-total">$0.00</span></div>
+      <div class="stat-row"><span class="stat-label">Cups served</span><span class="stat-val" id="s-cups">0</span></div>
+    </div>
+
+    <div class="milestone">
+      <div class="ms-top"><span id="ms-label">First sale: $1.00</span><span id="ms-pct">0%</span></div>
+      <div class="bar"><div class="bar-fill" id="ms-fill" style="width:0%"></div></div>
+    </div>
+
+    <button id="reset-btn" onclick="resetGame()">↺ Reset Game</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right">
+    <div class="section">
+      <div class="sec-hdr">🌿 Upgrades</div>
+      <div class="sec-body" id="upgrades-body"></div>
+    </div>
+    <div class="section">
+      <div class="sec-hdr">👷 Staff &amp; Equipment</div>
+      <div class="sec-body" id="buildings-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── Data ───────────────────────────────────────────────────────────────────
+
+const BUILDINGS = [
+  { id:'kid',      e:'👦', name:'Neighborhood Kid',  d:'Helps sell cups to neighbors',          base:15,      ips:0.1,  n:0, m:1 },
+  { id:'flyer',    e:'📋', name:'Flyer Campaign',    d:'Attracts more foot traffic',             base:100,     ips:0.6,  n:0, m:1 },
+  { id:'tree',     e:'🌳', name:'Lemon Tree',        d:'Grow your own fresh lemons',             base:500,     ips:4,    n:0, m:1 },
+  { id:'cart',     e:'🛒', name:'Lemonade Cart',     d:'Rolls around to reach more customers',   base:3000,    ips:20,   n:0, m:1 },
+  { id:'bike',     e:'🚲', name:'Delivery Bike',     d:'Delivers lemonade across the neighborhood', base:15000, ips:100, n:0, m:1 },
+  { id:'location', e:'🏪', name:'Second Location',   d:'Open another stand across town',         base:100000,  ips:550,  n:0, m:1 },
+  { id:'factory',  e:'🏭', name:'Lemon Factory',     d:'Industrial-scale lemonade production',   base:500000,  ips:3000, n:0, m:1 },
+];
+
+const UPGRADES = [
+  // Click multipliers
+  { id:'c1', e:'🍋', name:'Fresh Lemons',     d:'2× click value',                          cost:10,      bought:false, fn:()=>{ G.cm*=2; } },
+  { id:'c2', e:'🧂', name:'Cane Sugar',       d:'2× click value — the sweeter the better', cost:100,     bought:false, fn:()=>{ G.cm*=2; } },
+  { id:'c3', e:'🧊', name:'Ice Cold Serve',   d:'2× click value — refreshingly cold',      cost:600,     bought:false, fn:()=>{ G.cm*=2; } },
+  { id:'c4', e:'🌿', name:'Mint Infusion',    d:'2× click value — premium taste',          cost:3500,    bought:false, fn:()=>{ G.cm*=2; } },
+  { id:'c5', e:'⭐', name:'Secret Recipe',    d:'2× click value — grandma\'s secret!',     cost:18000,   bought:false, fn:()=>{ G.cm*=2; } },
+  { id:'c6', e:'🏅', name:'Award-Winning',    d:'2× click value — best in town!',          cost:100000,  bought:false, fn:()=>{ G.cm*=2; } },
+  // Building boosts
+  { id:'b1', e:'💪', name:'Kid Power',        d:'Kids sell 2× faster',                     cost:200,     bought:false, fn:()=>{ boostB('kid',2); } },
+  { id:'b2', e:'🖨️', name:'Color Printing',   d:'Flyers attract 2× more people',           cost:1200,    bought:false, fn:()=>{ boostB('flyer',2); } },
+  { id:'b3', e:'💧', name:'Auto-Irrigation',  d:'Lemon trees yield 2× more',               cost:6000,    bought:false, fn:()=>{ boostB('tree',2); } },
+  { id:'b4', e:'🔧', name:'Cart Upgrade',     d:'Carts sell 2× more per trip',             cost:35000,   bought:false, fn:()=>{ boostB('cart',2); } },
+  { id:'b5', e:'⚡', name:'Electric Bike',    d:'Bikes deliver 2× more',                   cost:200000,  bought:false, fn:()=>{ boostB('bike',2); } },
+  { id:'b6', e:'🎯', name:'Prime Location',   d:'Second location does 2× business',        cost:1200000, bought:false, fn:()=>{ boostB('location',2); } },
+  { id:'b7', e:'🤖', name:'Automation',       d:'Factory produces 2× more',                cost:6000000, bought:false, fn:()=>{ boostB('factory',2); } },
+];
+
+const MILESTONES = [
+  [1,       'First sale 🥤'],
+  [10,      'Lemonade fan 🍋'],
+  [100,     'Side hustle 💰'],
+  [1000,    'Neighborhood hero 🌟'],
+  [10000,   'Local legend 🏆'],
+  [100000,  'Regional brand 🏪'],
+  [1000000, 'Lemonade mogul 👑'],
+  [1e7,     'Going national 🚀'],
+  [1e8,     'Lemonade empire 🌍'],
+];
+
+// ─── State ──────────────────────────────────────────────────────────────────
+
+const G = {
+  money: 0,
+  total: 0,
+  cups: 0,
+  cm: 1,           // click multiplier
+  lastTick: Date.now(),
+  lastSave: Date.now(),
+  lastMs: -1,       // last milestone index achieved
+};
+
+// ─── Core ───────────────────────────────────────────────────────────────────
+
+function clickVal() { return 0.10 * G.cm; }
+
+function ips() { return BUILDINGS.reduce((s,b) => s + b.n * b.ips * b.m, 0); }
+
+function bCost(b) { return Math.ceil(b.base * Math.pow(1.15, b.n)); }
+
+function boostB(id, mult) {
+  const b = BUILDINGS.find(x => x.id === id);
+  if (b) b.m *= mult;
+}
+
+// ─── Format ─────────────────────────────────────────────────────────────────
+
+function fmt(n) {
+  if (n < 0) n = 0;
+  if (n >= 1e12) return '$' + (n/1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6)  return '$' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3)  return '$' + (n/1e3).toFixed(2) + 'K';
+  return '$' + n.toFixed(2);
+}
+
+function fmtN(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+// ─── Click ──────────────────────────────────────────────────────────────────
+
+document.getElementById('lemon-btn').addEventListener('click', e => {
+  const val = clickVal();
+  G.money += val;
+  G.total += val;
+  G.cups++;
+
+  const wrap = document.getElementById('click-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'float-num';
+  el.textContent = '+' + fmt(val);
+  el.style.left = (e.clientX - rect.left) + 'px';
+  el.style.top  = (e.clientY - rect.top)  + 'px';
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+
+  refreshUI();
+});
+
+// ─── Buy ────────────────────────────────────────────────────────────────────
+
+function buyBuilding(id) {
+  const b = BUILDINGS.find(x => x.id === id);
+  const cost = bCost(b);
+  if (G.money < cost) return;
+  G.money -= cost;
+  b.n++;
+  renderBuildings();
+  refreshUI();
+  toast('Hired: ' + b.name + '! 🎉');
+}
+
+function buyUpgrade(id) {
+  const u = UPGRADES.find(x => x.id === id);
+  if (!u || u.bought || G.money < u.cost) return;
+  G.money -= u.cost;
+  u.bought = true;
+  u.fn();
+  renderUpgrades();
+  refreshUI();
+  toast('Upgrade: ' + u.name + '! ✨');
+}
+
+// ─── Render ─────────────────────────────────────────────────────────────────
+
+function renderBuildings() {
+  const el = document.getElementById('buildings-body');
+  el.innerHTML = '';
+  BUILDINGS.forEach(b => {
+    const cost = bCost(b);
+    const ok = G.money >= cost;
+    const rateEach = (b.ips * b.m).toFixed(2).replace(/\.?0+$/, '') || '0';
+    const card = document.createElement('button');
+    card.className = 'b-card' + (ok ? ' afford' : '');
+    card.disabled = !ok;
+    card.innerHTML =
+      '<span class="b-icon">' + b.e + '</span>' +
+      '<span class="b-info">' +
+        '<div class="b-name">' + b.name + '</div>' +
+        '<div class="b-desc">' + b.d + '</div>' +
+        '<div class="b-cost">' + fmt(cost) + ' · ' + rateEach + '/s each</div>' +
+      '</span>' +
+      '<span class="b-count">' + (b.n || '') + '</span>';
+    card.onclick = () => buyBuilding(b.id);
+    el.appendChild(card);
+  });
+}
+
+function renderUpgrades() {
+  const el = document.getElementById('upgrades-body');
+  el.innerHTML = '';
+  UPGRADES.forEach(u => {
+    const ok = !u.bought && G.money >= u.cost;
+    const card = document.createElement('button');
+    card.className = 'u-card' + (u.bought ? ' done' : ok ? ' afford' : '');
+    card.disabled = u.bought || !ok;
+    card.innerHTML =
+      '<span class="u-icon">' + u.e + '</span>' +
+      '<span class="u-info">' +
+        '<div class="u-name">' + u.name + '</div>' +
+        '<div class="u-desc">' + u.d + '</div>' +
+      '</span>' +
+      '<span class="u-cost ' + (u.bought ? 'check' : 'green') + '">' + (u.bought ? '✓' : fmt(u.cost)) + '</span>';
+    if (!u.bought) card.onclick = () => buyUpgrade(u.id);
+    el.appendChild(card);
+  });
+}
+
+// ─── UI refresh ─────────────────────────────────────────────────────────────
+
+let _prevAfford = '';
+
+function refreshUI() {
+  const rate = ips();
+  document.getElementById('money-main').textContent = fmt(G.money);
+  document.getElementById('money-ps').textContent   = fmt(rate) + ' per second';
+  document.getElementById('s-click').textContent    = fmt(clickVal());
+  document.getElementById('s-ps').textContent       = fmt(rate);
+  document.getElementById('s-total').textContent    = fmt(G.total);
+  document.getElementById('s-cups').textContent     = fmtN(G.cups);
+
+  // Milestone
+  const next = MILESTONES.find(([t]) => G.total < t);
+  if (next) {
+    const idx = MILESTONES.indexOf(next);
+    const prev = idx > 0 ? MILESTONES[idx-1][0] : 0;
+    const pct  = Math.min(100, (G.total - prev) / (next[0] - prev) * 100);
+    document.getElementById('ms-label').textContent = next[1] + ': ' + fmt(next[0]);
+    document.getElementById('ms-pct').textContent   = Math.floor(pct) + '%';
+    document.getElementById('ms-fill').style.width  = pct + '%';
+  } else {
+    document.getElementById('ms-label').textContent = '👑 All milestones complete!';
+    document.getElementById('ms-pct').textContent   = '100%';
+    document.getElementById('ms-fill').style.width  = '100%';
+  }
+
+  // Milestone achievement toast
+  for (let i = 0; i < MILESTONES.length; i++) {
+    if (G.total >= MILESTONES[i][0] && i > G.lastMs) {
+      G.lastMs = i;
+      toast('🎉 ' + MILESTONES[i][1] + ' reached!');
+    }
+  }
+
+  // Re-render cards only if affordability changed
+  const afford =
+    BUILDINGS.map(b => G.money >= bCost(b) ? '1' : '0').join('') +
+    UPGRADES.map(u => (!u.bought && G.money >= u.cost) ? '1' : '0').join('');
+  if (afford !== _prevAfford) {
+    _prevAfford = afford;
+    renderBuildings();
+    renderUpgrades();
+  }
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+
+function toast(msg) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2600);
+}
+
+// ─── Game loop ──────────────────────────────────────────────────────────────
+
+function tick() {
+  const now = Date.now();
+  const dt  = Math.min((now - G.lastTick) / 1000, 1);
+  G.lastTick = now;
+
+  const income = ips() * dt;
+  if (income > 0) { G.money += income; G.total += income; }
+  refreshUI();
+
+  if (now - G.lastSave > 15000) { saveGame(); G.lastSave = now; }
+}
+
+// ─── Save / Load ────────────────────────────────────────────────────────────
+
+function saveGame() {
+  const data = {
+    money: G.money, total: G.total, cups: G.cups, cm: G.cm, lastMs: G.lastMs,
+    buildings: BUILDINGS.map(b => ({ id:b.id, n:b.n, m:b.m })),
+    upgrades:  UPGRADES.map(u => ({ id:u.id, bought:u.bought })),
+  };
+  localStorage.setItem('lemonade_v1', JSON.stringify(data));
+  const dot = document.getElementById('save-dot');
+  dot.textContent = 'saved ✓';
+  setTimeout(() => { dot.textContent = 'auto-saves'; }, 1800);
+}
+
+function loadGame() {
+  const raw = localStorage.getItem('lemonade_v1');
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    G.money  = d.money  || 0;
+    G.total  = d.total  || 0;
+    G.cups   = d.cups   || 0;
+    G.cm     = d.cm     || 1;
+    G.lastMs = d.lastMs !== undefined ? d.lastMs : -1;
+    (d.buildings || []).forEach(bd => {
+      const b = BUILDINGS.find(x => x.id === bd.id);
+      if (b) { b.n = bd.n || 0; b.m = bd.m || 1; }
+    });
+    (d.upgrades || []).forEach(ud => {
+      const u = UPGRADES.find(x => x.id === ud.id);
+      if (u && ud.bought && !u.bought) { u.bought = true; u.fn(); }
+    });
+  } catch(e) { /* corrupt save — start fresh */ }
+}
+
+function resetGame() {
+  if (!confirm('Reset all progress?')) return;
+  localStorage.removeItem('lemonade_v1');
+  location.reload();
+}
+
+// ─── Boot ───────────────────────────────────────────────────────────────────
+
+loadGame();
+renderBuildings();
+renderUpgrades();
+refreshUI();
+setInterval(tick, 100);
+</script>
+</body>
+</html>
