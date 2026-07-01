@@ -1,24 +1,18 @@
 class_name ScoreLabel extends Label3D
-signal safe(s: int)
 
-var score: int = 0:
-	set(v):
-		score = max(0, v)
-		_apply_text()
+@export var manager: Node3D
 
 func _ready() -> void:
-	_apply_text()
+    text = "0"
+    if manager and manager.has_signal("food_eaten"):
+        manager.food_eaten.connect(_on_score_changed)
+    if manager and manager.has_signal("game_over"):
+        manager.game_over.connect(_on_game_over)
 
-func reset() -> void:
-	score = 0
-	_apply_text()
 
-func add(pts: int = 1) -> int:
-	score += pts
-	_apply_text()
-	safe.emit(score)
-	return score
+func _on_score_changed(new_score: int) -> void:
+    text = str(new_score)
 
-func _apply_text() -> void:
-	text = "SCORE: %d" % score
-	pixel_size = 0.15
+
+func _on_game_over(final_score: int) -> void:
+    text = "GAME OVER\n%d" % final_score
