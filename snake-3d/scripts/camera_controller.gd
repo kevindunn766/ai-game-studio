@@ -1,8 +1,8 @@
 class_name CameraController extends Camera3D
 
 @export var target: Node3D
-@export var height: float = 18.0
-@export var distance: float = 18.0
+@export var height: float = 13.5
+@export var distance: float = 13.5
 @export var look_ahead: float = 3.0
 @export var smooth: float = 5.0
 

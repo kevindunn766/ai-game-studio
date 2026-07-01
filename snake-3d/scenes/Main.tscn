@@ -34,6 +34,8 @@ light_color = Color(0.15, 0.2, 0.25, 1)
 light_energy = 0.7
 omni_range = 30.0
 
+[ext_resource type="Script" path="res://scripts/camera_controller.gd" id="6_cam"]
+
 [node name="FloorManager" type="Node3D" parent="."]
 script = ExtResource("5_floor")
 tile_size = 0.9
@@ -42,6 +44,8 @@ obstacle_chance = 0.25
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.87, -0.28, 0.41, 0, 0.82, 0.57, -0.5, -0.5, 0.71, 13.5, 13.5, 13.5)
+script = ExtResource("6_cam")
+target = NodePath("../Snake")
 current = true
 fov = 55.0
 near = 0.1

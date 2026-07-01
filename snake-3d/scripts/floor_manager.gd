@@ -14,6 +14,10 @@ func _ready() -> void:
 	rng.randomize()
 	_update_tiles()
 
+	var snake_node := get_node_or_null("../Snake")
+	if snake_node:
+		snake = snake_node
+
 
 func _process(_delta: float) -> void:
 	_update_tiles()
