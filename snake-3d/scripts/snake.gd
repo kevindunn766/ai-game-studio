@@ -1,11 +1,12 @@
 class_name Snake
 extends Node3D
 
-var grid_size: int = 20
 var segments: Array = []
 var direction: Vector3 = Vector3.FORWARD
 var next_direction: Vector3 = Vector3.FORWARD
 var grow_pending: int = 0
+
+@export var tile_size: float = 0.9
 
 var head_material: StandardMaterial3D
 var body_material: StandardMaterial3D
@@ -14,9 +15,9 @@ var body_material: StandardMaterial3D
 func _ready() -> void:
 	_setup_materials()
 	segments = [
-		Vector3(10, 0, 10),
-		Vector3(9, 0, 10),
-		Vector3(8, 0, 10),
+		Vector3(0, 0, 0),
+		Vector3(-1, 0, 0),
+		Vector3(-2, 0, 0),
 	]
 	_segments_changed()
 
@@ -37,15 +38,6 @@ func step() -> bool:
 
 	var head := segments.front() as Vector3
 	var new_head := head + direction
-
-	# Wall death
-	if (
-		new_head.x < 0
-		or new_head.z < 0
-		or new_head.x >= grid_size
-		or new_head.z >= grid_size
-	):
-		return false
 
 	# Self collision
 	var occupied: Dictionary = {}

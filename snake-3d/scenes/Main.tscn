@@ -4,28 +4,7 @@
 [ext_resource type="Script" path="res://scripts/snake.gd" id="2_snake"]
 [ext_resource type="Script" path="res://scripts/food.gd" id="3_food"]
 [ext_resource type="Script" path="res://scripts/score_label.gd" id="4_score"]
-
-[sub_resource type="StandardMaterial3D" id="MatFloor"]
-albedo_color = Color(0.08, 0.08, 0.08, 1.0)
-roughness = 0.95
-
-[sub_resource type="StandardMaterial3D" id="MatGrid"]
-albedo_color = Color(0.3, 0.32, 0.35, 1.0)
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="MatHead"]
-albedo_color = Color(0.05, 0.9, 0.3, 1.0)
-emission_enabled = true
-emission = Color(0.05, 0.9, 0.3, 1.0)
-emission_energy_multiplier = 0.9
-roughness = 0.3
-
-[sub_resource type="StandardMaterial3D" id="MatBody"]
-albedo_color = Color(0.05, 0.65, 0.22, 1.0)
-emission_enabled = true
-emission = Color(0.05, 0.65, 0.22, 1.0)
-emission_energy_multiplier = 0.6
-roughness = 0.45
+[ext_resource type="Script" path="res://scripts/floor_manager.gd" id="5_floor"]
 
 [sub_resource type="StandardMaterial3D" id="MatFood"]
 albedo_color = Color(1.0, 0.14, 0.14, 1.0)
@@ -55,22 +34,18 @@ light_color = Color(0.15, 0.2, 0.25, 1)
 light_energy = 0.7
 omni_range = 30.0
 
-[node name="Floor" type="MeshInstance3D" parent="."]
-transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 10, -0.3, 10)
-material_override = SubResource("MatFloor")
-mesh = SubResource("MeshBox")
-
-[node name="FloorGrid" type="MeshInstance3D" parent="."]
-transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 10, -0.29, 10)
-material_override = SubResource("MatGrid")
-mesh = SubResource("MeshBox")
+[node name="FloorManager" type="Node3D" parent="."]
+script = ExtResource("5_floor")
+tile_size = 0.9
+view_radius = 18
+obstacle_chance = 0.25
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.87, -0.28, 0.41, 0, 0.82, 0.57, -0.5, -0.5, 0.71, 18, 18, 18)
+transform = Transform3D(0.87, -0.28, 0.41, 0, 0.82, 0.57, -0.5, -0.5, 0.71, 13.5, 13.5, 13.5)
 current = true
 fov = 55.0
 near = 0.1
-far = 120.0
+far = 150.0
 
 [node name="Snake" type="Node3D" parent="."]
 script = ExtResource("2_snake")

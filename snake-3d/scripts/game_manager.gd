@@ -4,13 +4,13 @@ extends Node3D
 signal food_eaten(score: int)
 signal game_over(final_score: int)
 
-@export var grid_size: int = 20
 @export var initial_speed: float = 0.18
 @export var speed_increment: float = 0.015
 @export var speed_increase_interval: int = 5
 
 @onready var food: Node3D = $Food
 @onready var snake: Node3D = $Snake
+@onready var floor_manager: Node3D = $FloorManager
 
 var snake_ref: Node3D:
 	get: return snake
@@ -28,7 +28,6 @@ const HIGH_SCORE_PATH := "user://snake3d_highscore.cfg"
 
 
 func _ready() -> void:
-	# Headless-safe Action maps so input works without project input map file.
 	_ensure_action("move_up", [KEY_W, KEY_UP])
 	_ensure_action("move_down", [KEY_S, KEY_DOWN])
 	_ensure_action("move_left", [KEY_A, KEY_LEFT])
@@ -40,7 +39,6 @@ func _ready() -> void:
 	high_score = _load_high_score()
 	current_speed = initial_speed
 
-	# Wire HUD directly so no signal plumbing is required.
 	var score_label: Label3D = get_node_or_null("ScoreLabel")
 	if score_label:
 		score_label.text = "0"
@@ -49,9 +47,7 @@ func _ready() -> void:
 	if game_over_overlay:
 		game_over_overlay.visible = false
 
-	# Make sure food sits on grid on initial load next frame.
-	if food.global_position.y < -100.0:
-		_spawn_food()
+	_spawn_food()
 
 
 func _ensure_action(name: String, keys: Array) -> void:
@@ -70,13 +66,13 @@ func _input(event: InputEvent) -> void:
 			restart()
 		return
 
-	if event.is_action_pressed("move_up") or event.is_action_pressed("ui_up"):
+	if Input.is_action_just_pressed("move_up") or Input.is_action_just_pressed("ui_up"):
 		snake.set_direction(Vector3.FORWARD)
-	elif event.is_action_pressed("move_down") or event.is_action_pressed("ui_down"):
+	elif Input.is_action_just_pressed("move_down") or Input.is_action_just_pressed("ui_down"):
 		snake.set_direction(Vector3.BACK)
-	elif event.is_action_pressed("move_left") or event.is_action_pressed("ui_left"):
+	elif Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("ui_left"):
 		snake.set_direction(Vector3.LEFT)
-	elif event.is_action_pressed("move_right") or event.is_action_pressed("ui_right"):
+	elif Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("ui_right"):
 		snake.set_direction(Vector3.RIGHT)
 
 
@@ -94,7 +90,14 @@ func _process(delta: float) -> void:
 		return
 
 	var head := snake.segments.front() as Vector3
-	if head.distance_to(food.global_position) < 0.01:
+
+	# Obstacle death
+	if floor_manager and floor_manager.has_method("is_tile_obstacle_at"):
+		if floor_manager.is_tile_obstacle_at(head):
+			_trigger_game_over()
+			return
+
+	if Vector2(head.x - food.global_position.x, head.z - food.global_position.z).length_squared() < 0.25:
 		score += 1
 		food_eaten_count += 1
 		if score > high_score:
@@ -120,22 +123,16 @@ func _on_game_over(final: int) -> void:
 
 
 func _spawn_food() -> void:
-	var occupied: Dictionary = {}
-	for seg: Vector3 in snake.segments:
-		occupied[Vector3(round(seg.x), 0.0, round(seg.z))] = true
-
-	var attempts := 0
-	while attempts < 1000:
-		var x: int = rng.randi_range(0, grid_size - 1)
-		var z: int = rng.randi_range(0, grid_size - 1)
-		var candidate := Vector3(float(x), 0.0, float(z))
-		if not occupied.has(candidate):
-			food.global_position = candidate
-			return
-		attempts += 1
-
-	# Fallback: truly unable to find empty cell? Just center it.
-	food.global_position = Vector3(float(grid_size) / 2.0, 0.0, float(grid_size) / 2.0)
+	# Spawn food relative to snake head instead of fixed grid bounds.
+	if snake and snake.segments.size() > 0:
+		var head := snake.segments.front() as Vector3
+		var offset_x: int = rng.randi_range(-4, 4)
+		var offset_z: int = rng.randi_range(-4, 4)
+		food.global_position = Vector3(
+			head.x + float(offset_x),
+			0.45,
+			head.z + float(offset_z)
+		)
 
 
 func _get_current_speed() -> float:
@@ -148,7 +145,6 @@ func _trigger_game_over() -> void:
 
 
 func restart() -> void:
-	# Defer scene reload to avoid setup/shutdown races.
 	get_tree().reload_current_scene.call_deferred()
 
 
