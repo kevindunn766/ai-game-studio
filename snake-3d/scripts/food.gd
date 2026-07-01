@@ -1,39 +1,28 @@
 class_name Food extends Node3D
 
-signal eaten()
+@export var pulse_speed: float = 4.0
+@export var pulse_amplitude: float = 0.14
 
-var base_scale := Vector3.ONE
-var pulse_amplitude := 0.15
-var pulse_speed := 4.0
 var material: StandardMaterial3D
 
 
 func _ready() -> void:
 	material = StandardMaterial3D.new()
-	material.albedo_color = Color(1.0, 0.15, 0.15, 1.0)
+	material.albedo_color = Color(1.0, 0.14, 0.14, 1.0)
 	material.emission_enabled = true
-	material.emission = Color(1.0, 0.15, 0.15, 1.0)
+	material.emission = Color(1.0, 0.14, 0.14, 1.0)
 	material.emission_energy_multiplier = 1.4
 	material.roughness = 0.25
 
-	var mesh := MeshInstance3D.new()
-	mesh.name = "Mesh"
+	var mesh_node := MeshInstance3D.new()
+	mesh_node.name = "Mesh"
 	var b := BoxMesh.new()
 	b.size = Vector3(0.65, 0.65, 0.65)
-	mesh.mesh = b
-	mesh.set_surface_override_material(0, material)
-	add_child(mesh)
-
-	base_scale = Vector3.ONE
+	mesh_node.mesh = b
+	mesh_node.set_surface_override_material(0, material)
+	add_child(mesh_node)
 
 
-func _process(delta: float) -> void:
-	var s := base_scale + Vector3.ONE * sin(Time.get_ticks_msec() / 1000.0 * pulse_speed * 6.2831853) * pulse_amplitude
-	scale = s
-
-
-func _on_area_entered(area: Area3D) -> void:
-	if area.owner is Snake:
-		eaten.emit()
-		queue_free()
-		# Note: queue_free may not keep script logic local, but caller respawns via GameManager.
+func _process(_delta: float) -> void:
+	var s := 1.0 + sin(Time.get_ticks_msec() / 1000.0 * pulse_speed * 6.2831853) * pulse_amplitude
+	scale = Vector3.ONE * s

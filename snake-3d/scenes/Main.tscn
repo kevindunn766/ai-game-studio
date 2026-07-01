@@ -1,15 +1,18 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=9 format=3 uid="uid://d92k3p8m2xsn"]
 
-[ext_resource type="Script" path="res://scripts/game_manager.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_gm"]
+[ext_resource type="Script" path="res://scripts/snake.gd" id="2_snake"]
+[ext_resource type="Script" path="res://scripts/food.gd" id="3_food"]
+[ext_resource type="Script" path="res://scripts/score_label.gd" id="4_score"]
 
 [sub_resource type="StandardMaterial3D" id="MatFloor"]
 albedo_color = Color(0.08, 0.08, 0.08, 1.0)
 roughness = 0.9
 
 [sub_resource type="StandardMaterial3D" id="MatHead"]
-albedo_color = Color(0.05, 0.92, 0.3, 1.0)
+albedo_color = Color(0.05, 0.9, 0.3, 1.0)
 emission_enabled = true
-emission = Color(0.05, 0.92, 0.3, 1.0)
+emission = Color(0.05, 0.9, 0.3, 1.0)
 emission_energy_multiplier = 0.8
 roughness = 0.3
 
@@ -20,46 +23,26 @@ emission = Color(0.05, 0.65, 0.22, 1.0)
 emission_energy_multiplier = 0.5
 roughness = 0.45
 
+[sub_resource type="StandardMaterial3D" id="MatGrid"]
+albedo_color = Color(0.18, 0.2, 0.22, 1.0)
+roughness = 0.95
+
 [sub_resource type="StandardMaterial3D" id="MatFood"]
-albedo_color = Color(1.0, 0.12, 0.12, 1.0)
+albedo_color = Color(1.0, 0.14, 0.14, 1.0)
 emission_enabled = true
-emission = Color(1.0, 0.12, 0.12, 1.0)
+emission = Color(1.0, 0.14, 0.14, 1.0)
 emission_energy_multiplier = 1.4
 roughness = 0.25
 
 [sub_resource type="BoxMesh" id="MeshBox"]
 size = Vector3(0.88, 0.88, 0.88)
 
-[sub_resource type="BoxMesh" id="MeshFood"]
-size = Vector3(0.65, 0.65, 0.65)
-
-[sub_resource type="StandardMaterial3D" id="MatGrid"]
-albedo_color = Color(0.15, 0.15, 0.18, 1.0)
-roughness = 0.95
-
 [node name="Main" type="Node3D"]
-script = ExtResource("1")
+script = ExtResource("1_gm")
 grid_size = 20
 initial_speed = 0.18
 speed_increment = 0.015
 speed_increase_interval = 5
-
-[node name="Snake" type="Node3D" parent="."]
-script = ExtResource("2_snake")
-
-[node name="Food" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -999, -999, -999)
-script = ExtResource("3_food")
-
-[node name="Floor" type="MeshInstance3D" parent="."]
-transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 10, 0, 10)
-material_override = SubResource("MatFloor")
-mesh = SubResource("MeshBox")
-
-[node name="FloorGrid" type="MeshInstance3D" parent="."]
-transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 10, 0.02, 10)
-material_override = SubResource("MatGrid")
-mesh = SubResource("MeshBox")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.8, -0.3, 0.5, 0, 0.8, 0.6, -0.55, -0.45, 0.75, 4, 8, 6)
@@ -72,12 +55,30 @@ light_color = Color(0.15, 0.2, 0.25, 1)
 light_energy = 0.4
 omni_range = 30.0
 
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 20, 10, 0, 10)
+material_override = SubResource("MatFloor")
+mesh = SubResource("MeshBox")
+
+[node name="FloorGrid" type="MeshInstance3D" parent="."]
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 10, 0.02, 10)
+material_override = SubResource("MatGrid")
+mesh = SubResource("MeshBox")
+
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(0.9, -0.35, 0.25, 0, 0.45, 0.55, -0.35, -0.5, 0.55, 5, 18, 15)
 current = true
 
+[node name="Snake" type="Node3D" parent="."]
+script = ExtResource("2_snake")
+
+[node name="Food" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, 11)
+script = ExtResource("3_food")
+
 [node name="ScoreLabel" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 4.5, -8)
+script = ExtResource("4_score")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 4.5, -9)
 text = "SCORE: 0"
 font_size = 4
 outline_size = 2
@@ -87,7 +88,7 @@ outline_color = Color(0, 0, 0, 1)
 visible = false
 
 [node name="GameOverTitle" type="Label3D" parent="GameOverOverlay"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.1, 0)
 text = "GAME OVER"
 font_size = 6
 outline_size = 8
@@ -101,12 +102,8 @@ outline_size = 4
 outline_color = Color(0, 0, 0, 1)
 
 [node name="GameOverScore" type="Label3D" parent="GameOverOverlay"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, 0)
 text = "High Score: 0"
 font_size = 3
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
-
-[connection signal="food_eaten" from="." to="Snake" method="grow"]
-[connection signal="food_eaten" from="." to="." method="_on_food_eaten"]
-[connection signal="game_over" from="." to="." method="_on_game_over"]

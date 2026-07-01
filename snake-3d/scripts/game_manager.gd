@@ -1,16 +1,21 @@
 class_name GameManager
 extends Node3D
 
+signal food_eaten(score: int)
+signal game_over(final_score: int)
+
 @export var grid_size: int = 20
 @export var initial_speed: float = 0.18
 @export var speed_increment: float = 0.015
 @export var speed_increase_interval: int = 5
 
-signal food_eaten(score: int)
-signal game_over(final_score: int)
-
 @onready var food: Node3D = $Food
 @onready var snake: Node3D = $Snake
+
+var snake_ref: Node3D:
+	get: return snake
+var food_ref: Node3D:
+	get: return food
 
 var score: int = 0
 var high_score: int = 0
@@ -23,18 +28,46 @@ const HIGH_SCORE_PATH := "user://snake3d_highscore.cfg"
 
 
 func _ready() -> void:
+	# Headless-safe Action maps so input works without project input map file.
+	_ensure_action("move_up", [KEY_W, KEY_UP])
+	_ensure_action("move_down", [KEY_S, KEY_DOWN])
+	_ensure_action("move_left", [KEY_A, KEY_LEFT])
+	_ensure_action("move_right", [KEY_D, KEY_RIGHT])
+
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	rng = RandomNumberGenerator.new()
 	rng.randomize()
-	_apply_saved_theme_if_any()
 	high_score = _load_high_score()
 	current_speed = initial_speed
-	_spawn_food()
+
+	# Wire HUD directly so no signal plumbing is required.
+	var score_label: Label3D = get_node_or_null("ScoreLabel")
+	if score_label:
+		score_label.text = "0"
+
+	var game_over_overlay: Node3D = get_node_or_null("GameOverOverlay")
+	if game_over_overlay:
+		game_over_overlay.visible = false
+
+	# Make sure food sits on grid on initial load next frame.
+	if food.global_position.y < -100.0:
+		_spawn_food()
+
+
+func _ensure_action(name: String, keys: Array) -> void:
+	if InputMap.has_action(name):
+		return
+	InputMap.add_action(name)
+	for k in keys:
+		var e := InputEventKey.new()
+		e.keycode = k
+		InputMap.action_add_event(name, e)
 
 
 func _input(event: InputEvent) -> void:
-	if is_game_over and Input.is_action_just_pressed("ui_accept"):
-		restart()
+	if is_game_over:
+		if Input.is_action_just_pressed("ui_accept"):
+			restart()
 		return
 
 	if event.is_action_pressed("move_up") or event.is_action_pressed("ui_up"):
@@ -52,24 +85,33 @@ func _process(delta: float) -> void:
 		return
 
 	current_speed -= delta
-	if current_speed <= 0.0:
-		current_speed = _get_current_speed()
-		if not snake.step():
-			_trigger_game_over()
+	if current_speed > 0.0:
+		return
+
+	current_speed = _get_current_speed()
+	if not snake.step():
+		_trigger_game_over()
+		return
+
+	var head := snake.segments.front() as Vector3
+	if head.distance_to(food.global_position) < 0.01:
+		score += 1
+		food_eaten_count += 1
+		if score > high_score:
+			high_score = score
+			_save_high_score()
+
+		food_eaten.emit(score)
+
+		snake.grow()
+		_spawn_food()
+
+		if food_eaten_count % speed_increase_interval == 0:
+			current_speed = max(0.06, current_speed - speed_increment)
 
 
 func _on_food_eaten(_pts: int) -> void:
-	score += 1
-	food_eaten_count += 1
-	if score > high_score:
-		high_score = score
-	_save_high_score()
-
-	food_eaten.emit(score)
-	_spawn_food()
-
-	if food_eaten_count % speed_increase_interval == 0:
-		current_speed = max(0.06, current_speed - speed_increment)
+	pass
 
 
 func _on_game_over(final: int) -> void:
@@ -80,7 +122,7 @@ func _on_game_over(final: int) -> void:
 func _spawn_food() -> void:
 	var occupied: Dictionary = {}
 	for seg: Vector3 in snake.segments:
-		occupied[seg] = true
+		occupied[Vector3(round(seg.x), 0.0, round(seg.z))] = true
 
 	var attempts := 0
 	while attempts < 1000:
@@ -92,29 +134,22 @@ func _spawn_food() -> void:
 			return
 		attempts += 1
 
+	# Fallback: truly unable to find empty cell? Just center it.
+	food.global_position = Vector3(float(grid_size) / 2.0, 0.0, float(grid_size) / 2.0)
+
 
 func _get_current_speed() -> float:
 	return max(0.06, initial_speed - (food_eaten_count / speed_increase_interval) * speed_increment)
 
 
 func _trigger_game_over() -> void:
-	_set_disable_controls(true)
+	set_process_input(false)
 	_on_game_over(score)
 
 
 func restart() -> void:
-	_set_disable_controls(false)
-	score = 0
-	food_eaten_count = 0
-	current_speed = initial_speed
-	is_game_over = false
-	# move Food to non-collision space before resetting snake + respawning
-	food.global_position = Vector3(-999.0, -999.0, -999.0)
-	_get_tree().reload_current_scene.call_deferred()
-
-
-func _set_disable_controls(value: bool) -> void:
-	set_process_input(not value)
+	# Defer scene reload to avoid setup/shutdown races.
+	get_tree().reload_current_scene.call_deferred()
 
 
 func _load_high_score() -> int:
@@ -136,8 +171,3 @@ func _save_high_score() -> void:
 		return
 	f.store_string(str(high_score))
 	f.close()
-
-
-func _apply_saved_theme_if_any() -> void:
-	# no persistent theme fields stored in this minimal build; reserved for extension
-	pass
