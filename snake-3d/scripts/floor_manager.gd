@@ -1,56 +1,92 @@
 class_name FloorManager extends Node3D
 
 @export var snake: Node3D
-@export var view_radius: int = 18
-@export var obstacle_chance: float = 0.25
+@export var camera: Camera3D
+@export var obstacle_density: float = 0.38
+@export var ca_iterations: int = 4
 @export var tile_size: float = 0.9
-
-# CA + WFC-inspired obstacle generation
-@export var obstacle_density: float = 0.45
-@export var ca_iterations: int = 3
-@export var min_cluster_size: int = 4
+@export var spawn_carve_radius: int = 4
 
 var rng: RandomNumberGenerator
 var active_tiles: Dictionary = {}
 var obstacles_parent: Node3D
 var obstacle_grid: Dictionary = {}
-var _last_center_cell: Vector3i = Vector3i(0x7fffffff, 0, 0x7fffffff)
+var _last_footprint: Rect2i = Rect2i()
+var _spawn_cell: Vector3i = Vector3i(0, 0, 0)
 
 
 func _ready() -> void:
 	rng = RandomNumberGenerator.new()
 	rng.randomize()
-	_update_tiles()
 
 	obstacles_parent = Node3D.new()
 	obstacles_parent.name = "Obstacles"
 	add_child(obstacles_parent)
 
-	var snake_node := get_node_or_null("../Snake")
-	if snake_node:
-		snake = snake_node
+	var main := get_node_or_null("/root/Main")
+	if main:
+		if snake == null:
+			snake = main.get_node_or_null("Snake")
+		if camera == null:
+			camera = main.get_node_or_null("Camera3D")
+
+	if snake:
+		var sx := int(round(snake.position.x / tile_size))
+		var sz := int(round(snake.position.z / tile_size))
+		_spawn_cell = Vector3i(sx, 0, sz)
+	else:
+		_spawn_cell = Vector3i(0, 0, 0)
+
+	_update_tiles()
 
 
 func _process(_delta: float) -> void:
 	_update_tiles()
 
 
+func _get_camera_footprint() -> Rect2i:
+	if not camera or not is_inside_tree():
+		return Rect2i()
+
+	var aspect: float = 1.777
+	var viewport = get_viewport()
+	if viewport and viewport.size.x > 0:
+		aspect = viewport.size.x / viewport.size.y
+
+	var height: float = max(camera.global_position.y, 0.01)
+	var half_fov: float = deg_to_rad(camera.fov / 2.0)
+	var ground_dist: float = height / tan(half_fov)
+	var forward: Vector3 = -camera.global_transform.basis.z
+	var near_center: Vector3 = camera.global_position + forward * ground_dist
+
+	var half_h: float = ground_dist * tan(half_fov) + 2.0
+	var half_w: float = half_h * aspect
+
+	var margin := 2
+	var min_x = int(floor((near_center.x - half_w) / tile_size)) - margin
+	var max_x = int(ceil((near_center.x + half_w) / tile_size)) + margin
+	var min_z = int(floor((near_center.z - half_h) / tile_size)) - margin
+	var max_z = int(ceil((near_center.z + half_h) / tile_size)) + margin
+
+	return Rect2i(min_x, min_z, max_x - min_x + 1, max_z - min_z + 1)
+
+
 func _update_tiles() -> void:
-	if not snake:
+	if snake == null:
 		return
 
-	var head: Vector3 = snake.global_position
-	var cx: int = int(round(head.x))
-	var cz: int = int(round(head.z))
-	var center_cell: Vector3i = Vector3i(cx, 0, cz)
+	var footprint := _get_camera_footprint()
+	if footprint == Rect2i():
+		return
 
-	if center_cell != _last_center_cell:
-		_last_center_cell = center_cell
-		_refresh_obstacles(cx, cz)
+	var bounds: Rect2i = footprint
+	if bounds != _last_footprint:
+		_last_footprint = bounds
+		_refresh_obstacles(bounds)
 
 	var needed: Dictionary = {}
-	for x: int in range(cx - view_radius, cx + view_radius + 1):
-		for z: int in range(cz - view_radius, cz + view_radius + 1):
+	for x in range(bounds.position.x, bounds.position.x + bounds.size.x):
+		for z in range(bounds.position.y, bounds.position.y + bounds.size.y):
 			var key: Vector3i = Vector3i(x, 0, z)
 			needed[key] = true
 			if not active_tiles.has(key):
@@ -64,30 +100,31 @@ func _update_tiles() -> void:
 		_despawn_tile(key)
 
 
-func _refresh_obstacles(cx: int, cz: int) -> void:
-	# Clear previous obstacles.
+func _in_bounds(bounds: Rect2i, x: int, z: int) -> bool:
+	return x >= bounds.position.x and x < bounds.position.x + bounds.size.x and z >= bounds.position.y and z < bounds.position.y + bounds.size.y
+
+
+func _refresh_obstacles(bounds: Rect2i) -> void:
 	for c in obstacles_parent.get_children():
 		remove_child(c)
 		c.queue_free()
 	obstacle_grid.clear()
 
-	var r: int = view_radius
-	var min_x: int = cx - r
-	var max_x: int = cx + r
-	var min_z: int = cz - r
-	var max_z: int = cz + r
-	var w: int = max_x - min_x + 1
-	var h: int = max_z - min_z + 1
+	var grid_min_x := bounds.position.x
+	var grid_min_z := bounds.position.y
+	var w := bounds.size.x
+	var h := bounds.size.y
 
-	# Initial noise based on global coordinates (deterministic).
 	var grid: Array = []
-	for x in range(min_x, max_x + 1):
+	var idx := 0
+	for x in range(grid_min_x, grid_min_x + w):
 		grid.append([])
-		for z in range(min_z, max_z + 1):
+		for z in range(grid_min_z, grid_min_z + h):
 			var noise := float(hash(Vector3i(x, 0, z)) % 1000) / 1000.0
-			grid[x - min_x].append(noise < obstacle_density)
+			grid[idx].append(noise < obstacle_density)
+		idx += 1
 
-	# CA smoothing to encourage clusters.
+	var wall_density := obstacle_density * 6.0
 	for _iter in range(ca_iterations):
 		var next: Array = grid.duplicate(true)
 		for x in range(w):
@@ -101,87 +138,65 @@ func _refresh_obstacles(cx: int, cz: int) -> void:
 					neighbors += 1
 				if z < h - 1 and grid[x][z + 1]:
 					neighbors += 1
+				if x > 0 and z > 0 and grid[x - 1][z - 1]:
+					neighbors += 1
+				if x < w - 1 and z > 0 and grid[x + 1][z - 1]:
+					neighbors += 1
+				if x > 0 and z < h - 1 and grid[x - 1][z + 1]:
+					neighbors += 1
+				if x < w - 1 and z < h - 1 and grid[x + 1][z + 1]:
+					neighbors += 1
 				if grid[x][z]:
-					if neighbors < 2:
-						next[x][z] = false
+					next[x][z] = neighbors >= 3 and neighbors <= 6
 				else:
-					if neighbors >= 3:
-						next[x][z] = true
+					next[x][z] = neighbors >= 5
 		grid = next
 
-	# Connected components -> merged obstacle shapes.
-	var visited: Array = []
-	for x in range(w):
-		visited.append([])
-		for z in range(h):
-			visited[x].append(false)
-
+	var carved := 0
+	var cx := _spawn_cell.x - grid_min_x
+	var cz := _spawn_cell.z - grid_min_z
 	for x in range(w):
 		for z in range(h):
-			if not grid[x][z] or visited[x][z]:
+			var dx := x - cx
+			var dz := z - cz
+			if dx * dx + dz * dz <= spawn_carve_radius * spawn_carve_radius:
+				grid[x][z] = false
+				carved += 1
+
+	if carved == 0 and w > 0 and h > 0:
+		var cx2: int = w / 2
+		var cz2: int = h / 2
+		var r2: int = max(3, w / 6)
+		for x in range(w):
+			for z in range(h):
+				var dx := x - cx2
+				var dz := z - cz2
+				if dx * dx + dz * dz <= r2 * r2:
+					grid[x][z] = false
+
+	for x in range(w):
+		for z in range(h):
+			if not grid[x][z]:
 				continue
-			var stack: Array = [Vector2i(x, z)]
-			visited[x][z] = true
-			var component: Array = []
-			while stack.size() > 0:
-				var cur: Vector2i = stack.pop_back()
-				component.append(cur)
-				for dir in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-					var nx = cur.x + dir.x
-					var nz = cur.y + dir.y
-					if nx < 0 or nz < 0 or nx >= w or nz >= h:
-						continue
-					if visited[nx][nz] or not grid[nx][nz]:
-						continue
-					visited[nx][nz] = true
-					stack.append(Vector2i(nx, nz))
-			if component.size() < min_cluster_size:
-				continue
 
-			var origin: Vector2i = component[0]
-			var comp_min_x: int = origin.x
-			var comp_max_x: int = origin.x
-			var comp_min_z: int = origin.y
-			var comp_max_z: int = origin.y
-			for idx in range(1, component.size()):
-				var p: Vector2i = component[idx]
-				if p.x < comp_min_x:
-					comp_min_x = p.x
-				if p.x > comp_max_x:
-					comp_max_x = p.x
-				if p.y < comp_min_z:
-					comp_min_z = p.y
-				if p.y > comp_max_z:
-					comp_max_z = p.y
-
-			var world_x1 := float(min_x + comp_min_x)
-			var world_x2 := float(min_x + comp_max_x)
-			var world_z1 := float(min_z + comp_min_z)
-			var world_z2 := float(min_z + comp_max_z)
-
-			var size_x := (world_x2 - world_x1 + 1.0) * tile_size
-			var size_z := (world_z2 - world_z1 + 1.0) * tile_size
-			var center_x := (world_x1 + world_x2) / 2.0
-			var center_z := (world_z1 + world_z2) / 2.0
+			var world_x := float(grid_min_x + x)
+			var world_z := float(grid_min_z + z)
+			var key := Vector3i(int(round(world_x)), 0, int(round(world_z)))
+			obstacle_grid[key] = true
 
 			var obstacle: MeshInstance3D = MeshInstance3D.new()
-			obstacle.name = "Obstacle"
+			obstacle.name = "Wall"
 			var om := BoxMesh.new()
-			om.size = Vector3(size_x, tile_size * 0.55, size_z)
+			om.size = Vector3(tile_size * 0.85, tile_size * 0.55, tile_size * 0.85)
 			var omat := StandardMaterial3D.new()
 			var hue: float = rng.randf()
-			var pastel := Color.from_hsv(hue, 0.35, 0.92, 1.0)
+			var pastel := Color.from_hsv(hue, 0.25, 0.88, 1.0)
 			omat.albedo_color = pastel
-			omat.roughness = 0.3
+			omat.roughness = 0.25
 			obstacle.material_override = omat
 			obstacle.mesh = om
-			obstacle.position = Vector3(center_x, tile_size * 0.3, center_z)
-
+			obstacle.position = Vector3(world_x, tile_size * 0.3, world_z)
 			obstacles_parent.add_child(obstacle)
-
-			for p in component:
-				var key := Vector3i(min_x + p.x, 0, min_z + p.y)
-				obstacle_grid[key] = true
 
 
 func _spawn_tile(key: Vector3i) -> void:
