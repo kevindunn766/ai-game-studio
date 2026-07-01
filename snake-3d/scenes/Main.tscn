@@ -1,10 +1,9 @@
-[gd_scene load_steps=11 format=3 uid="uid://d92k3p8m2xsn"]
+[gd_scene load_steps=10 format=3 uid="uid://d92k3p8m2xsn"]
 
 [ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_gm"]
 [ext_resource type="Script" path="res://scripts/snake.gd" id="2_snake"]
 [ext_resource type="Script" path="res://scripts/food.gd" id="3_food"]
 [ext_resource type="Script" path="res://scripts/score_label.gd" id="4_score"]
-[ext_resource type="Script" path="res://scripts/camera_controller.gd" id="5_cam"]
 
 [sub_resource type="StandardMaterial3D" id="MatFloor"]
 albedo_color = Color(0.08, 0.08, 0.08, 1.0)
@@ -67,17 +66,11 @@ material_override = SubResource("MatGrid")
 mesh = SubResource("MeshBox")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 22, 22)
-script = ExtResource("5_cam")
+transform = Transform3D(0.87, -0.28, 0.41, 0, 0.82, 0.57, -0.5, -0.5, 0.71, 18, 18, 18)
 current = true
 fov = 55.0
 near = 0.1
 far = 120.0
-target = NodePath("../Snake")
-height = 18.0
-distance = 18.0
-look_ahead = 3.0
-smooth = 5.0
 
 [node name="Snake" type="Node3D" parent="."]
 script = ExtResource("2_snake")
