@@ -1,0 +1,45 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://cplayable001" path="res://scripts/Playable.gd" id="1"]
+[ext_resource type="PackedScene" uid="uid://cplayer001" path="res://scenes/Player.tscn" id="2"]
+[ext_resource type="Script" uid="uid://ctouch001" path="res://scripts/TouchControls.gd" id="3"]
+
+[node name="Playable" type="Node3D"]
+script = ExtResource("1_0")
+
+[node name="World" type="Node3D" parent="."]
+
+[node name="Player" parent="." instance=ExtResource("2_1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="CameraRig" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -8)
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 0.866, 0.5, 0, -0.5, 0.866, 0, 2, 0)
+fov = 60.0
+near = 0.1
+far = 500.0
+
+[node name="TouchControls" type="CanvasLayer" parent="."]
+script = ExtResource("3_0")
+
+[node name="UIRoot" type="CanvasLayer" parent="."]
+
+[node name="ScoreLabel" type="Label" parent="UIRoot"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 220.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "Score: 0"
+
+[node name="HighScoreLabel" type="Label" parent="UIRoot"]
+offset_left = 20.0
+offset_top = 70.0
+offset_right = 320.0
+offset_bottom = 110.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 24
+text = "Best: 0"

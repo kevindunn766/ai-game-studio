@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(godot --*)",
+      "Bash(gdscl --*)",
+      "Bash(pwd --*)",
+      "Bash(ls --*)",
+      "Read",
+      "Write",
+      "Edit"
+    ],
+    "ask": [],
+    "deny": []
+  },
+  "autoAcceptEdits": true
+}

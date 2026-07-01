@@ -1,0 +1,28 @@
+# Godot
+.godot/
+.import/
+export/
+
+# Godot 4+ specific
+*.translation
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Game exports
+*.apk
+*.x86_64
+*.exe
+*.dmg
+
+# temp files
+*.tmp
+*.temp
+
+# Windows device files
+nul

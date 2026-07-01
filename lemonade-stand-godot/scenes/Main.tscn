@@ -1,0 +1,88 @@
+[gd_scene load_steps=2 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/Main.gd" id="1_Main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_Main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 0.88, 0.34, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 20.0
+offset_bottom = 70.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 36
+text = "🍋 Lemonade Stand"
+horizontal_alignment = 1
+
+[node name="CoinsLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 80.0
+offset_bottom = 130.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 26
+text = "Coins: 0"
+horizontal_alignment = 1
+
+[node name="PerClickLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -40.0
+theme_override_font_sizes/font_size = 18
+text = "Per click: 1"
+
+[node name="PerSecLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 220.0
+offset_top = -80.0
+offset_right = 420.0
+offset_bottom = -40.0
+theme_override_font_sizes/font_size = 18
+text = "Per sec: 0"
+
+[node name="SellButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -180.0
+offset_top = 160.0
+offset_right = 180.0
+offset_bottom = 280.0
+theme_override_font_sizes/font_size = 28
+text = "SELL LEMONADE"
+
+[node name="UpgradesContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -500.0
+offset_right = -20.0
