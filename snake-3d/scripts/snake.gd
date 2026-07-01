@@ -28,6 +28,10 @@ func set_direction(dir: Vector3) -> void:
 	next_direction = dir
 
 
+func get_direction() -> Vector3:
+	return direction
+
+
 func step() -> bool:
 	direction = next_direction
 
