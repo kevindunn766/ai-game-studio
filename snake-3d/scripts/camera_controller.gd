@@ -26,7 +26,9 @@ func _ready() -> void:
 	if not is_instance_valid(_spring):
 		return
 
-	position = Vector3(0.0, 0.0, 0.0)
+	# Place camera at the tip of the spring arm so it actually looks
+	# down the arm at the snake instead of sitting at the pivot joint.
+	position = Vector3(0.0, 0.0, -_current_dist)
 	_current_dist = distance
 	_initialized = true
 
@@ -60,6 +62,7 @@ func _process(delta: float) -> void:
 	var desired_dist: float = distance + segs * growth_per_segment
 	_current_dist = lerp(_current_dist, desired_dist, clamp(delta * smooth, 0.0, 1.0))
 	_spring.spring_length = _current_dist
+	position = Vector3(0.0, 0.0, -_current_dist)
 
 	# Set spring arm to isometric angle.
 	_spring.rotation = Vector3(deg_to_rad(35.264), 0.0, 0.0)
