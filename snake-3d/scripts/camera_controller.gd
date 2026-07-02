@@ -1,16 +1,20 @@
 class_name CameraController extends Camera3D
 
 @export var target: Node3D
-@export var base_distance: float = 13.5
+@export var base_distance: float = 14.0
 @export var growth_per_segment: float = 0.4
-@export var smooth: float = 5.0
-@export var pivot_height: float = 2.0
-@export var height: float = 0.8
-@export var look_ahead: float = 3.0
+@export var smooth: float = 4.0
+@export var pivot_height: float = 3.0
+@export var look_ahead: float = 2.5
+
+@export var tilt_fov: float = 35.0
+@export var tilt_near: float = 0.5
+@export var tilt_far: float = 180.0
 
 var _pivot: Node3D
 var _spring: SpringArm3D
 var _initialized: bool = false
+var _current_dist: float = 0.0
 
 
 func _ready() -> void:
@@ -26,10 +30,14 @@ func _ready() -> void:
 	if not is_instance_valid(_spring):
 		return
 
-	position = Vector3(0.0, height, 0.0)
+	position = Vector3(0.0, 0.0, 0.0)
+	_current_dist = base_distance
 	_initialized = true
 
 	current = true
+	fov = tilt_fov
+	near = tilt_near
+	far = tilt_far
 
 
 func _process(delta: float) -> void:
@@ -40,8 +48,8 @@ func _process(delta: float) -> void:
 	var dir: Vector3 = Vector3.ZERO
 	if target.has_method("get_direction"):
 		dir = target.get_direction()
-
 	var back: Vector3 = -dir if dir != Vector3.ZERO else Vector3.BACK
+
 	_pivot.global_position = head + Vector3(0.0, pivot_height, 0.0)
 	_pivot.look_at(_pivot.global_position + back, Vector3.UP)
 
@@ -51,10 +59,8 @@ func _process(delta: float) -> void:
 			segs += 1
 
 	var desired: float = base_distance + segs * growth_per_segment
-	_spring.spring_length = clamp(
-		lerp(_spring.spring_length, desired, clamp(delta * smooth, 0.0, 1.0)),
-		base_distance,
-		base_distance + 99.0 * growth_per_segment
-	)
+	_current_dist = lerp(_current_dist, desired, clamp(delta * smooth, 0.0, 1.0))
+	_spring.spring_length = _current_dist
 
+	rotation_degrees = Vector3(58.0, 0.0, 0.0)
 	look_at(head + back * look_ahead, Vector3.UP)
