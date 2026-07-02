@@ -61,11 +61,8 @@ func _process(delta: float) -> void:
 	_current_dist = lerp(_current_dist, desired_dist, clamp(delta * smooth, 0.0, 1.0))
 	_spring.spring_length = _current_dist
 
-	# ADAPTIVE ISOMETRIC CAMERA TRANSFORM (fixed angles, snake position only as anchor).
-	# This adds isometric world-axis values; it does NOT copy snake axes.
-	var iso_elev: float = distance
-	var iso_azim: float = distance * 0.612
-	var cam_world: Vector3 = head + Vector3(iso_azim, iso_elev, iso_azim)
-	var look_target: Vector3 = head + Vector3(iso_azim * 0.5, height * 0.6, iso_azim * 0.5)
-	global_position = global_position.lerp(cam_world, clamp(delta * smooth, 0.0, 1.0))
-	look_at(look_target, Vector3.UP)
+	# Set spring arm to isometric angle.
+	_spring.rotation = Vector3(deg_to_rad(35.264), 0.0, 0.0)
+
+	# Elevated look target through inherited crane-arm transform.
+	look_at(head + Vector3.UP * look_height, Vector3.UP)
