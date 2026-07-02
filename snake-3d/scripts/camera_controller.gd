@@ -26,10 +26,10 @@ func _ready() -> void:
 	if not is_instance_valid(_spring):
 		return
 
+	_current_dist = distance
 	# Place camera at the tip of the spring arm so it actually looks
 	# down the arm at the snake instead of sitting at the pivot joint.
 	position = Vector3(0.0, 0.0, -_current_dist)
-	_current_dist = distance
 	_initialized = true
 
 	current = true
