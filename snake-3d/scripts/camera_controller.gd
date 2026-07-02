@@ -7,9 +7,9 @@ class_name CameraController extends Camera3D
 @export var pivot_height: float = 3.0
 @export var look_ahead: float = 2.5
 
-@export var tilt_fov: float = 35.0
-@export var tilt_near: float = 0.5
-@export var tilt_far: float = 180.0
+@export var tilt_fov: float = 32.0
+@export var tilt_near: float = 0.1
+@export var tilt_far: float = 150.0
 
 var _pivot: Node3D
 var _spring: SpringArm3D
