@@ -1,44 +1,39 @@
 class_name CameraController extends Camera3D
 
 @export var target: Node3D
-@export var distance: float = 13.5
-@export var height: float = 13.5
-@export var look_ahead: float = 3.0
+@export var base_distance: float = 13.5
+@export var growth_per_segment: float = 0.4
 @export var smooth: float = 5.0
 @export var pivot_height: float = 2.0
+@export var height: float = 0.8
+@export var look_ahead: float = 3.0
 
 var _pivot: Node3D
 var _spring: SpringArm3D
-var _current_offset: Vector3 = Vector3.ZERO
+var _initialized: bool = false
 
 
 func _ready() -> void:
 	if not target:
 		return
 
-	_pivot = Node3D.new()
-	_pivot.name = "CameraCranePivot"
-	target.add_child(_pivot)
+	var seg0: Node3D = target.get_node_or_null("Seg0")
+	if not is_instance_valid(seg0):
+		return
 
-	_spring = SpringArm3D.new()
-	_spring.name = "SpringArm3D"
-	_pivot.add_child(_spring)
+	_pivot = seg0.get_node_or_null("CameraCranePivot")
+	_spring = _pivot.get_node_or_null("SpringArm3D") if _pivot else null
+	if not is_instance_valid(_spring):
+		return
 
-	if get_parent() != _spring:
-		var parent = get_parent()
-		if parent:
-			parent.remove_child(self)
-		_spring.add_child(self)
+	position = Vector3(0.0, height, 0.0)
+	_initialized = true
 
-	_spring.spring_length = distance
-	_spring.collision_mask = 0
-
-	_current_offset = _compute_crane_offset()
-	global_position = target.global_position + _current_offset
+	current = true
 
 
 func _process(delta: float) -> void:
-	if not target or not _pivot or not _spring:
+	if not _initialized or not target or not _pivot or not _spring:
 		return
 
 	var head: Vector3 = target.global_position
@@ -50,16 +45,16 @@ func _process(delta: float) -> void:
 	_pivot.global_position = head + Vector3(0.0, pivot_height, 0.0)
 	_pivot.look_at(_pivot.global_position + back, Vector3.UP)
 
-	var desired: Vector3 = _compute_crane_offset()
-	_current_offset = _current_offset.lerp(desired, clamp(delta * smooth, 0.0, 1.0))
-	global_position = head + _current_offset
+	var segs: int = 0
+	for child: Node in target.get_children():
+		if child is Node3D and child.name.begins_with("Seg"):
+			segs += 1
+
+	var desired: float = base_distance + segs * growth_per_segment
+	_spring.spring_length = clamp(
+		lerp(_spring.spring_length, desired, clamp(delta * smooth, 0.0, 1.0)),
+		base_distance,
+		base_distance + 99.0 * growth_per_segment
+	)
 
 	look_at(head + back * look_ahead, Vector3.UP)
-
-
-func _compute_crane_offset() -> Vector3:
-	var dir: Vector3 = Vector3.ZERO
-	if target and target.has_method("get_direction"):
-		dir = target.get_direction()
-	var back: Vector3 = -dir if dir != Vector3.ZERO else Vector3.BACK
-	return back * distance + Vector3(0.0, height, 0.0)

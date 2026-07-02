@@ -82,26 +82,56 @@ func _setup_materials() -> void:
 
 func _clear_segment_nodes() -> void:
 	for c: Node in get_children():
+		if c.name == "CameraCranePivot":
+			continue
+		if c.name == "Seg0" and c.get_node_or_null("CameraCranePivot"):
+			continue
 		remove_child(c)
 		c.queue_free()
 
 
 func _segments_changed() -> void:
 	_clear_segment_nodes()
-	for idx: int in segments.size():
+
+	var existing_head: Node3D = get_node_or_null("Seg0")
+	if not existing_head:
+		existing_head = Node3D.new()
+		existing_head.name = "Seg0"
+		add_child(existing_head)
+
+	existing_head.position = segments[0] if not segments.is_empty() else Vector3.ZERO
+
+	for child: Node in existing_head.get_children():
+		if child.name == "CameraCranePivot":
+			continue
+		remove_child(child)
+		child.queue_free()
+
+	var mesh_node := MeshInstance3D.new()
+	mesh_node.name = "Mesh"
+	var m := BoxMesh.new()
+	m.size = Vector3(0.85, 0.85, 0.85)
+	mesh_node.mesh = m
+	mesh_node.set_surface_override_material(
+		0,
+		head_material
+	)
+	existing_head.add_child(mesh_node)
+
+	for idx: int in range(1, segments.size()):
 		var seg: Vector3 = segments[idx]
 		var node := Node3D.new()
 		node.name = "Seg%d" % idx
 		node.position = seg
 
-		var mesh_node := MeshInstance3D.new()
-		mesh_node.name = "Mesh"
-		var m := BoxMesh.new()
-		m.size = Vector3(0.85, 0.85, 0.85)
-		mesh_node.mesh = m
-		mesh_node.set_surface_override_material(
+		var mesh_node2 := MeshInstance3D.new()
+		mesh_node2.name = "Mesh"
+		var m2 := BoxMesh.new()
+		m2.size = Vector3(0.85, 0.85, 0.85)
+		mesh_node2.mesh = m2
+		mesh_node2.set_surface_override_material(
 			0,
-			head_material if idx == 0 else body_material
+			body_material
 		)
-		node.add_child(mesh_node)
+		node.add_child(mesh_node2)
 		add_child(node)

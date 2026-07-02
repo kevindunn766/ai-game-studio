@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://d92k3p8m2xsn"]
+[gd_scene load_steps=9 format=3 uid="uid://d92k3p8m2xsn"]
 
 [ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_gm"]
 [ext_resource type="Script" path="res://scripts/snake.gd" id="2_snake"]
@@ -32,9 +32,18 @@ obstacle_density = 0.38
 ca_iterations = 4
 spawn_carve_radius = 4
 
-[node name="CameraCranePivot" type="Node3D" parent="."]
+[node name="Snake" type="Node3D" parent="."]
+script = ExtResource("2_snake")
 
-[node name="Camera3D" type="Camera3D" parent="CameraCranePivot"]
+[node name="Seg0" type="Node3D" parent="Snake"]
+
+[node name="CameraCranePivot" type="Node3D" parent="Snake/Seg0"]
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Snake/Seg0/CameraCranePivot"]
+spring_length = 13.9
+collision_mask = 0
+
+[node name="Camera3D" type="Camera3D" parent="Snake/Seg0/CameraCranePivot/SpringArm3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("6_cam")
 target = NodePath("/root/Main/Snake")
@@ -42,9 +51,6 @@ current = true
 fov = 55.0
 near = 0.1
 far = 150.0
-
-[node name="Snake" type="Node3D" parent="."]
-script = ExtResource("2_snake")
 
 [node name="Food" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.55, 11)
