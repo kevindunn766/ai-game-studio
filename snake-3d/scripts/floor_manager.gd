@@ -106,7 +106,7 @@ func _in_bounds(bounds: Rect2i, x: int, z: int) -> bool:
 
 func _refresh_obstacles(bounds: Rect2i) -> void:
 	for c in obstacles_parent.get_children():
-		remove_child(c)
+		obstacles_parent.remove_child(c)
 		c.queue_free()
 	obstacle_grid.clear()
 
