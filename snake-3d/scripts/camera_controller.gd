@@ -31,6 +31,7 @@ func _ready() -> void:
 		return
 
 	position = Vector3(0.0, 0.0, 0.0)
+	rotation = Vector3(-1.05, 0.0, 0.0)
 	_current_dist = base_distance
 	_initialized = true
 
@@ -61,6 +62,3 @@ func _process(delta: float) -> void:
 	var desired: float = base_distance + segs * growth_per_segment
 	_current_dist = lerp(_current_dist, desired, clamp(delta * smooth, 0.0, 1.0))
 	_spring.spring_length = _current_dist
-
-	rotation_degrees = Vector3(58.0, 0.0, 0.0)
-	look_at(head + back * look_ahead, Vector3.UP)
