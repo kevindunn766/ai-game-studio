@@ -28,7 +28,7 @@ func _ready() -> void:
 		if snake == null:
 			snake = main.get_node_or_null("Snake")
 		if camera == null:
-			camera = main.get_node_or_null("Camera3D")
+			camera = main.get_node_or_null("Snake/Seg0/CameraCranePivot/SpringArm3D/Camera3D")
 
 	if snake:
 		var sx := int(round(snake.position.x / tile_size))

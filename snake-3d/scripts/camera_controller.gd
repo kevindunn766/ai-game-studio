@@ -66,3 +66,5 @@ func _process(delta: float) -> void:
 
 	# Elevated look target through inherited crane-arm transform.
 	look_at(head + Vector3.UP * look_height, Vector3.UP)
+
+
