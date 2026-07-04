@@ -295,7 +295,7 @@ P2 = polish, can iterate post-launch
 ## Splash / First Screen (LOCKED)
 
 - The **splash screen is the first thing the player sees**, before title/load.
-- Source image: `assets/ui/splash/splash_1080x1920.png` (portrait 1080x1920) and `splash_1920x1080.png` (landscape fallback).
+- Source image: `assets/ui/splash/splash_1080x1920.png` (portrait 1080x1920) and `assets/ui/splash/splash_1920x1080.png` (landscape fallback).
 - Behavior: display full-bleed for `SPLASH_DURATION` seconds, then transition to title screen.
 - No buttons or interactivity on splash — it is purely atmospheric branding.
 - Sound: plays a short 1-2 second chiptune fanfare sting during splash.
