@@ -1,6 +1,10 @@
 # AI Game Studio — Design Brief
 
-**Working directory:** `C:\Users\kevin\game-studio`
+**Working directory:** `C:\Users\kevin\game-studio` (original machine) — also
+worked from `C:\Users\Mr. Dunn\game-studio-work\ai-game-studio` on a second
+machine; Godot binary there: `C:\Users\Mr. Dunn\Downloads\Godot_v4.7-stable_win64.exe\Godot_v4.7-stable_win64.exe`
+(the download unpacked into a folder of the same name as the .exe — the real
+binary is nested one level in).
 **Engine:** Godot 4.7 (win64, GL Compatibility renderer)
 **Goal:** End-to-end AI game studio — plain-English ideas → fully built games with AI supervision.
 **Git remote:** `https://github.com/kevindunn766/ai-game-studio.git`
@@ -48,6 +52,44 @@
 - Camera faces downward along negative Z axis (set in editor, not overridden in code).
 - Core features to retain if rebuilt: distance scoring, 3-crack death system, boundary walls, periodic section color shifts, procedural background.
 - **Pending decision:** Simplify/fix existing code vs. rebuild from locked design brief.
+
+### 4. Stack Rush (stack-rush/) ✅ PROTOTYPE COMPLETE
+- Hyper-casual stack-tower game. Tap/click/space drops a moving block; overlap
+  becomes the new block, overhang slices off and falls.
+- Zero overlap = game over. Camera rises with the tower. High score via
+  `user://stackrush_highscore.cfg`.
+- Headless-verified: clean load (no script/parse errors) + scripted self-test
+  exercising drop, slice, game-over, and restart paths — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 5. Spiral Drop (spiral-drop/) ✅ PROTOTYPE COMPLETE
+- Hyper-casual helix-descent game. Ball falls down a fixed vertical line;
+  rotate the tower (A/D, arrows, or click/touch-drag) so each gate's gap
+  lines up with the ball before it arrives.
+- Endless gate generation. High score via `user://spiraldrop_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering forced-pass,
+  forced-miss (game over), and restart — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 6. Timber Tap (timber-tap/) ✅ PROTOTYPE COMPLETE
+- Hyper-casual Timberman-style chopper (2D, portrait). Tap left/right half of
+  screen (or A/D, arrow keys) to chop from that side; a branch on the tapped
+  side ends the run. Shrinking timer forces the pace.
+- High score via `user://timbertap_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering safe chops,
+  forced hit (game over), timeout, and restart — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 7. Merge Numbers (merge-numbers/) ✅ PROTOTYPE COMPLETE
+- Hyper-casual 2048-style merge puzzle (2D, portrait), riding the 2026
+  merge-mechanic trend (see `RESEARCH.md`). Swipe or arrow keys slide the
+  4x4 grid; equal tiles merge; game over when the board is full and no
+  merges remain.
+- High score via `user://mergenumbers_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering line-merge
+  math, a live grid move, full-board game-over detection, and restart —
+  all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
 
 ---
 
@@ -112,3 +154,5 @@
 4. **PR management workflow**: Beyond GitHub MCP — formalize PR creation, review, merge workflow.
 5. **Canonical Godot verification**: No project has had a formal playtest + user confirmation since latest edits.
 6. **Git push of latest commits**: Local commits exist for snake-3d scaffold but push keeps timing out.
+7. **User F5 playtest of the 4 new prototypes** (stack-rush, spiral-drop, timber-tap, merge-numbers): these were verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, and touch/mouse controls on this machine before calling any of them "done."
+8. **Polish pass** (once user picks favorites among the 4 new prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
