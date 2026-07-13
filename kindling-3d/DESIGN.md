@@ -1,0 +1,133 @@
+# Kindling — Design & Implementation Notes
+
+Source of truth for intent is `../kindling-design-brief.md`. This file tracks what's actually been *built*, mirroring snake-3d/DESIGN.md's "confirmed mechanics" convention — but unlike that file, most of the sections below were built autonomously in one long overnight session and are **pending your review**, not yet confirmed-by-use the way snake-3d's entries are. Treat "Built" here as "implemented and headlessly verified," not "locked."
+
+## Start here for a clean restart
+
+- **Nothing is committed to git.** `kindling-3d/` and `kindling-design-brief.md` are both fully untracked. First decision on restart: commit, or keep iterating uncommitted.
+- **Only Band 1 has been looked at in a real running game**, and it took two follow-up bug-fix passes to actually work (see "Real-world scale system" and "Band 1 fuel density fix" below) — both bugs were completely invisible to headless testing and only surfaced from an actual in-editor look. **Assume Bands 2-9 have similar undiscovered bugs** until someone opens the editor and looks. Don't trust "all tests pass" as evidence the game looks or plays right — it only proves the logic is internally consistent, not that anything renders or feels correct.
+- **Nothing is playtested.** Every charge/grow target, hazard shrink amount, threat timing, and fuel density across all 9 bands is a placeholder number, tuned by feel/analogy, not by anyone actually playing it.
+- **Milestone 3 (Power-ups & Dynamic Events) is the one deliberately unbuilt thing** — a starter roster proposal is below, waiting on your approval, not an oversight or something skipped by accident.
+- Full priority-ordered next-steps list is in `../kindling-design-brief.md`'s new header block — that's the entry point, this file is the detail/reasoning behind each entry.
+
+## Real-world scale system (fixed after first in-editor look, see below)
+
+**Hard project-wide rule: 1 Godot unit = 1 meter.** `GrowthController.flame_scale` is a literal real-world size in meters, not an abstract multiplier — Band 1 (Match) is 0.02-0.08m, Band 2 (Small Fire) 0.08-0.25m, Band 3 (Small-Medium) 0.25-0.6m. `Flame.mesh.scale` is driven directly from this value, so the flame is a genuinely tiny ~2cm box at the start of a run next to an ~8m tree.
+
+This was **not** how it originally shipped — `flame_scale` started at an abstract `1.0` against a 1×1×1 base mesh, meaning the flame began life as a literal 1-cubic-meter box (bigger than a beach ball), and the camera/LOD/reach formulas were all tuned against that same abstract 1.0-5.5 range. Caught via Kevin's first real in-editor look: flame read as already-huge with no legible size relationship to the tree, the 40m yard felt like a small box with no room to explore, particles were imperceptibly tiny, and the scorch trail was flat opaque squares that never visibly grew. Root cause was the same thing in every case — nothing in the game had ever been anchored to real-world meters. Fixed by:
+- `growth_controller.gd::BAND_TABLE` scale_min/scale_max → real meters (above).
+- `camera_controller.gd` completely recalibrated (`BASE_SIZE`/`SIZE_PER_SCALE_UNIT`/`MIN_SIZE`) — ortho `size` now ranges ~0.43m (tight close-up) to ~2.5m across Bands 1-3, a real ~6x zoom-out, and the 40m parcel now reads as expansive since it's ~15-90x the visible frame instead of comparable to it.
+- `flame.gd` ignite/jump reach decoupled from pure mesh-scale inheritance (IgniteArea moved from a child of Mesh to a direct child of Flame) — a literal 2cm flame proportionally scaled would never reach anything, so reach now uses a base-reach-plus-growth formula (`ignite_base_reach + scale_factor * ignite_reach_growth`, same shape for jump radius/fallback distance) instead.
+- `Flame.mesh.position.y` now tracks `scale_factor * 0.5` dynamically (was a fixed 0.5 assuming ~1m scale) so the flame stays grounded instead of floating/clipping as it grows.
+- Every `active_while_scale_below`/`active_scale_range` threshold across `prop_manager.gd`'s four tier tables (Quick Fuel, Structure Fuel, Hazards, Dousing Threats) rescaled to match — these would never have triggered correctly against the new tiny flame_scale range otherwise. Streaming radius constants (`VIEW_SPAN_MARGIN`/`BASE_PADDING`) retuned for the new small camera sizes too.
+- Movement trail's scorch mark rebuilt as an actual shader (`shaders/scorch.gdshader`, UV-distance soft-circle falloff) replacing a flat opaque `BoxMesh` — was also sized off the old abstract scale range and would have rendered as an invisible sliver under the new real-meter numbers. Ember/ignite/structure-fuel burn particles bumped in size for visibility now that the camera is properly zoomed in.
+- House foundation bumped from 6×8m (shed-sized) to a more realistic 10×14m footprint.
+
+Landmark props (tree trunk, Quick Fuel dimensions like a 4cm grass blade or 30cm twig) were already built in sensible real-world meters from the start and didn't need changing — it was specifically the flame's own scale progression and everything derived from it that was wrong.
+
+**Grass tuft visual**: `dry_grass` (Band 1 Quick Fuel) is an upside-down `CylinderMesh` cone — `top_radius` wide, `bottom_radius` 0, so the point sits at the ground and the "leaves" flare out at the top (opposite orientation from `pine_needle`'s normal point-up cone below it).
+
+## Band 1 fuel density fix (second in-editor look — Kevin reported an empty-looking view)
+
+Even after the scale fix above, Band 1 read as empty in the editor: "just a box on a green background, nothing moving because there aren't any items." The fuel *was* there in `BAND_TABLE`/`PROP_TIERS` (`twig`, `wrapper`, `leaf_litter`, `dry_grass`, all correctly gated), but three compounding problems meant almost none of it was ever actually visible:
+
+1. `dry_grass`'s density/cell_size (0.6 density, 0.5m cells) was carried over unchanged from before the real-world-meters fix. Against the tiny ~0.43×0.24m camera view at match-scale, that math works out to well under 1 expected blade anywhere on screen at any moment. Fixed: cell_size 0.5→0.07m, density 0.6→0.85 (same treatment for `leaf_litter`, `twig`). Since cell placement is a deterministic hash of position (not randomized per run), this wasn't occasional bad luck — it was the exact same empty patch every single time the game launched, confirmed via a headless check before and after (0 instances within the visible radius → dozens).
+2. That density increase then revealed a second problem: the flame's passive ignite radius sweeping through such dense grass while merely walking pumped in far more Growth Points than intended — a headless walk test showed the flame rocketing from Band 1 to Band 8 (scale 81.8m) within about 90 frames of normal movement. Fixed by decoupling visual density from growth economy: `dry_grass`/`leaf_litter` `charge_value` dropped an order of magnitude (0.6→0.08, 0.5→0.06) so the grass field is dense to look at but any single blade is nearly worthless as fuel, matching real-world intuition (a lawn looks like a lot of grass; burning one blade barely does anything). Re-verified: a full walk now lands at scale ≈0.07m, still inside Band 1, not blown through to Band 8.
+3. Even at fixed density, the flame's own ignite radius (~0.11-0.14m at match-scale) auto-consumes anything that spawns that close almost the instant it appears — a small permanent "dead zone" right at the flame. The old camera view (`MIN_SIZE`/`BASE_SIZE` 0.4/0.35) left almost no margin beyond that dead zone, so most of what was visible *was* the cleared void. `camera_controller.gd` widened to 0.7/0.6 so there's a real ring of dense, un-eaten fuel visible outside the dead zone. Confirmed via headless check: 44 `dry_grass` + 28 `leaf_litter` instances now inside the visible radius at match-scale, up from 0.
+
+**Known tradeoff, not yet addressed**: the density increase means ~3,200 individual Fuel nodes active at the top of Band 1's range (each with its own `Area3D`/`CollisionShape3D`/`MeshInstance3D`, so ~13,000 real scene nodes). This is what actually fixes the reported bug and hasn't caused a headless timeout/crash in testing, but it's a real performance concern for a mobile target — grass at this density is a textbook case for `MultiMeshInstance3D` batching instead of one node per blade. Flagging for a follow-up pass rather than solving now, since the immediate bug (nothing visible) is more urgent than a performance optimization that hasn't been proven to actually cause problems on-device yet.
+
+## Epoch registry — tracking which objects spawn during which scale band
+
+`PropManager.get_epoch_registry() -> Dictionary` maps each `GrowthController` band index to the list of tier ids (Quick Fuel, Structure Fuel, Hazard, and Dousing Threat together) that are eligible to spawn once the flame reaches that band's midpoint scale. It's derived by running the same `_should_spawn_detail()` gate the real streaming logic uses — not a hand-maintained parallel table — so it can't silently drift out of sync with the actual spawn thresholds the way the scale-mismatch bug above did (that bug was exactly this failure mode: thresholds that looked right on paper but never actually triggered).
+
+Verified in `tests/test_epoch_spawn_verification.gd`: registry structure, cross-checked against `GrowthController.BAND_TABLE`'s own `fuel_tiers` lists (so the growth-eligibility table and the world-spawn table can't disagree about which band a fuel belongs to), and a deterministic density scan (`_raw_should_spawn` across a wide synthetic cell range, not live streaming) confirming every tier the registry lists for a band is actually capable of spawning there — and that tiers *not* listed for a band actually don't. The deterministic scan is deliberate: sparse tiers (`cat`, `dew_drop`, density 0.015-0.02) may not appear in a real playthrough's short/local streaming footprint by chance, which would make a live-only check flaky without indicating a real bug.
+
+Current registry (all nine bands, see "All 9 bands" section below):
+- Band 0 (Match): `dry_grass, twig, wrapper, leaf_litter, ant, fly, dew_drop`
+- Band 1 (Small Fire): `small_plant, pine_needle, twig_nest, beetle, earthworm, moth, squirt_bottle`
+- Band 2 (Small-Medium): `brush_pile, dry_shrub, cardboard_box, bird, cat, sprinkler`
+- Band 3 (Medium): `campfire_log, kindling_pile, wooden_fence, dog, person_blanket, garden_hose`
+- Band 4 (Medium-Large): `tree_grove, shed, car, homeowner, fire_extinguisher`
+- Band 5 (Large): `tree_stand, house, resident, security_guard, hose_reel_firefighter`
+- Band 6 (Extra-Large): `city_block, first_responder, fire_truck_pumper`
+- Band 7 (Extra-Extra-Large): `forest_section, neighborhood_block, fire_crew, ladder_company`
+- Band 8 (Massive): `district, evacuee, water_bomber`
+
+(Registry entries above are each band's *unique* tiers at its exact midpoint; adjacent bands overlap at their boundaries by design, same as Bands 1-3 already did — e.g. Band 2 and Band 3 both spawn `brush_pile`/`dry_shrub` right at their shared transition, so growth doesn't feel like a hard cutoff.)
+
+## All 9 bands built
+
+Per the brief's own Build Milestones ("5. Remaining bands, one at a time, each logged into the Asset Registry as built"), Bands 4-9 (Medium through Massive) are now built — same grey-box-primitive pattern as Bands 1-3, no new mechanics, just more `BAND_TABLE`/`PROP_TIERS`/`STRUCTURE_FUEL_TIERS`/`HAZARD_TIERS`/`DOUSING_THREAT_TIERS` entries and matching visual-builder cases. Real-world-meter scale progression continues Band 3's escalation:
+
+| Band | Name | Scale range | Quick Fuel | Structure Fuel | Hazards | Dousing Threat |
+|---|---|---|---|---|---|---|
+| 3 | Medium | 0.6-1.6m | campfire_log, kindling_pile | wooden_fence | dog, person_blanket | garden_hose |
+| 4 | Medium-Large | 1.6-4.0m | tree_grove | shed, car | homeowner | fire_extinguisher |
+| 5 | Large | 4.0-9.0m | tree_stand | house | resident, security_guard | hose_reel_firefighter |
+| 6 | Extra-Large | 9.0-22.0m | — | city_block | first_responder | fire_truck_pumper |
+| 7 | Extra-Extra-Large | 22.0-55.0m | forest_section | neighborhood_block | fire_crew | ladder_company |
+| 8 | Massive | 55.0-140.0m | — | district | evacuee (deliberately low-threat, per the brief) | water_bomber ("final confrontation," no scripted end-of-run sequence built) |
+
+`PropManager.PARCEL_HALF_EXTENT` expanded from 20m (40m yard, enough for Bands 1-3) to 600m to physically fit Band 9's district-scale Structure Fuel in the same continuous world; `Main.tscn`'s ground `PlaneMesh` expanded to match (1200x1200) so later-band content doesn't float over void. All charge/grow targets and hazard/threat tuning (shrink amounts, zone radii, wander speeds) are placeholder numbers scaled up proportionally from Bands 1-3's own placeholders — none of this is playtested, same caveat as everything else in this document.
+
+Verified end-to-end with `tests/test_epoch_spawn_verification.gd` (which auto-extends to however many bands `BAND_TABLE` has — no test changes were needed to cover Bands 4-9) plus a live 9-band sweep confirming no crashes, monotonic camera zoom (~0.49m to ~12.3m across the full range), and reasonable node counts throughout.
+
+## Milestone 1 — Continuous Growth + Camera Zoom Prototype (Built, reviewed)
+
+- World geometry is fixed scale forever; only the flame scales up (`flame.gd::scale_factor`, driven by `growth_controller.gd`). Camera zooms out to match (`camera_controller.gd`, orthogonal `Camera3D.size`), exact same `lerp` pattern as snake-3d's `camera_controller.gd`.
+- Charge → Grow cycle: `growth_controller.gd::register_burn()`. Charge phase fills a bar with no size change; Grow phase scales the flame; band-to-band overflow spills forward without losing value.
+- Free-roam movement via a **continuous** (not 4-way-snapped) camera-relative touch joystick (`touch_joystick.gd`) — adapted from snake-3d's discrete version since Kindling free-roams rather than moving on a grid.
+- Quick Fuel touch-and-burn (`fuel.gd`): ignite on contact, scale-to-zero burn-down, no dissolve shader (that's Structure Fuel's, see M2 below).
+- Movement trail (`movement_trail.gd`): scorch decal (fades ~25s, placeholder per the brief's own open question) + toggled ember particles.
+- Double-tap jump (`flame.gd::jump()` + `tap_detector.gd`): physics-query nearest eligible target in a forward cone; guaranteed fallback hop if nothing qualifies.
+- Charge/Grow HUD bar (`hud_bar.gd`): brightness pulse during Charge, fill during Grow, squash-pop on band change.
+- Procedural streamed props (`prop_manager.gd`): per-tier independent grids, streaming radius keyed off camera zoom (not just XZ position, unlike snake-3d), scale-gated LOD stops new spawns of outgrown tiers without force-removing existing ones.
+- Bands 1-2 only, single bounded yard parcel (40×40, `PropManager.PARCEL_HALF_EXTENT = 20.0`).
+
+## Milestone 2 — Vertical Slice, Bands 1-3 (Built this session, pending review)
+
+### Band 3 added
+`growth_controller.gd::BAND_TABLE` now has a third entry ("Small-Medium", charge_target 22 / grow_target 60, scale 3.2→5.5). Fuel tiers: `brush_pile`, `dry_shrub` (Quick Fuel), `cardboard_box` (Structure Fuel, see below).
+
+### Structure Fuel (`structure_fuel.gd`)
+- Own health bar (`max_health`), only drains while the flame stays in contact (`Flame._touching_structures`, drained every physics tick via `StructureFuel.drain()`), pauses (doesn't revert) when contact breaks.
+- Shared dissolve shader (`shaders/dissolve.gdshader`): procedural UV-based value noise, `burn_progress` uniform 0→1, no external texture asset.
+- Full points only awarded when health reaches zero (`PropManager._on_structure_fully_burned`) — no partial credit for a stopped-short burn, per the brief.
+- Distinct burnt-down husk mesh spawns in as the pristine mesh dissolves away, persists indefinitely (open question from the brief's own text — resolved here as "persist for now," revisit for pooling/cleanup if it becomes a real perf problem).
+- **Judgment call**: the brief's own Scale Tier table doesn't introduce a real Structure Fuel example until Band 5 ("a shed"), but this milestone's own scope explicitly requires proving Quick-vs-Structure within Bands 1-3. Picked `cardboard_box` (already listed as Band 3 Quick Fuel-ish content in the brief's illustrative table) as the first Structure Fuel test object rather than waiting. **Flagging for your review** — may not be the object you'd have picked.
+
+### Non-lethal hazards (`hazard.gd`)
+- Grey-box wander AI (pick random point within a local radius, walk to it, pause, repeat) — same "greedy heuristic, no real pathfinding" spirit as snake-3d's enemy AI, scaled down.
+- Contact applies `GrowthController.subtract_growth()` (see below), gated by a 1s invulnerability window on the flame (`Flame.hit_invuln_duration`) so standing inside one doesn't shred Growth Points every physics tick.
+- Hazards persist after contact (not consumed like Fuel).
+- All 7 types from the brief's table, one row each in `prop_manager.gd::HAZARD_TIERS`: ant/fly (Band 1), beetle/earthworm/moth (Band 2), bird/cat (Band 3). Shrink amounts and wander tuning are placeholder numbers, not playtested.
+
+### subtract_growth() rewritten (`growth_controller.gd`)
+The M1 stub only handled shrinking within the current band. Now mirrors `register_burn()`'s forward spillover in reverse: drains the current phase's amount, and on hitting zero, retreats a full band (landing at the previous band's Grow-phase boundary) and keeps draining any leftover — matches the brief's "potentially dropping back into the previous band's fuel-eligibility range if severe," floored at Band 1's `scale_min` ("never below match-flame size").
+
+### Dousing Threats (`dousing_threat.gd`) + death/reset
+- One unified Telegraph → Active (lethal) → Cooldown state machine for all three bands' threats, rather than bespoke mechanics per type — **judgment call**, a deliberate M2 simplification to prove "recognize the tell, avoid the zone" before any band-specific flavor (falling droplet, squirt-bottle aim, sprinkler spray shape) gets built out.
+- `dew_drop` (Band 1), `squirt_bottle` (Band 2), `sprinkler` (Band 3) — per-tier zone radius/timing only; visual "tell" is a growing/glowing ground ring, not yet the brief's specific "shadow/glint" language.
+- Streamed sparsely (large cell_size, low density) via the same `prop_manager.gd` mechanism as Fuel/Hazards, rather than hand-placed — **judgment call**, may want deliberate placement later instead of random scatter.
+- On lethal overlap: `KindlingManager.trigger_death()` → full scene reload. **Not** the brief's actual target flow (return to menu/leaderboard, score = highest tier + total Growth Points) — no menu/leaderboard system exists yet. This is a placeholder death flow, explicitly out of scope to build fully this milestone.
+
+## Milestone 3 — PROPOSED roster, NOT built (needs your approval first)
+
+The brief is explicit that Power-ups and Dynamic Events each need "a first concrete locked list before wide implementation" — unlike M1/M2, this is content the brief deliberately leaves to a real design pass rather than something I should just invent and ship autonomously. Nothing below is implemented. Drafted as a starting proposal so there's something concrete to react to rather than a blank page — change, cut, or replace freely.
+
+**Power-ups** (brief locks the pattern from snake-3d's own precedent: once a roster ships, expanding it later is a fresh approval pass, not organic growth mid-implementation):
+- *Gas can* (brief's own example) — instant burst ignites everything Quick Fuel within a radius at once, no Charge/Grow distinction, straight Growth Points.
+- *Rain shield* — brief 6-10s immunity specifically to Dousing Threats only (not non-lethal hazards) — gives a legitimate "learn the pattern without dying while learning it" tool, thematically ironic (water protecting a fire) which might read as confusing — flagging that tension rather than deciding it away.
+- *Ember trail boost* — temporary jump-radius/movement-speed increase, cheap to build (reuses `Flame.base_jump_radius`/`move_speed` multipliers already exported), lower-impact than the other two, good "always useful, never game-changing" filler slot.
+
+**Dynamic Events** (brief's own example: leaf-blower NPC, purely positional displacement, no direct Growth Point loss):
+- *Leaf-blower NPC* (brief's own example) — as specified.
+- *Garden hose drag* — a hazard-adjacent NPC drags a hose across the ground; touching the hose itself (not the water) is a displacement/trip, not lethal — gives the displacement category a second, distinct-feeling instance rather than shipping with only one example forever.
+
+## Known gaps / explicitly deferred
+- No menu, leaderboard, or persistent score — death just reloads the scene.
+- No audio.
+- Yard parcel is still a single bounded 40×40 area; Band 3's larger flame scale (up to 5.5) and jump radius make this feel tight — zone/parcel expansion is out of scope per the brief (that's a post-Vertical-Slice design pass).
+- Dousing Threat visuals are placeholder rings, not the brief's specific per-type tells.
+- No power-ups, no Dynamic Events (leaf-blower etc.) — both explicitly out of scope until after the vertical slice per the brief's Build Milestones.
