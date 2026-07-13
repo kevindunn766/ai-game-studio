@@ -176,6 +176,7 @@ func _ready() -> void:
 		_active[tier.id] = {}
 		_burned[tier.id] = {}
 		_last_footprint[tier.id] = Rect2i()
+		_pending_spawns[tier.id] = []
 
 
 func _process(_delta: float) -> void:
@@ -223,6 +224,16 @@ func _should_spawn_detail(tier: Dictionary, current_scale: float) -> bool:
 
 
 
+# Spawning is throttled (see _pending_spawns/_process_pending_spawns below)
+# rather than done all at once when the footprint changes -- the flame can
+# now move several meters in a single frame at small scale (inversely-
+# proportional move speed), which used to make the entire footprint change
+# every frame and re-spawn thousands of dense-tier nodes (grass etc.)
+# synchronously, freezing the game for several seconds at startup.
+const MAX_SPAWNS_PER_TIER_PER_FRAME: int = 60
+var _pending_spawns: Dictionary = {}  # tier_id -> Array[Vector3i]
+
+
 func _update_tier(tier: Dictionary) -> void:
 	var tier_id: String = tier.id
 	var cell_size: float = tier.cell_size
@@ -232,11 +243,24 @@ func _update_tier(tier: Dictionary) -> void:
 	var fz: int = floori(flame.global_position.z / cell_size)
 	var bounds := Rect2i(fx - radius_cells, fz - radius_cells, radius_cells * 2 + 1, radius_cells * 2 + 1)
 
-	if bounds == _last_footprint[tier_id] and not (_active[tier_id] as Dictionary).is_empty():
-		return
-	_last_footprint[tier_id] = bounds
+	if bounds != _last_footprint[tier_id] or (_active[tier_id] as Dictionary).is_empty():
+		_last_footprint[tier_id] = bounds
+		_recompute_needed(tier, bounds)
 
+	_process_pending_spawns(tier)
+
+
+func _recompute_needed(tier: Dictionary, bounds: Rect2i) -> void:
+	var tier_id: String = tier.id
+	var cell_size: float = tier.cell_size
 	var spawn_allowed: bool = _should_spawn_detail(tier, flame.scale_factor)
+	var active_tier: Dictionary = _active[tier_id]
+	var burned_tier: Dictionary = _burned[tier_id]
+	var pending: Array = _pending_spawns.get(tier_id, [])
+	var pending_set: Dictionary = {}
+	for key in pending:
+		pending_set[key] = true
+
 	var needed: Dictionary = {}
 	for gx in range(bounds.position.x, bounds.position.x + bounds.size.x):
 		for gz in range(bounds.position.y, bounds.position.y + bounds.size.y):
@@ -244,19 +268,35 @@ func _update_tier(tier: Dictionary) -> void:
 			if not _in_parcel(key, cell_size):
 				continue
 			needed[key] = true
-			var active_tier: Dictionary = _active[tier_id]
-			var burned_tier: Dictionary = _burned[tier_id]
-			if spawn_allowed and not active_tier.has(key) and not burned_tier.has(key):
+			if spawn_allowed and not active_tier.has(key) and not burned_tier.has(key) and not pending_set.has(key):
 				if _raw_should_spawn(tier_id, gx, gz, tier.density):
-					_spawn_prop(tier, key)
+					pending.append(key)
+					pending_set[key] = true
+
+	# Drop queued spawns that fell out of the footprint before their turn came up.
+	var filtered: Array = []
+	for key in pending:
+		if needed.has(key):
+			filtered.append(key)
+	_pending_spawns[tier_id] = filtered
 
 	var to_despawn: Array = []
-	var active_tier: Dictionary = _active[tier_id]
 	for key: Vector3i in active_tier.keys():
 		if not needed.has(key):
 			to_despawn.append(key)
 	for key: Vector3i in to_despawn:
 		_despawn_prop(tier_id, key)
+
+
+func _process_pending_spawns(tier: Dictionary) -> void:
+	var tier_id: String = tier.id
+	var pending: Array = _pending_spawns.get(tier_id, [])
+	if pending.is_empty():
+		return
+	var n: int = mini(MAX_SPAWNS_PER_TIER_PER_FRAME, pending.size())
+	for i in range(n):
+		_spawn_prop(tier, pending[i])
+	_pending_spawns[tier_id] = pending.slice(n)
 
 
 func _in_parcel(key: Vector3i, cell_size: float) -> bool:

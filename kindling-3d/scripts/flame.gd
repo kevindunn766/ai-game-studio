@@ -2,15 +2,10 @@ class_name Flame extends Node3D
 
 signal hazard_hit(hazard: Hazard)
 
-# Top speed is derived every physics tick from CameraController's own
-# target_size_for_scale(), NOT a flat constant -- a flat speed made the
-# flame "zip around" at match-scale (3 m/s across a ~0.7m view crosses the
-# whole visible world in under a quarter second) while feeling sluggish at
-# large scale once the world around it is hundreds of meters wide. Deriving
-# speed from the same formula that drives camera framing means the flame
-# always crosses roughly the same FRACTION of its own visible world per
-# second, regardless of how big it's grown -- see camera_controller.gd.
-@export var view_crossing_seconds: float = 2.2
+# Top speed is inversely proportional to scale_factor -- a small flame moves
+# fast, a large flame moves slow. current_move_speed() = move_speed_constant
+# / scale_factor.
+@export var move_speed_constant: float = 2.0
 # Time to reach full speed from a stop, and to fully decelerate -- kept
 # constant (not itself scale-derived) so controls feel equally responsive
 # at every scale even though the top speed they ramp to varies hugely.
@@ -152,12 +147,10 @@ func _physics_process(delta: float) -> void:
 	position += velocity * delta
 
 
-# Top speed proportional to the camera's own view span at the current scale
-# (see the view_crossing_seconds comment above) -- public so movement_trail.gd
-# or future feel/animation code can reuse the same value instead of
-# re-deriving it.
+# Public so movement_trail.gd or future feel/animation code can reuse the
+# same value instead of re-deriving it.
 func current_move_speed() -> float:
-	return CameraController.target_size_for_scale(scale_factor) / view_crossing_seconds
+	return move_speed_constant / scale_factor
 
 
 func _record_position_history() -> void:
