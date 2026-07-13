@@ -1,19 +1,6 @@
 # KINDLING — Design Brief v0.1
 *(working title — easy to rename later, see BATTLE BOA precedent in snake-3d)*
 
-> **Implementation status (as of 2026-07-12, overnight session): this brief is design intent, not current build state.** All 9 bands (Match → Massive) are built in `kindling-3d/`, grey-box, headlessly tested, **not yet committed to git**, and only Band 1 has had a real in-editor look (which found and fixed real bugs — see below). Read `kindling-3d/DESIGN.md` before touching code — it's the actual build log, judgment-call record, and next-steps list. This section is the entry point for a clean restart; don't re-derive status from scratch.
->
-> **What's built:** all 9 bands' fuel/hazard/Structure-Fuel/Dousing-Threat rosters (real-world-meters scale system, camera zoom, epoch-registry verification system — see DESIGN.md for the full list of what shipped and why).
->
-> **What's confirmed working by a real in-editor look:** only Band 1, and only after two follow-up bug passes (real-world scale mismatch, then a fuel-density/visibility bug that took two more fixes to actually resolve — see DESIGN.md's "Band 1 fuel density fix" section for the full story, it's a useful cautionary example of headless testing not being sufficient on its own). **Bands 2-9 have never been looked at in a running game** — they're built and headlessly verified (spawn logic, scale gating, no crashes) but completely unconfirmed visually. Treat them as higher-risk than Band 1 until someone actually looks.
->
-> **Immediate next steps, in priority order:**
-> 1. Decide whether to `git add`/commit `kindling-3d/` and this brief — currently 100% uncommitted local work.
-> 2. Look at Bands 2-9 in the actual editor. Band 1's bugs (scale mismatch, then density/visibility) were both invisible to headless testing and only surfaced from a real look — assume the same risk exists at every other band until checked.
-> 3. Playtest-tune the numbers — nothing beyond Band 1's grass density has been touched by a human; every charge/grow target, hazard shrink amount, and threat timing across all 9 bands is an unplayed placeholder.
-> 4. Decide on the ~3,200-node Band-1 performance tradeoff (DESIGN.md) — fine in headless testing, unconfirmed on an actual device.
-> 5. Milestone 3 (Power-ups & Dynamic Events) needs your approval on the proposed roster in DESIGN.md before it gets built — this is the one thing in the whole project intentionally left un-built pending a real design decision from you, not an oversight.
-
 **Genre:** Isometric 3D mobile action, single continuous escalating run
 **Platform:** Mobile (Android first, matching snake-3d's pipeline), Godot 4.7
 **Perspective:** Fixed isometric diorama camera, tilt-shift depth-of-field ("cute realistic miniature" look)
@@ -168,25 +155,18 @@ Columns are locked; rows get added during implementation, one per asset, no batc
 
 ## Build Milestones
 
-1. **Continuous growth + camera zoom prototype** — grey-box only, lawn scale (Bands 1–2) only. Prove that flame-scales-up + camera-zooms-out actually reads as "the world getting smaller," that the Charge→Grow bar cycle feels right, and that scale-gated procedural spawn density (many grass blades, one tree trunk, one house foundation) holds together. Includes the base movement trail (scorch decal + diminishing ember particles) and the double-tap jump, both present from the start even though jump barely matters yet. This is the riskiest system in the brief; nothing else is worth building until this holds up. **DONE, in-editor confirmed, two real bugs found and fixed post-hoc (real-world scale, fuel density/visibility) — see kindling-3d/DESIGN.md.**
-2. **Vertical slice** — Bands 1–3 fully playable end to end (fuel eligibility, Quick Fuel vs. Structure Fuel, non-lethal hazards, Dousing Threat, Charge→Grow cycle) once the above is proven. **DONE, headless-verified only — not yet looked at in-editor.**
-3. **Power-ups & Dynamic Events** — first concrete locked roster (gas can, leaf-blower, etc.), layered onto the vertical slice once it's proven. **NOT BUILT — a starter proposal (3 power-ups, 2 dynamic events) is drafted in kindling-3d/DESIGN.md awaiting your approval; this is the one deliberately-unbuilt milestone, not an oversight.**
-4. **Climb/leap/delayed-mass-follow locomotion system** — once tree- and building-scale bands are reachable; not needed before then. **NOT BUILT — Bands 5+ (shed/house/city scale) are reachable now that all 9 bands exist, so this is unblocked whenever you want it.**
-5. Remaining bands, one at a time, each logged into the Asset Registry as built. **DONE (all 9 bands, Match through Massive) — headless-verified only, Bands 2-9 not yet looked at in-editor. Built in one pass rather than incrementally after Kevin pushed back on treating "add more bands" as a separate future undertaking when the grey-box architecture makes it mechanical, not costly.**
+1. **Continuous growth + camera zoom prototype** — grey-box only, lawn scale (Bands 1–2) only. Prove that flame-scales-up + camera-zooms-out actually reads as "the world getting smaller," that the Charge→Grow bar cycle feels right, and that scale-gated procedural spawn density (many grass blades, one tree trunk, one house foundation) holds together. Includes the base movement trail (scorch decal + diminishing ember particles) and the double-tap jump, both present from the start even though jump barely matters yet. This is the riskiest system in the brief; nothing else is worth building until this holds up.
+2. **Vertical slice** — Bands 1–3 fully playable end to end (fuel eligibility, Quick Fuel vs. Structure Fuel, non-lethal hazards, Dousing Threat, Charge→Grow cycle) once the above is proven.
+3. **Power-ups & Dynamic Events** — first concrete locked roster (gas can, leaf-blower, etc.), layered onto the vertical slice once it's proven.
+4. **Climb/leap/delayed-mass-follow locomotion system** — once tree- and building-scale bands are reachable; not needed before then.
+5. Remaining bands, one at a time, each logged into the Asset Registry as built.
 
 ---
 
 ## Open Questions for Kevin
 
-- HUD bar visual treatment (segmented pips vs. continuous fill, color/brightness tie-in) — cosmetic, can default and iterate. *(Still open; shipped as a continuous fill bar, unreviewed.)*
-- Do Structure Fuel burnt-down husks (shed, house, etc.) persist in the world forever, or get cleaned up/pooled after some time for performance once a run has conquered a lot of them? *(Resolved for now: persist indefinitely, revisit if it becomes a real problem — this was a placeholder decision, not a considered one.)*
-- Does jump radius scale linearly with player size, or some other curve (e.g. capped, or stepped per band)? *(Resolved for now: linear, via a base-reach-plus-growth formula rather than pure proportional scaling — see DESIGN.md's real-world-scale section for why pure proportional scaling doesn't work at match-scale.)*
-- Zone/parcel spawn tables (what's allowed in a front yard vs. backyard vs. driveway vs. road edge) — a real design pass needed before wide content, not before the single-parcel first prototype. *(Still open — everything so far is one flat parcel with no zone differentiation, now expanded to 1200x1200m to physically fit Band 9 content but still spawned uniformly, not zoned.)*
-- Does the movement trail's scorch decal fade/decay over time, or persist for the whole run? *(Resolved: fades over ~25s, and rebuilt as an actual shader rather than a flat mesh — see DESIGN.md.)*
-
-**New open questions from this session:**
-- Structure Fuel's first test object was `cardboard_box` (Band 3), picked because the brief's own tier table doesn't introduce a real Structure Fuel example until Band 5 ("a shed") but the Vertical Slice milestone needed to prove Quick-vs-Structure within Bands 1-3. Worth confirming this was the right call, or whether a different Band 1-3 object should have been chosen instead.
-- All three Dousing Threats (dew drop, squirt-bottle, sprinkler) share one Telegraph→Active→Cooldown mechanic with per-tier timing/visuals, rather than the bespoke mechanics each type's flavor text implies (a falling droplet with a shadow tell vs. an aimed squirt vs. a rotating spray). Deliberate M2 simplification to prove "recognize the tell, avoid the zone" first — worth deciding whether the bespoke versions are worth building later or whether the unified mechanic is good enough.
-- Dousing Threats (and all other streamed content) are placed via the same random per-cell density system as ambient fuel/hazards, not hand-placed at meaningful locations — contrast with the "exactly one recognizable enemy/attack per tier" framing, which reads like it wants deliberate, memorable placement rather than random scatter.
-- The Band 1 fuel-density fix (see DESIGN.md) leaves ~3,200 individual Fuel nodes active at Band 1's upper scale range — untested on an actual device, flagged as a `MultiMeshInstance3D` batching candidate if it turns out to be a real mobile performance problem.
-- Does the movement trail's scorch decal fade/decay over time, or persist for the whole run? Same performance consideration as the Structure Fuel husk question above — needed before the first prototype this time, since the trail is in scope from the start.
+- HUD bar visual treatment (segmented pips vs. continuous fill, color/brightness tie-in) — cosmetic, can default and iterate.
+- Do Structure Fuel burnt-down husks (shed, house, etc.) persist in the world forever, or get cleaned up/pooled after some time for performance once a run has conquered a lot of them?
+- Does jump radius scale linearly with player size, or some other curve (e.g. capped, or stepped per band)?
+- Zone/parcel spawn tables (what's allowed in a front yard vs. backyard vs. driveway vs. road edge) — a real design pass needed before wide content, not before the single-parcel first prototype.
+- Does the movement trail's scorch decal fade/decay over time, or persist for the whole run?

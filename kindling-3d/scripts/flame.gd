@@ -34,6 +34,25 @@ signal hazard_hit(hazard: Hazard)
 @export var jump_fallback_base: float = 0.15
 @export var jump_fallback_growth: float = 1.0
 
+# Climb & leap (Milestone 4): jumping onto a still-standing StructureFuel
+# (shed wall, house, city block) arcs proportionally higher than a flat
+# fuel-to-fuel hop, reading as "crawling up the vertical surface" rather than
+# a uniform bounce, per the brief's Locomotion & Fire Physics section. Always
+# lands back at the target's own (ground-level) position -- a persistent
+# "stay attached to the wall" movement state is a real state machine this
+# grey-box pass doesn't build; see DESIGN.md's Milestone 4 notes.
+@export var climb_height_fraction: float = 0.5
+
+# Delayed mass-follow (Milestone 4): a second visual node trails the flame's
+# actual position by a short time delay, sampled from a recorded position
+# history -- same underlying idea as snake-3d's segment-follows-head, just
+# continuous instead of grid-discrete since Kindling free-roams. Gives the
+# fire body visible weight/stretch during fast repositioning (climb/leap
+# arcs especially), per the brief.
+@export var mass_follow_delay_seconds: float = 0.18
+@export var mass_follow_lerp_speed: float = 10.0
+@export var body_scale_fraction: float = 0.85
+
 # Brief-length invulnerability after a hazard hit so standing inside one
 # wandering hazard's contact radius (or overlapping several at once) doesn't
 # shred Growth Points every single physics tick -- one hit registers, then a
@@ -43,6 +62,8 @@ signal hazard_hit(hazard: Hazard)
 @onready var mesh: Node3D = $Mesh
 @onready var ignite_area: Area3D = $IgniteArea
 @onready var ignite_shape: CollisionShape3D = $IgniteArea/IgniteShape
+@onready var body: Node3D = $Body
+@onready var body_mesh: MeshInstance3D = $Body/BodyMesh
 
 # Single source of truth for the flame's growth scale is GrowthController;
 # this is kept in sync via set_scale_factor() (called from grow_tick) so
@@ -59,6 +80,12 @@ var _scale_tween: Tween
 var _last_heading: Vector3 = Vector3.FORWARD
 var _is_jumping: bool = false
 var _jump_tween: Tween
+
+# Oldest-first list of {t: float (seconds, Time.get_ticks_msec()/1000.0),
+# pos: Vector3}. Trimmed to MASS_HISTORY_MAX_SECONDS -- generous enough to
+# always cover mass_follow_delay_seconds even during a slow long jump arc.
+var _position_history: Array[Dictionary] = []
+const MASS_HISTORY_MAX_SECONDS: float = 1.2
 
 # Structure Fuel's health only drains while contact is actively held (see
 # structure_fuel.gd::drain) -- tracked here rather than one-shot ignite()
@@ -107,6 +134,8 @@ func _try_take_hazard_hit(hazard: Hazard) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_record_position_history()
+	_update_mass_follow(delta)
 	_drain_touching_structures(delta)
 	if _hit_invuln_timer > 0.0:
 		_hit_invuln_timer -= delta
@@ -129,6 +158,40 @@ func _physics_process(delta: float) -> void:
 # re-deriving it.
 func current_move_speed() -> float:
 	return CameraController.target_size_for_scale(scale_factor) / view_crossing_seconds
+
+
+func _record_position_history() -> void:
+	var now: float = Time.get_ticks_msec() / 1000.0
+	_position_history.append({"t": now, "pos": position})
+	while _position_history.size() > 2 and now - (_position_history[0].t as float) > MASS_HISTORY_MAX_SECONDS:
+		_position_history.pop_front()
+
+
+func _update_mass_follow(delta: float) -> void:
+	if not body:
+		return
+	var now: float = Time.get_ticks_msec() / 1000.0
+	var target: Vector3 = sample_history(_position_history, now - mass_follow_delay_seconds) if not _position_history.is_empty() else position
+	body.global_position = body.global_position.lerp(target, clampf(delta * mass_follow_lerp_speed, 0.0, 1.0))
+
+
+# Pure/testable (no live scene tree needed): linearly interpolates a
+# recorded {t, pos} history buffer to the position Flame was at absolute
+# time `t`. Static so tests/test_flame_locomotion.gd can exercise it
+# directly, same convention as camera_controller.gd's target_size_for_scale.
+static func sample_history(history: Array[Dictionary], t: float) -> Vector3:
+	if history.is_empty():
+		return Vector3.ZERO
+	if t <= (history[0].t as float):
+		return history[0].pos
+	for i in range(history.size() - 1):
+		var a: Dictionary = history[i]
+		var b: Dictionary = history[i + 1]
+		if t >= (a.t as float) and t <= (b.t as float):
+			var span: float = (b.t as float) - (a.t as float)
+			var frac: float = (t - (a.t as float)) / span if span > 0.0001 else 0.0
+			return (a.pos as Vector3).lerp(b.pos as Vector3, frac)
+	return history[-1].pos
 
 
 # Draining happens every physics tick regardless of jump/movement state --
@@ -163,8 +226,10 @@ func jump() -> void:
 	var target: Node3D = _find_jump_target(radius, heading)
 	var fallback_distance: float = jump_fallback_base + scale_factor * jump_fallback_growth
 	var target_pos: Vector3 = target.global_position if target else global_position + heading * fallback_distance
+	var target_height: float = (target as StructureFuel).height if target is StructureFuel else 0.0
+	var arc_height: float = climb_arc_height(jump_height, target_height, climb_height_fraction)
 	_is_jumping = true
-	_play_jump_arc(target_pos)
+	_play_jump_arc(target_pos, arc_height)
 
 
 func _find_jump_target(radius: float, heading: Vector3) -> Node3D:
@@ -207,20 +272,30 @@ func _is_eligible_jump_target(target: Node) -> bool:
 	return false
 
 
-func _play_jump_arc(target_pos: Vector3) -> void:
+func _play_jump_arc(target_pos: Vector3, arc_height: float) -> void:
 	var start_pos: Vector3 = global_position
 	if _jump_tween:
 		_jump_tween.kill()
 	_jump_tween = create_tween()
-	_jump_tween.tween_method(_apply_jump_frame.bind(start_pos, target_pos), 0.0, 1.0, jump_duration) \
+	_jump_tween.tween_method(_apply_jump_frame.bind(start_pos, target_pos, arc_height), 0.0, 1.0, jump_duration) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_jump_tween.tween_callback(func() -> void: _is_jumping = false)
 
 
-func _apply_jump_frame(t: float, start_pos: Vector3, target_pos: Vector3) -> void:
+func _apply_jump_frame(t: float, start_pos: Vector3, target_pos: Vector3, arc_height: float) -> void:
 	var flat: Vector3 = start_pos.lerp(target_pos, t)
-	flat.y = start_pos.y + sin(t * PI) * jump_height
+	flat.y = start_pos.y + sin(t * PI) * arc_height
 	global_position = flat
+
+
+# Pure/testable: a flat fuel-to-fuel hop keeps the normal jump_height; a
+# not-yet-burned StructureFuel with real height (shed wall, house, city
+# block) arcs proportionally higher, reading as climbing its vertical
+# surface rather than a uniform bounce.
+static func climb_arc_height(base_jump_height: float, target_height: float, climb_fraction: float) -> float:
+	if target_height <= 0.0:
+		return base_jump_height
+	return base_jump_height + target_height * climb_fraction
 
 
 func set_scale_factor(new_scale: float) -> void:
@@ -237,6 +312,12 @@ func set_scale_factor(new_scale: float) -> void:
 	# at half its current (scaled) height to stay grounded instead of
 	# floating or clipping into the ground as new_scale changes.
 	_scale_tween.tween_property(mesh, "position:y", new_scale * 0.5, mesh_scale_tween_time)
+	if body_mesh:
+		# Trailing "bulk" reads slightly smaller than the leading edge
+		# (body_scale_fraction) so the two visually read as one fire with a
+		# hot tip, not two identical stacked boxes.
+		_scale_tween.tween_property(body_mesh, "scale", Vector3.ONE * new_scale * body_scale_fraction, mesh_scale_tween_time)
+		_scale_tween.tween_property(body_mesh, "position:y", new_scale * 0.5, mesh_scale_tween_time)
 
 
 func _update_ignite_radius() -> void:

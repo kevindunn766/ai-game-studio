@@ -10,6 +10,12 @@ const DissolveShader := preload("res://shaders/dissolve.gdshader")
 @export var full_charge_value: float = 10.0
 @export var drain_rate: float = 4.0  # health per second while flame stays in contact
 @export var burnt_husk_fade_in: float = 0.3
+# Real-world meters, matches the pristine mesh's own Y size (see
+# prop_manager.gd::STRUCTURE_FUEL_TIERS) -- read by flame.gd to size the
+# climb arc when jumping onto this structure. 0.0 for tiers too flat/small
+# to read as "climbable" (left at the default rather than every tier setting
+# it explicitly).
+@export var height: float = 0.0
 
 # Set by PropManager at spawn time so the fully_burned signal's listener can
 # mark the correct streaming cell as permanently burned.

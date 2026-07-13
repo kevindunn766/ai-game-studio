@@ -81,15 +81,18 @@ const PROP_TIERS: Array[Dictionary] = [
 # instance instead of a Fuel instance -- see _spawn_prop(). First test object
 # is the cardboard box (Band 3); "structure" is the only field that
 # distinguishes a row here from a Quick Fuel row above.
+# "height" matches each tier's pristine mesh Y size in _build_structure_fuel_visual()
+# below -- used by flame.gd to size the climb arc when jumping onto a
+# not-yet-burned structure (see Milestone 4, "Climb & leap" in DESIGN.md).
 const STRUCTURE_FUEL_TIERS: Array[Dictionary] = [
-	{ "id": "cardboard_box", "cell_size": 3.0, "density": 0.04, "active_scale_range": [0.2, 5.0], "max_health": 10.0, "structure": true },
-	{ "id": "wooden_fence", "cell_size": 4.0, "density": 0.03, "active_scale_range": [0.5, 14.0], "max_health": 18.0, "structure": true },
-	{ "id": "shed", "cell_size": 8.0, "density": 0.015, "active_scale_range": [1.3, 32.0], "max_health": 35.0, "structure": true },
-	{ "id": "car", "cell_size": 7.0, "density": 0.02, "active_scale_range": [1.3, 32.0], "max_health": 28.0, "structure": true },
-	{ "id": "house", "cell_size": 15.0, "density": 0.012, "active_scale_range": [3.0, 70.0], "max_health": 60.0, "structure": true },
-	{ "id": "city_block", "cell_size": 30.0, "density": 0.008, "active_scale_range": [7.0, 170.0], "max_health": 100.0, "structure": true },
-	{ "id": "neighborhood_block", "cell_size": 60.0, "density": 0.006, "active_scale_range": [18.0, 420.0], "max_health": 160.0, "structure": true },
-	{ "id": "district", "cell_size": 120.0, "density": 0.004, "active_scale_range": [44.0, 600.0], "max_health": 260.0, "structure": true },
+	{ "id": "cardboard_box", "cell_size": 3.0, "density": 0.04, "active_scale_range": [0.2, 5.0], "max_health": 10.0, "structure": true, "height": 0.45 },
+	{ "id": "wooden_fence", "cell_size": 4.0, "density": 0.03, "active_scale_range": [0.5, 14.0], "max_health": 18.0, "structure": true, "height": 1.2 },
+	{ "id": "shed", "cell_size": 8.0, "density": 0.015, "active_scale_range": [1.3, 32.0], "max_health": 35.0, "structure": true, "height": 2.0 },
+	{ "id": "car", "cell_size": 7.0, "density": 0.02, "active_scale_range": [1.3, 32.0], "max_health": 28.0, "structure": true, "height": 1.3 },
+	{ "id": "house", "cell_size": 15.0, "density": 0.012, "active_scale_range": [3.0, 70.0], "max_health": 60.0, "structure": true, "height": 5.0 },
+	{ "id": "city_block", "cell_size": 30.0, "density": 0.008, "active_scale_range": [7.0, 170.0], "max_health": 100.0, "structure": true, "height": 8.0 },
+	{ "id": "neighborhood_block", "cell_size": 60.0, "density": 0.006, "active_scale_range": [18.0, 420.0], "max_health": 160.0, "structure": true, "height": 6.0 },
+	{ "id": "district", "cell_size": 120.0, "density": 0.004, "active_scale_range": [44.0, 600.0], "max_health": 260.0, "structure": true, "height": 10.0 },
 ]
 
 # Non-lethal hazards ("shrink, don't always kill" per the brief's Fail State
@@ -321,6 +324,7 @@ func _spawn_structure_fuel(tier: Dictionary, key: Vector3i) -> void:
 	structure.fuel_tier = tier.id
 	structure.max_health = tier.max_health
 	structure.full_charge_value = tier.max_health  # 1 health point == 1 charge point, M2 simplicity
+	structure.height = tier.get("height", 0.0)
 	structure.cell_key = key
 	structure.position = world_pos
 	structure.fully_burned.connect(_on_structure_fully_burned)

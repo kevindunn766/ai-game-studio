@@ -23,6 +23,12 @@ emission_enabled = true
 emission = Color(0.95, 0.4, 0.1, 1)
 emission_energy_multiplier = 1.2
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.7, 0.22, 0.05, 1)
+emission_enabled = true
+emission = Color(0.7, 0.22, 0.05, 1)
+emission_energy_multiplier = 0.6
+
 [sub_resource type="CylinderMesh" id="CylinderMesh_trunk"]
 top_radius = 0.35
 bottom_radius = 0.45
@@ -102,6 +108,13 @@ script = ExtResource("2_flame")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
 mesh = SubResource("BoxMesh_debugcube")
 surface_material_override/0 = SubResource("StandardMaterial3D_debugcube")
+
+[node name="Body" type="Node3D" parent="Flame"]
+
+[node name="BodyMesh" type="MeshInstance3D" parent="Flame/Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
+mesh = SubResource("BoxMesh_debugcube")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
 
 [node name="MovementTrail" type="Node3D" parent="Flame"]
 script = ExtResource("6_trail")
