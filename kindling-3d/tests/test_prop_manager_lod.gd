@@ -8,8 +8,6 @@ func _init() -> void:
 	_test_lod_range_gates_band2_tiers()
 	_test_lod_range_gates_band3_tiers()
 	_test_deterministic_spawn_decision()
-	_test_value_window_narrower_than_spawn_window()
-	_test_value_gate_matches_bands_own_range()
 
 	if _failures == 0:
 		print("ALL PASS")
@@ -45,8 +43,6 @@ func _brush_pile_tier() -> Dictionary:
 	return {}
 
 
-# Spawn cutoff (0.5) is deliberately wider than the value cutoff (0.1) --
-# see the value-window tests below for that half of the story.
 func _test_lod_cutoff_flips() -> void:
 	var pm := PropManager.new()
 	var tier := _grass_tier()
@@ -91,43 +87,3 @@ func _test_deterministic_spawn_decision() -> void:
 			count += 1
 	var frac: float = float(count) / float(total)
 	_assert(frac > 0.5 and frac < 0.7, "spawn fraction should roughly track configured density (got %f)" % frac)
-
-
-# The actual point of this session's request: fuel should keep existing in
-# the world well after it stops being worth anything. Spawn window must
-# always be at least as wide as (and here, meaningfully wider than) the
-# value window, for every tier that has both.
-func _test_value_window_narrower_than_spawn_window() -> void:
-	var pm := PropManager.new()
-	var all_tiers: Array[Dictionary] = PropManager.PROP_TIERS + PropManager.STRUCTURE_FUEL_TIERS
-	for tier: Dictionary in all_tiers:
-		if tier.has("value_while_scale_below") and tier.has("active_while_scale_below"):
-			_assert(tier.active_while_scale_below >= tier.value_while_scale_below,
-				"%s: spawn cutoff should be at or beyond its value cutoff" % tier.id)
-			_assert(tier.active_while_scale_below > tier.value_while_scale_below,
-				"%s: spawn cutoff should be strictly wider than its value cutoff (fuel should outlive its value)" % tier.id)
-		if tier.has("value_scale_range") and tier.has("active_scale_range"):
-			var v: Array = tier.value_scale_range
-			var a: Array = tier.active_scale_range
-			_assert(a[0] <= v[0] and a[1] >= v[1],
-				"%s: spawn range should fully contain its value range" % tier.id)
-			_assert(a[1] > v[1],
-				"%s: spawn range should extend meaningfully past its value range's upper bound" % tier.id)
-
-
-# Concretely verifies grass: still spawns, still burns/disappears on touch,
-# but registers zero growth value once the flame has clearly outgrown it --
-# while a smaller flame gets full value from the exact same tier.
-func _test_value_gate_matches_bands_own_range() -> void:
-	var pm := PropManager.new()
-	var tier := _grass_tier()
-	_assert(pm._has_growth_value(tier, 0.02), "grass should still be worth points at match-scale")
-	_assert(pm._has_growth_value(tier, 0.099), "grass should still be worth points just under its value cutoff")
-	_assert(not pm._has_growth_value(tier, 0.1), "grass should stop being worth points at its value cutoff")
-	_assert(not pm._has_growth_value(tier, 0.3), "grass should stay worthless once clearly outgrown, even though it's still spawning here (cutoff 0.5)")
-	_assert(pm._should_spawn_detail(tier, 0.3), "sanity: grass should still be spawning at scale 0.3, despite having no value there")
-
-	var find_tier: Dictionary = pm._find_tier_by_id("dry_grass")
-	_assert(find_tier.id == "dry_grass", "_find_tier_by_id should locate a Quick Fuel tier by id")
-	var missing: Dictionary = pm._find_tier_by_id("does_not_exist")
-	_assert(missing.is_empty(), "_find_tier_by_id should return an empty dict for an unknown id")

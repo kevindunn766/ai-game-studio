@@ -27,22 +27,22 @@ const PARCEL_HALF_EXTENT: float = 600.0
 
 # Multiple independently-streamed tiers, each with its own cell size, since
 # grass-scale and plant-scale content can't share one grid. Tuning values are
-# placeholders for a later feel-tuning pass. "active_while_scale_below"/
-# "active_scale_range" gate SPAWNING (still exists in the world -- see
-# _should_spawn_detail()); the separate "value_while_scale_below"/
-# "value_scale_range" gate GROWTH POINTS (see _has_growth_value()). These are
-# deliberately different windows: per Kevin's feedback, fuel shouldn't just
-# vanish from the world the moment it stops mattering for growth -- grass
-# should keep existing as background/texture for a good while after it's
-# no longer worth anything, not disappear and re-give-points at the same
-# instant. The value window always matches the tier's own original Band
-# range (unchanged from before this split); the spawn window is ~4-5x wider.
-# Widening it further than that runs into real cost -- spawn density is
-# bounded by (streaming_radius / cell_size)^2, so a small cell_size tier
-# (grass) spawning across a much larger camera view gets expensive fast; see
-# DESIGN.md for the exact tradeoff and the MultiMeshInstance3D follow-up this
-# points toward. Thresholds are real-world meters (Band 1 0.02-0.08m, Band 2
-# 0.08-0.25m, Band 3 0.25-0.6m, ... Band 9 55-140m -- see growth_controller.gd).
+# placeholders for a later feel-tuning pass.
+#
+# "active_while_scale_below"/"active_scale_range" gate spawning per the
+# brief's own words (Camera, Art Direction & Continuous Growth section):
+# "once a fuel type is far below the player's current scale... the generator
+# stops placing new instances of it." That is the whole mechanic -- stop
+# spawning new ones once outgrown. There is no separate "still spawns but
+# gives zero points" system; a burn attempt on anything currently spawned
+# always awards its full charge_value. (An earlier version of this file
+# added exactly that separate value-gate and it broke real growth pacing --
+# once dense, common fuel like grass crossed into "zero points," the only
+# things still awarding points were much rarer tiers, so a normal player
+# path through mostly-grass terrain could stall out. Reverted.)
+#
+# Thresholds are real-world meters (Band 1 0.02-0.08m, Band 2 0.08-0.25m,
+# Band 3 0.25-0.6m, ... Band 9 55-140m -- see growth_controller.gd).
 const PROP_TIERS: Array[Dictionary] = [
 	# cell_size/density retuned (was 0.5/0.6) after confirming via headless
 	# check that the old values put well under 1 expected blade inside the
@@ -60,37 +60,36 @@ const PROP_TIERS: Array[Dictionary] = [
 	# dense to look at, but any single blade is nearly worthless as fuel; it
 	# takes a lot of grass to actually grow a fire. Kept dense for the eye,
 	# made individually near-negligible for the math.
-	{ "id": "dry_grass", "cell_size": 0.07, "density": 0.85, "active_while_scale_below": 0.5, "value_while_scale_below": 0.1, "charge_value": 0.08 },
-	{ "id": "twig", "cell_size": 0.25, "density": 0.3, "active_while_scale_below": 0.5, "value_while_scale_below": 0.1, "charge_value": 1.0 },
-	{ "id": "wrapper", "cell_size": 0.6, "density": 0.1, "active_while_scale_below": 0.5, "value_while_scale_below": 0.1, "charge_value": 1.0 },
-	{ "id": "leaf_litter", "cell_size": 0.08, "density": 0.65, "active_while_scale_below": 0.5, "value_while_scale_below": 0.1, "charge_value": 0.06 },
-	{ "id": "small_plant", "cell_size": 1.5, "density": 0.2, "active_scale_range": [0.06, 1.5], "value_scale_range": [0.06, 0.35], "charge_value": 3.0 },
-	{ "id": "pine_needle", "cell_size": 1.0, "density": 0.3, "active_scale_range": [0.06, 1.5], "value_scale_range": [0.06, 0.35], "charge_value": 1.5 },
-	{ "id": "twig_nest", "cell_size": 1.8, "density": 0.06, "active_scale_range": [0.06, 1.5], "value_scale_range": [0.06, 0.35], "charge_value": 4.0 },
-	{ "id": "brush_pile", "cell_size": 2.2, "density": 0.08, "active_scale_range": [0.2, 5.0], "value_scale_range": [0.2, 1.2], "charge_value": 6.0 },
-	{ "id": "dry_shrub", "cell_size": 1.8, "density": 0.12, "active_scale_range": [0.2, 5.0], "value_scale_range": [0.2, 1.2], "charge_value": 4.5 },
-	{ "id": "campfire_log", "cell_size": 2.5, "density": 0.06, "active_scale_range": [0.5, 14.0], "value_scale_range": [0.5, 3.5], "charge_value": 10.0 },
-	{ "id": "kindling_pile", "cell_size": 2.0, "density": 0.08, "active_scale_range": [0.5, 14.0], "value_scale_range": [0.5, 3.5], "charge_value": 8.0 },
-	{ "id": "tree_grove", "cell_size": 6.0, "density": 0.03, "active_scale_range": [1.3, 32.0], "value_scale_range": [1.3, 8.0], "charge_value": 20.0 },
-	{ "id": "tree_stand", "cell_size": 10.0, "density": 0.02, "active_scale_range": [3.0, 70.0], "value_scale_range": [3.0, 18.0], "charge_value": 35.0 },
-	{ "id": "forest_section", "cell_size": 40.0, "density": 0.01, "active_scale_range": [18.0, 420.0], "value_scale_range": [18.0, 110.0], "charge_value": 60.0 },
+	{ "id": "dry_grass", "cell_size": 0.07, "density": 0.85, "active_while_scale_below": 0.5, "charge_value": 0.08 },
+	{ "id": "twig", "cell_size": 0.25, "density": 0.3, "active_while_scale_below": 0.5, "charge_value": 1.0 },
+	{ "id": "wrapper", "cell_size": 0.6, "density": 0.1, "active_while_scale_below": 0.5, "charge_value": 1.0 },
+	{ "id": "leaf_litter", "cell_size": 0.08, "density": 0.65, "active_while_scale_below": 0.5, "charge_value": 0.06 },
+	{ "id": "small_plant", "cell_size": 1.5, "density": 0.2, "active_scale_range": [0.06, 1.5], "charge_value": 3.0 },
+	{ "id": "pine_needle", "cell_size": 1.0, "density": 0.3, "active_scale_range": [0.06, 1.5], "charge_value": 1.5 },
+	{ "id": "twig_nest", "cell_size": 1.8, "density": 0.06, "active_scale_range": [0.06, 1.5], "charge_value": 4.0 },
+	{ "id": "brush_pile", "cell_size": 2.2, "density": 0.08, "active_scale_range": [0.2, 5.0], "charge_value": 6.0 },
+	{ "id": "dry_shrub", "cell_size": 1.8, "density": 0.12, "active_scale_range": [0.2, 5.0], "charge_value": 4.5 },
+	{ "id": "campfire_log", "cell_size": 2.5, "density": 0.06, "active_scale_range": [0.5, 14.0], "charge_value": 10.0 },
+	{ "id": "kindling_pile", "cell_size": 2.0, "density": 0.08, "active_scale_range": [0.5, 14.0], "charge_value": 8.0 },
+	{ "id": "tree_grove", "cell_size": 6.0, "density": 0.03, "active_scale_range": [1.3, 32.0], "charge_value": 20.0 },
+	{ "id": "tree_stand", "cell_size": 10.0, "density": 0.02, "active_scale_range": [3.0, 70.0], "charge_value": 35.0 },
+	{ "id": "forest_section", "cell_size": 40.0, "density": 0.01, "active_scale_range": [18.0, 420.0], "charge_value": 60.0 },
 ]
 
 # Structure Fuel tiers stream through the same per-cell mechanism as Quick
 # Fuel (same _update_tier/_raw_should_spawn path) but spawn a StructureFuel
 # instance instead of a Fuel instance -- see _spawn_prop(). First test object
 # is the cardboard box (Band 3); "structure" is the only field that
-# distinguishes a row here from a Quick Fuel row above. Same spawn/value
-# window split as PROP_TIERS above.
+# distinguishes a row here from a Quick Fuel row above.
 const STRUCTURE_FUEL_TIERS: Array[Dictionary] = [
-	{ "id": "cardboard_box", "cell_size": 3.0, "density": 0.04, "active_scale_range": [0.2, 5.0], "value_scale_range": [0.2, 1.2], "max_health": 10.0, "structure": true },
-	{ "id": "wooden_fence", "cell_size": 4.0, "density": 0.03, "active_scale_range": [0.5, 14.0], "value_scale_range": [0.5, 3.5], "max_health": 18.0, "structure": true },
-	{ "id": "shed", "cell_size": 8.0, "density": 0.015, "active_scale_range": [1.3, 32.0], "value_scale_range": [1.3, 8.0], "max_health": 35.0, "structure": true },
-	{ "id": "car", "cell_size": 7.0, "density": 0.02, "active_scale_range": [1.3, 32.0], "value_scale_range": [1.3, 8.0], "max_health": 28.0, "structure": true },
-	{ "id": "house", "cell_size": 15.0, "density": 0.012, "active_scale_range": [3.0, 70.0], "value_scale_range": [3.0, 18.0], "max_health": 60.0, "structure": true },
-	{ "id": "city_block", "cell_size": 30.0, "density": 0.008, "active_scale_range": [7.0, 170.0], "value_scale_range": [7.0, 44.0], "max_health": 100.0, "structure": true },
-	{ "id": "neighborhood_block", "cell_size": 60.0, "density": 0.006, "active_scale_range": [18.0, 420.0], "value_scale_range": [18.0, 110.0], "max_health": 160.0, "structure": true },
-	{ "id": "district", "cell_size": 120.0, "density": 0.004, "active_scale_range": [44.0, 600.0], "value_scale_range": [44.0, 300.0], "max_health": 260.0, "structure": true },
+	{ "id": "cardboard_box", "cell_size": 3.0, "density": 0.04, "active_scale_range": [0.2, 5.0], "max_health": 10.0, "structure": true },
+	{ "id": "wooden_fence", "cell_size": 4.0, "density": 0.03, "active_scale_range": [0.5, 14.0], "max_health": 18.0, "structure": true },
+	{ "id": "shed", "cell_size": 8.0, "density": 0.015, "active_scale_range": [1.3, 32.0], "max_health": 35.0, "structure": true },
+	{ "id": "car", "cell_size": 7.0, "density": 0.02, "active_scale_range": [1.3, 32.0], "max_health": 28.0, "structure": true },
+	{ "id": "house", "cell_size": 15.0, "density": 0.012, "active_scale_range": [3.0, 70.0], "max_health": 60.0, "structure": true },
+	{ "id": "city_block", "cell_size": 30.0, "density": 0.008, "active_scale_range": [7.0, 170.0], "max_health": 100.0, "structure": true },
+	{ "id": "neighborhood_block", "cell_size": 60.0, "density": 0.006, "active_scale_range": [18.0, 420.0], "max_health": 160.0, "structure": true },
+	{ "id": "district", "cell_size": 120.0, "density": 0.004, "active_scale_range": [44.0, 600.0], "max_health": 260.0, "structure": true },
 ]
 
 # Non-lethal hazards ("shrink, don't always kill" per the brief's Fail State
@@ -219,31 +218,6 @@ func _should_spawn_detail(tier: Dictionary, current_scale: float) -> bool:
 	return true
 
 
-# Separate, narrower gate than _should_spawn_detail() above -- a fuel object
-# can still exist in the world (spawned, touchable, burns down visually)
-# without being worth any Growth Points anymore. Evaluated at ignite time
-# against the flame's CURRENT scale, not baked in at spawn time, so a fuel
-# object that's been sitting around while the flame kept growing correctly
-# reflects "too big for this to matter now," not whatever scale it happened
-# to spawn at.
-func _has_growth_value(tier: Dictionary, current_scale: float) -> bool:
-	if tier.has("value_while_scale_below"):
-		return current_scale < tier.value_while_scale_below
-	if tier.has("value_scale_range"):
-		var r: Array = tier.value_scale_range
-		return current_scale >= r[0] and current_scale <= r[1]
-	return true
-
-
-# Self-sufficient (doesn't rely on _all_tiers/_ready() having run) so it's
-# callable from a bare PropManager.new() in headless tests, same as
-# get_epoch_registry().
-func _find_tier_by_id(tier_id: String) -> Dictionary:
-	var all_tiers: Array[Dictionary] = PROP_TIERS + STRUCTURE_FUEL_TIERS + HAZARD_TIERS + DOUSING_THREAT_TIERS
-	for tier: Dictionary in all_tiers:
-		if tier.id == tier_id:
-			return tier
-	return {}
 
 
 func _update_tier(tier: Dictionary) -> void:
@@ -398,29 +372,21 @@ func _spawn_dousing_threat(tier: Dictionary, key: Vector3i) -> void:
 
 
 # Minimum-size eligibility (a flame must be big enough for a given fuel
-# type) is enforced by which tiers PropManager is currently spawning -- but
-# a fuel object still burns/disappears on touch regardless of whether it's
-# grown too small to matter; it just stops awarding points once the flame
-# has outgrown it (_has_growth_value(), evaluated against the *current*
-# scale, not whatever scale it spawned at -- see the tier table comment).
+# type) is enforced by which tiers PropManager is currently spawning. Once
+# something exists in the world, touching it always grants its full
+# charge_value -- no separate points cutoff (see the tier table comment for
+# why: an earlier version added one and it broke growth pacing).
 func _on_fuel_ignited(fuel: Fuel) -> void:
 	mark_burned(fuel.fuel_tier, fuel.cell_key)
-	if not growth_controller:
-		return
-	var tier: Dictionary = _find_tier_by_id(fuel.fuel_tier)
-	if _has_growth_value(tier, growth_controller.flame_scale):
+	if growth_controller:
 		growth_controller.register_burn(fuel.charge_value)
 
 
 # Per the brief: "Full points are only awarded once its health bar reaches
 # zero" -- no partial register_burn() calls happen during the drain itself.
-# Same outgrown-fuel value gate as _on_fuel_ignited() above.
 func _on_structure_fully_burned(structure: StructureFuel) -> void:
 	mark_burned(structure.fuel_tier, structure.cell_key)
-	if not growth_controller:
-		return
-	var tier: Dictionary = _find_tier_by_id(structure.fuel_tier)
-	if _has_growth_value(tier, growth_controller.flame_scale):
+	if growth_controller:
 		growth_controller.register_burn(structure.full_charge_value)
 
 
