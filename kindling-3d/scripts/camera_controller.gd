@@ -4,8 +4,7 @@ class_name CameraController extends Camera3D
 
 # Calibrated against flame_scale as a real-world size in meters (see
 # growth_controller.gd's BAND_TABLE comment) -- Camera3D.size is the ortho
-# view's vertical extent in world units/meters. MAX_SIZE stays generous for
-# future bands beyond this milestone's scope.
+# view's vertical extent in world units/meters.
 #
 # MIN_SIZE/BASE_SIZE bumped (was 0.4/0.35) after discovering the tighter
 # framing left almost no visible margin beyond the flame's own passive
@@ -14,10 +13,19 @@ class_name CameraController extends Camera3D
 # was mostly showing that self-cleared dead zone with barely any buffer of
 # actual unburned fuel around its edge. A wider ~0.7m view gives a real ring
 # of visible, un-eaten fuel outside that dead zone.
+#
+# MAX_SIZE raised (was 30.0) once all 9 bands existed -- 30 was set back when
+# only Bands 1-3 (max scale 0.6m) were built and genuinely was "generous for
+# future bands," but never got revisited once Band 9 pushed flame_scale up to
+# 140m; at the old cap the camera would've stopped zooming out around Band 6
+# while the flame kept growing, leaving it larger than its own view by Band
+# 9. flame.gd's movement speed is now also derived directly from
+# target_size_for_scale(), so this constant governs pacing as well as
+# framing -- keep both in mind if retuning it.
 const BASE_SIZE: float = 0.6
 const SIZE_PER_SCALE_UNIT: float = 4.0
 const MIN_SIZE: float = 0.7
-const MAX_SIZE: float = 30.0
+const MAX_SIZE: float = 600.0
 
 
 func _ready() -> void:

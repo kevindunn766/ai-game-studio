@@ -2,8 +2,19 @@ class_name Flame extends Node3D
 
 signal hazard_hit(hazard: Hazard)
 
-@export var move_speed: float = 3.0
-@export var accel: float = 12.0
+# Top speed is derived every physics tick from CameraController's own
+# target_size_for_scale(), NOT a flat constant -- a flat speed made the
+# flame "zip around" at match-scale (3 m/s across a ~0.7m view crosses the
+# whole visible world in under a quarter second) while feeling sluggish at
+# large scale once the world around it is hundreds of meters wide. Deriving
+# speed from the same formula that drives camera framing means the flame
+# always crosses roughly the same FRACTION of its own visible world per
+# second, regardless of how big it's grown -- see camera_controller.gd.
+@export var view_crossing_seconds: float = 2.2
+# Time to reach full speed from a stop, and to fully decelerate -- kept
+# constant (not itself scale-derived) so controls feel equally responsive
+# at every scale even though the top speed they ramp to varies hugely.
+@export var accel_ramp_time: float = 0.35
 @export var mesh_scale_tween_time: float = 0.35
 
 # Ignite/jump reach use a base-reach-plus-growth formula, NOT pure
@@ -101,13 +112,23 @@ func _physics_process(delta: float) -> void:
 		_hit_invuln_timer -= delta
 	if _is_jumping:
 		return
-	var target_velocity: Vector3 = move_direction * move_speed
+	var speed: float = current_move_speed()
+	var accel: float = speed / accel_ramp_time if accel_ramp_time > 0.0 else speed
+	var target_velocity: Vector3 = move_direction * speed
 	velocity = velocity.move_toward(target_velocity, accel * delta)
 	if move_direction.length_squared() > 0.01:
 		_last_heading = move_direction.normalized()
 	if velocity.length_squared() < 0.0001:
 		return
 	position += velocity * delta
+
+
+# Top speed proportional to the camera's own view span at the current scale
+# (see the view_crossing_seconds comment above) -- public so movement_trail.gd
+# or future feel/animation code can reuse the same value instead of
+# re-deriving it.
+func current_move_speed() -> float:
+	return CameraController.target_size_for_scale(scale_factor) / view_crossing_seconds
 
 
 # Draining happens every physics tick regardless of jump/movement state --
