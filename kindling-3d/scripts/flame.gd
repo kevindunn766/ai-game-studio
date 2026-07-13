@@ -2,9 +2,7 @@ class_name Flame extends Node3D
 
 signal hazard_hit(hazard: Hazard)
 
-# Top speed is inversely proportional to scale_factor -- a small flame moves
-# fast, a large flame moves slow. current_move_speed() = move_speed_constant
-# / scale_factor.
+# Flat top speed, same at every scale.
 @export var move_speed_constant: float = 2.0
 # Time to reach full speed from a stop, and to fully decelerate -- kept
 # constant (not itself scale-derived) so controls feel equally responsive
@@ -150,7 +148,7 @@ func _physics_process(delta: float) -> void:
 # Public so movement_trail.gd or future feel/animation code can reuse the
 # same value instead of re-deriving it.
 func current_move_speed() -> float:
-	return move_speed_constant / scale_factor
+	return move_speed_constant
 
 
 func _record_position_history() -> void:
