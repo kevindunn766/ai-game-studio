@@ -16,13 +16,14 @@ const SAVE_PATH := "user://spiraldrop_highscore.cfg"
 const GENERATE_AHEAD := 15
 const GENERATE_TRIGGER := 5
 
-const PALETTE := [
-	Color(0.95, 0.35, 0.4, 1.0),
-	Color(0.95, 0.6, 0.25, 1.0),
-	Color(0.35, 0.8, 0.55, 1.0),
-	Color(0.3, 0.65, 0.95, 1.0),
-	Color(0.7, 0.45, 0.95, 1.0),
-]
+# Studio Palette v1 (see COLOR_SYSTEM.md): gates stay cool and deliberately
+# less saturated than the ball, so the one thing the player must track never
+# has to compete visually with the scenery (Itten's contrast of saturation).
+const GATE_HUE_START := 0.5
+const GATE_HUE_RANGE := 0.33
+const GATE_HUE_STEPS := 5
+const GATE_SATURATION := 0.48
+const GATE_VALUE := 0.78
 
 @onready var tower_root: Node3D = $TowerRoot
 @onready var ball: MeshInstance3D = $Ball
@@ -55,10 +56,12 @@ func _setup_ball() -> void:
 	sphere.height = 0.7
 	ball.mesh = sphere
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(1.0, 0.95, 0.85, 1.0)
+	# Warm, high-chroma accent-primary — deliberately far above the gates'
+	# saturation so the ball is unmistakable against the muted tower.
+	mat.albedo_color = Color.from_hsv(0.11, 0.75, 0.95, 1.0)
 	mat.emission_enabled = true
-	mat.emission = Color(1.0, 0.9, 0.6, 1.0)
-	mat.emission_energy_multiplier = 0.8
+	mat.emission = Color.from_hsv(0.11, 0.85, 1.0, 1.0)
+	mat.emission_energy_multiplier = 0.9
 	ball.set_surface_override_material(0, mat)
 
 
@@ -80,12 +83,18 @@ func _start_game() -> void:
 	_generate_gates(GENERATE_AHEAD)
 
 
+func _gate_color(idx: int) -> Color:
+	var step: int = idx % GATE_HUE_STEPS
+	var hue: float = fmod(GATE_HUE_START + (float(step) / float(GATE_HUE_STEPS)) * GATE_HUE_RANGE, 1.0)
+	return Color.from_hsv(hue, GATE_SATURATION, GATE_VALUE, 1.0)
+
+
 func _generate_gates(count: int) -> void:
 	for _i in range(count):
 		var idx: int = gates.size()
 		var y: float = -float(idx) * GATE_SPACING
 		var gap_start: int = randi() % NUM_TEETH
-		var color: Color = PALETTE[idx % PALETTE.size()]
+		var color: Color = _gate_color(idx)
 
 		var gate_node := Node3D.new()
 		gate_node.name = "Gate%d" % idx

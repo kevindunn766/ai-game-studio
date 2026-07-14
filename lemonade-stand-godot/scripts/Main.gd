@@ -65,6 +65,7 @@ func render_upgrades():
         var info = Label.new()
         var next_cost = floor(up.cost * pow(1.15, up.owned))
         info.text = "%s\nOwned: %d | Next: %d coins" % [up.name, up.owned, next_cost]
+        info.add_theme_color_override("font_color", Color(0.15, 0.12, 0.02, 1))
         row.add_child(info)
 
         var btn = Button.new()

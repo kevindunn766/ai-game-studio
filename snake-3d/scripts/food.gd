@@ -7,10 +7,14 @@ var material: StandardMaterial3D
 
 
 func _ready() -> void:
+	# Studio Palette v1 (COLOR_SYSTEM.md): food is a reward, not a hazard, so
+	# it gets the reward-accent family (warm gold) instead of red — red is
+	# reserved studio-wide for danger/lose-condition signals.
+	var reward_color := Color.from_hsv(0.13, 0.78, 0.95, 1.0)
 	material = StandardMaterial3D.new()
-	material.albedo_color = Color(1.0, 0.14, 0.14, 1.0)
+	material.albedo_color = reward_color
 	material.emission_enabled = true
-	material.emission = Color(1.0, 0.14, 0.14, 1.0)
+	material.emission = reward_color
 	material.emission_energy_multiplier = 1.4
 	material.roughness = 0.25
 

@@ -11,20 +11,39 @@ const GRID_TOP := 200.0
 const SWIPE_THRESHOLD := 40.0
 const SAVE_PATH := "user://mergenumbers_highscore.cfg"
 
-const TILE_COLORS := {
-	0: Color(0.8, 0.76, 0.7, 1.0),
-	2: Color(0.93, 0.89, 0.82, 1.0),
-	4: Color(0.93, 0.87, 0.71, 1.0),
-	8: Color(0.95, 0.69, 0.47, 1.0),
-	16: Color(0.96, 0.58, 0.39, 1.0),
-	32: Color(0.96, 0.49, 0.37, 1.0),
-	64: Color(0.96, 0.37, 0.23, 1.0),
-	128: Color(0.93, 0.81, 0.45, 1.0),
-	256: Color(0.93, 0.79, 0.35, 1.0),
-	512: Color(0.93, 0.78, 0.25, 1.0),
-	1024: Color(0.93, 0.76, 0.15, 1.0),
-	2048: Color(0.93, 0.74, 0.05, 1.0),
-}
+# Studio Palette v1 (see COLOR_SYSTEM.md). The old palette was a hand-copied
+# 2048 ramp that jumped between color families partway through (128 reset
+# back to a lighter gold after 64's deep red). Rebuilt as one continuous
+# Munsell-style ramp: hue drifts warm-to-red, saturation climbs, value dips
+# slightly, all in lockstep with tile power — so higher tiles always read as
+# "more intense," never as an arbitrary swatch swap.
+const EMPTY_CELL_COLOR := Color(0.82, 0.78, 0.72, 1.0)
+const TILE_RAMP_STEPS := 11
+const TILE_HUE_START := 0.135
+const TILE_HUE_END := 0.0
+const TILE_SAT_START := 0.25
+const TILE_SAT_END := 0.82
+const TILE_VAL_START := 0.95
+const TILE_VAL_END := 0.78
+
+
+func _tile_color(value: int) -> Color:
+	if value <= 0:
+		return EMPTY_CELL_COLOR
+	var power: int = int(round(log(value) / log(2)))
+	var t: float = clamp(float(power - 1) / float(TILE_RAMP_STEPS - 1), 0.0, 1.0)
+	var hue: float = lerp(TILE_HUE_START, TILE_HUE_END, t)
+	var sat: float = lerp(TILE_SAT_START, TILE_SAT_END, t)
+	var val: float = lerp(TILE_VAL_START, TILE_VAL_END, t)
+	return Color.from_hsv(hue, sat, val, 1.0)
+
+
+func _readable_text_color(bg: Color) -> Color:
+	# Outline/text role (COLOR_SYSTEM.md): pick near-black or near-white based
+	# on the tile's actual luminance so labels never rely on a theme default
+	# that may not contrast with a light, low-chroma background.
+	var luminance: float = 0.299 * bg.r + 0.587 * bg.g + 0.114 * bg.b
+	return Color(0.08, 0.08, 0.08, 1.0) if luminance > 0.55 else Color(0.95, 0.95, 0.95, 1.0)
 
 @onready var grid_bg: Node2D = $GridBg
 @onready var tile_container: Node2D = $TileContainer
@@ -51,7 +70,7 @@ func _build_grid_background() -> void:
 			var cell := ColorRect.new()
 			cell.size = Vector2(CELL_SIZE, CELL_SIZE)
 			cell.position = _cell_position(x, y)
-			cell.color = TILE_COLORS[0]
+			cell.color = EMPTY_CELL_COLOR
 			grid_bg.add_child(cell)
 
 
@@ -103,7 +122,7 @@ func _redraw() -> void:
 			var tile := ColorRect.new()
 			tile.size = Vector2(CELL_SIZE, CELL_SIZE)
 			tile.position = _cell_position(x, y)
-			tile.color = TILE_COLORS.get(value, Color(0.2, 0.2, 0.2, 1.0))
+			tile.color = _tile_color(value)
 			tile_container.add_child(tile)
 
 			var label := Label.new()
@@ -113,6 +132,7 @@ func _redraw() -> void:
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 			label.add_theme_font_size_override("font_size", 40 if value < 100 else 32)
+			label.add_theme_color_override("font_color", _readable_text_color(tile.color))
 			tile_container.add_child(label)
 
 

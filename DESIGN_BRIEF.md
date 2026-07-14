@@ -18,6 +18,9 @@ binary is nested one level in).
 - Scene: 1 scene, user://JSON save/load, high-contrast yellow palette.
 - Scripts: `Main.gd` (136 lines). No issues.
 - **Status:** Complete and verified. Ready to ship or iterate on.
+- **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): labels had no explicit
+  font color and were inheriting the theme default over the bright yellow
+  background — fixed with explicit dark font colors on all static + upgrade-row labels.
 
 ### 2. Snake 3D (snake-3d/) 🔧 IN PROGRESS
 - 3D snake on XZ grid,  WASD/arrows, WASD/arrows, 4-directional.
@@ -26,7 +29,16 @@ binary is nested one level in).
 - Camera: crane-arm follow (SpringArm3D attached to snake head segment).
 - Floor: procedural tile chunks with obstacle density.
 - **User-verified working:** Controls register correctly.
-- **Known issue:** Walls are nearly the same color as the floor wall collision is invisible.
+- **Known issue — FIXED 2026-07-14:** Walls were nearly the same color as the
+  floor. Root cause was missing emission (unlit albedo contrast alone washes
+  out at a glancing directional-light angle); obstacles now get emission at
+  the same hue plus a wider locked value/chroma gap from the floor. See
+  `COLOR_SYSTEM.md`.
+- **Crash found + fixed 2026-07-14:** `snake.gd::_segments_changed()` called
+  `remove_child()` on the Snake node itself for a node that was actually
+  parented under `Seg0` — Godot throws `"p_child->data.parent != this"` the
+  first time a segment gets rebuilt after growth. Found via a headless replay
+  while verifying the color pass; fixed by calling `existing_head.remove_child(child)`.
 - **New user request (2026-07-01):** Remove box walls. Replace with endless generating grid of 105%-sized planes within camera view, each with 25% chance of pastel-colored kill block. Camera crane arm 25% closer to snake. Endless obstacle navigation in all directions.
 - Blockers: Python not installed blocks ad-hoc runtime verification.
 
@@ -60,6 +72,9 @@ binary is nested one level in).
   `user://stackrush_highscore.cfg`.
 - Headless-verified: clean load (no script/parse errors) + scripted self-test
   exercising drop, slice, game-over, and restart paths — all passed.
+- **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): layer palette rebuilt as
+  an evenly-stepped hue rotation at fixed saturation/value instead of 7
+  hand-picked RGB triples.
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ### 5. Spiral Drop (spiral-drop/) ✅ PROTOTYPE COMPLETE
@@ -69,6 +84,10 @@ binary is nested one level in).
 - Endless gate generation. High score via `user://spiraldrop_highscore.cfg`.
 - Headless-verified: clean load + scripted self-test covering forced-pass,
   forced-miss (game over), and restart — all passed.
+- **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): gate teeth de-saturated
+  and the ball's chroma raised, so the ball (the thing you track) reads
+  clearly above the tower instead of competing with it (Itten's contrast of
+  saturation used as a legibility cue).
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ### 6. Timber Tap (timber-tap/) ✅ PROTOTYPE COMPLETE
@@ -78,6 +97,12 @@ binary is nested one level in).
 - High score via `user://timbertap_highscore.cfg`.
 - Headless-verified: clean load + scripted self-test covering safe chops,
   forced hit (game over), timeout, and restart — all passed.
+- **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): **found a real signal
+  bug** — the hazard branch was green, the universal "safe" color, fighting
+  the player's split-second read. Recolored to red-orange (danger family);
+  player token moved to magenta so it never shares a hue family with trunk,
+  branch, ground, or sky. Also added explicit label font colors (score/game
+  over text had no override and was inheriting a low-contrast theme default).
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ### 7. Merge Numbers (merge-numbers/) ✅ PROTOTYPE COMPLETE
@@ -89,6 +114,13 @@ binary is nested one level in).
 - Headless-verified: clean load + scripted self-test covering line-merge
   math, a live grid move, full-board game-over detection, and restart —
   all passed.
+- **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): tile ramp rebuilt as one
+  continuous Munsell-style hue/saturation/value progression (the original
+  was a hand-copied 2048 palette that jumped color families partway
+  through). Also **found a real contrast bug**: tile number labels had no
+  explicit font color and were inheriting a light theme default over
+  light/cream tile backgrounds — fixed with a luminance-based black/white
+  text picker per tile.
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ---

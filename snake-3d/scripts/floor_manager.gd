@@ -190,8 +190,15 @@ func _refresh_obstacles(bounds: Rect2i) -> void:
 			om.size = Vector3(tile_size * 0.85, tile_size * 0.55, tile_size * 0.85)
 			var omat := StandardMaterial3D.new()
 			var hue: float = rng.randf()
-			var pastel := Color.from_hsv(hue, 0.25, 0.88, 1.0)
+			# Studio Palette v1 (COLOR_SYSTEM.md): fixes the long-standing
+			# "walls barely visible against floor" bug. Unlit albedo contrast
+			# alone washes out under directional lighting at a glancing
+			# angle; emission makes the value gap survive any lighting angle.
+			var pastel := Color.from_hsv(hue, 0.32, 0.92, 1.0)
 			omat.albedo_color = pastel
+			omat.emission_enabled = true
+			omat.emission = pastel
+			omat.emission_energy_multiplier = 0.55
 			omat.roughness = 0.25
 			obstacle.material_override = omat
 			obstacle.mesh = om

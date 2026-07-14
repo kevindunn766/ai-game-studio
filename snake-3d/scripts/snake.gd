@@ -104,7 +104,7 @@ func _segments_changed() -> void:
 	for child: Node in existing_head.get_children():
 		if child.name == "CameraCranePivot":
 			continue
-		remove_child(child)
+		existing_head.remove_child(child)
 		child.queue_free()
 
 	var mesh_node := MeshInstance3D.new()

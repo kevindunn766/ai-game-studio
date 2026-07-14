@@ -28,9 +28,15 @@ const TIME_DECAY := 0.03
 const TIMER_BAR_MAX_WIDTH := 500.0
 const SAVE_PATH := "user://timbertap_highscore.cfg"
 
+# Studio Palette v1 (see COLOR_SYSTEM.md). Trunk stays a low-chroma neutral
+# earth tone (it's not a signal, it's scenery). The branch is the hazard, so
+# it now gets the danger family (warm red-orange) instead of green — green
+# reads as "safe" and was fighting the player's split-second read. The
+# player token is magenta, the one hue not already used by trunk (brown),
+# branch (red-orange), ground (green), or sky (blue), so it never blends in.
 const TRUNK_COLORS := [Color(0.45, 0.3, 0.18, 1.0), Color(0.52, 0.36, 0.21, 1.0)]
-const BRANCH_COLOR := Color(0.27, 0.5, 0.24, 1.0)
-const PLAYER_COLOR := Color(0.85, 0.2, 0.2, 1.0)
+const BRANCH_COLOR := Color(0.95, 0.32, 0.12, 1.0)
+const PLAYER_COLOR := Color(0.86, 0.24, 0.62, 1.0)
 
 @onready var trunk_container: Node2D = $TrunkContainer
 @onready var score_label: Label = $ScoreLabel

@@ -9,15 +9,12 @@ const SAVE_PATH := "user://stackrush_highscore.cfg"
 const MIN_OVERLAP := 0.12
 const CAMERA_OFFSET := Vector3(7.0, 6.0, 7.0)
 
-const PALETTE := [
-	Color(1.0, 0.42, 0.42, 1.0),
-	Color(1.0, 0.68, 0.3, 1.0),
-	Color(1.0, 0.86, 0.35, 1.0),
-	Color(0.45, 0.85, 0.55, 1.0),
-	Color(0.35, 0.75, 0.95, 1.0),
-	Color(0.6, 0.5, 0.95, 1.0),
-	Color(0.95, 0.45, 0.75, 1.0),
-]
+# Studio Palette v1 (see COLOR_SYSTEM.md): layer color rotates fully around
+# the hue wheel, holding chroma/value fixed so every layer reads at the same
+# brightness instead of a hand-picked, unevenly saturated rainbow.
+const PALETTE_STEPS := 7
+const PALETTE_SATURATION := 0.62
+const PALETTE_VALUE := 0.88
 
 @onready var camera: Camera3D = $Camera3D
 @onready var score_label: Label3D = $ScoreLabel
@@ -67,6 +64,11 @@ func _start_game() -> void:
 	_spawn_next_moving_block()
 
 
+func _layer_color(layer: int) -> Color:
+	var hue: float = fmod(float(layer) / float(PALETTE_STEPS), 1.0)
+	return Color.from_hsv(hue, PALETTE_SATURATION, PALETTE_VALUE, 1.0)
+
+
 func _make_block(size: Vector3, center: Vector3, color: Color) -> MeshInstance3D:
 	var mesh_node := MeshInstance3D.new()
 	var box := BoxMesh.new()
@@ -98,7 +100,7 @@ func _spawn_next_moving_block() -> void:
 	# Bias the starting side so the sweep begins clearly off to one edge.
 	t = -PI / 2.0
 
-	var color: Color = PALETTE[layer_index % PALETTE.size()]
+	var color: Color = _layer_color(layer_index)
 	moving_node = _make_block(moving_size, start_center, color)
 	moving_node.name = "BlockMoving"
 
