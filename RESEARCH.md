@@ -71,3 +71,35 @@ rhythm/pulse-dodge game (too similar to Spiral Drop's "find the gap"
 loop) and a lane-based color-runner (too similar to the shelved
 procedural-3d-godot lane runner).
 
+---
+
+## 2026-07-16 — Round 3: full-repo QoL/error review, then 4 more new concepts
+
+User asked for two things: (1) review every game in the studio (not just
+the newest batch) for quality-of-life GUI issues and potential errors, and
+(2) build 4 more completely new games. Findings from (1) are recorded in
+each project's `DESIGN_BRIEF.md` entry; the short version is 5 real bugs
+across the 2 original pre-existing games and 2 of round 2's new games (a
+restart deadlock, a data-loss autosave gap, missing `Label3D` billboarding
+in two 3D games, and physics continuing to run after game over), plus 3
+deliberate QoL additions (miss-feedback flashes, a gravity-direction
+indicator).
+
+For (2), the studio now has 12 hyper-casual prototypes spanning: idle
+clicker, grid-snake navigation, precision-drop stacking, rotate-to-align
+falling, alternate-tap timing, grid-slide merging, select-and-submit
+matching, physics-balance sandbox, drag-trace planning, and one-button
+binary-state running. Round 3 picked genres/input paradigms still missing:
+
+| Game | Genre | Why it's not a reskin |
+|---|---|---|
+| **Target Throw** | Aim/timing (Knife Hit style) | The target rotates on its own — the player only controls *when* to throw, never the rotation itself. Spiral Drop is the opposite: the player rotates, an external element (the ball) just falls at a constant rate. Same "rotation" surface, inverted control. |
+| **Pulse Tap** | Visual rhythm | The only game built around a continuously *repeating* timing window ("wait for the right moment in a cycle"). Every other timing-based game in the studio is single-shot (Timber Tap, Target Throw) or a binary state (Gravity Flip), not a loop you have to read and predict. |
+| **Color Sort** | Stack-sorting logic puzzle | Zero reflex or timing component at all — no other game in the studio has that pacing. A shared move-budget economy stands in for a fail-state/timer. |
+| **Flashlight Maze** | Fog-of-war exploration | Partial information. Snake 3D and Loop It are both fully-visible grids; this is the only game where the map itself has to be discovered and remembered, not just reacted to. |
+
+Target Throw's knife-placement logic deliberately uses `Node2D.to_local()`
+on a fixed world contact point instead of hand-derived rotation trig —
+directly applying the lesson from Spiral Drop's rotation-sign bug (see
+`DESIGN_BRIEF.md`'s pending-tasks lesson-learned entries).
+

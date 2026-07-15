@@ -29,6 +29,7 @@ text = "0"
 font_size = 96
 outline_size = 12
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 
 [node name="ComboLabel" type="Label3D" parent="."]
 visible = false
@@ -36,6 +37,7 @@ text = "COMBO REBUILD!"
 font_size = 64
 outline_size = 10
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 modulate = Color(0.93, 0.76, 0.15, 1)
 
 [node name="GameOverOverlay" type="Node3D" parent="."]
@@ -47,6 +49,7 @@ text = "GAME OVER"
 font_size = 72
 outline_size = 10
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 
 [node name="GameOverScore" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.8, 0)
@@ -54,6 +57,7 @@ text = "Score: 0  Best: 0"
 font_size = 40
 outline_size = 6
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 
 [node name="GameOverRestart" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, 0)
@@ -61,3 +65,4 @@ text = "Tap / Space to restart"
 font_size = 32
 outline_size = 6
 outline_color = Color(0, 0, 0, 1)
+billboard = 1

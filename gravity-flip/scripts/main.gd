@@ -31,6 +31,7 @@ const SAVE_PATH := "user://gravityflip_highscore.cfg"
 const OBSTACLE_COLOR := Color(0.95, 0.32, 0.12, 1.0)
 
 @onready var player: ColorRect = $Player
+@onready var gravity_arrow: Polygon2D = $Player/GravityArrow
 @onready var obstacles_container: Node2D = $ObstaclesContainer
 @onready var score_label: Label = $ScoreLabel
 @onready var ready_overlay: ColorRect = $ReadyOverlay
@@ -74,6 +75,7 @@ func _start_game() -> void:
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
 	player.position = Vector2(PLAYER_X - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
+	gravity_arrow.rotation = 0.0
 
 
 func _process(delta: float) -> void:
@@ -88,6 +90,9 @@ func _process(delta: float) -> void:
 	player_y += vel_y * delta
 	player_y = clamp(player_y, CEILING_Y + PLAYER_SIZE / 2.0, FLOOR_Y - PLAYER_SIZE / 2.0)
 	player.position = Vector2(PLAYER_X - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
+	# QoL: the arrow always points the way gravity is currently pulling, so
+	# a flip reads instantly instead of only being inferable from motion.
+	gravity_arrow.rotation = 0.0 if gravity_dir == 1 else PI
 
 	_update_spawning()
 	_update_obstacles()

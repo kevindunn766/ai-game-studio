@@ -37,6 +37,7 @@ const SAVE_PATH := "user://chromamix_highscore.cfg"
 @onready var ready_overlay: ColorRect = $ReadyOverlay
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
+@onready var miss_flash_label: Label = $MissFlashLabel
 
 var selected: Array = [false, false, false]
 var target_key: String = "0"
@@ -47,6 +48,7 @@ var time_limit: float = BASE_TIME
 var time_left: float = BASE_TIME
 var game_over: bool = false
 var game_started: bool = false
+var miss_flash_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -107,13 +109,18 @@ func _selection_key() -> String:
 
 
 func _process(delta: float) -> void:
+	if miss_flash_timer > 0.0:
+		miss_flash_timer -= delta
+		if miss_flash_timer <= 0.0:
+			miss_flash_label.visible = false
+
 	if game_over or not game_started:
 		return
 	time_left -= delta
 	var ratio: float = clamp(time_left / time_limit, 0.0, 1.0)
 	timer_bar_fill.size.x = TIMER_BAR_MAX_WIDTH * ratio
 	if time_left <= 0.0:
-		_on_miss()
+		_on_miss("TOO SLOW!")
 
 
 func _input(event: InputEvent) -> void:
@@ -189,12 +196,15 @@ func _submit() -> void:
 		score_label.text = "Score: %d" % score
 		_new_round()
 	else:
-		_on_miss()
+		_on_miss("WRONG MIX!")
 
 
-func _on_miss() -> void:
+func _on_miss(reason: String) -> void:
 	strikes -= 1
 	_update_strikes_label()
+	miss_flash_label.text = reason
+	miss_flash_label.visible = true
+	miss_flash_timer = 0.9
 	if strikes <= 0:
 		_trigger_game_over()
 	else:

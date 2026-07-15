@@ -9,7 +9,6 @@
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_gm")
-grid_size = 20
 initial_speed = 0.18
 speed_increment = 0.015
 speed_increase_interval = 5
@@ -63,6 +62,7 @@ text = "SCORE: 0"
 font_size = 4
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 
 [node name="GameOverOverlay" type="Node3D" parent="."]
 visible = false
@@ -73,13 +73,15 @@ text = "GAME OVER"
 font_size = 6
 outline_size = 8
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 
 [node name="GameOverRestart" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0, 0)
-text = "Press ENTER to restart"
+text = "Tap or press ENTER to restart"
 font_size = 3
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
+billboard = 1
 
 [node name="GameOverScore" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
@@ -87,3 +89,4 @@ text = "High Score: 0"
 font_size = 3
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
+billboard = 1

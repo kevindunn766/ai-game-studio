@@ -21,6 +21,13 @@ binary is nested one level in).
 - **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): labels had no explicit
   font color and were inheriting the theme default over the bright yellow
   background — fixed with explicit dark font colors on all static + upgrade-row labels.
+- **Real bug found + fixed 2026-07-15 (QoL/error review):** idle income
+  (`per_sec`) and manual click income (`_on_sell_pressed`) were never
+  persisted on their own — only buying an upgrade called `save_game()`. A
+  player who clicked/idled and closed the game without buying anything lost
+  all of that progress. Fixed with a periodic autosave (every 5s) plus a
+  save on `NOTIFICATION_WM_CLOSE_REQUEST`/`NOTIFICATION_APPLICATION_PAUSED`
+  (quit/background — important for the Android export target).
 
 ### 2. Snake 3D (snake-3d/) 🔧 IN PROGRESS
 - 3D snake on XZ grid,  WASD/arrows, WASD/arrows, 4-directional.
@@ -39,6 +46,19 @@ binary is nested one level in).
   parented under `Seg0` — Godot throws `"p_child->data.parent != this"` the
   first time a segment gets rebuilt after growth. Found via a headless replay
   while verifying the color pass; fixed by calling `existing_head.remove_child(child)`.
+- **Serious bug found + fixed 2026-07-15 (QoL/error review):**
+  `game_manager.gd::_trigger_game_over()` called `set_process_input(false)`,
+  which disables ALL future `_input()` calls for that node — including the
+  very same `_input()` function's `if is_game_over: restart()` branch. The
+  game could never actually be restarted via keyboard after a death; it was
+  a self-inflicted deadlock. Fixed by removing the `set_process_input(false)`
+  call (the existing `is_game_over` check already correctly gates movement
+  vs. restart, so disabling input processing entirely was never necessary).
+  Also added tap/click-to-restart for parity with every other game in the
+  studio, and added `billboard = 1` to all `Label3D` nodes in both snake-3d
+  and stack-rush — without it, text planes don't face the camera and read
+  as skewed/illegible from each game's fixed oblique angle (spiral-drop
+  already had this set; the other two didn't).
 - **New user request (2026-07-01):** Remove box walls. Replace with endless generating grid of 105%-sized planes within camera view, each with 25% chance of pastel-colored kill block. Camera crane arm 25% closer to snake. Endless obstacle navigation in all directions.
 - Blockers: Python not installed blocks ad-hoc runtime verification.
 
@@ -81,6 +101,10 @@ binary is nested one level in).
   in a row widens the block back out (up to base size) instead — a
   skill-driven comeback path. Verified via self-test forcing a shrink then a
   3-drop streak and confirming the width grows back.
+- **QoL fix 2026-07-15 (review pass):** none of the 5 `Label3D` nodes had
+  `billboard` set — against this game's fixed isometric camera angle text
+  planes don't face the camera by default and read as skewed/illegible.
+  Added `billboard = 1` to all of them (spiral-drop already had this).
 - **Not yet playtested by user in the Godot editor (F5) since this change.**
 
 ### 5. Spiral Drop (spiral-drop/) ✅ PROTOTYPE COMPLETE
@@ -166,6 +190,10 @@ binary is nested one level in).
 - Headless-verified: clean load + scripted self-test covering all 7 mix
   results, a correct submit, a wrong submit (strike loss), draining all
   strikes to game over, and restart — all passed.
+- **QoL added 2026-07-15 (review pass):** a wrong mix or a timeout looked
+  identical to a correct submit (both just silently redrew the round) —
+  added a transient "WRONG MIX!" / "TOO SLOW!" flash label so a strike is
+  unmistakable in the moment it happens.
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ### 9. Tilt Tower (tilt-tower/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
@@ -183,6 +211,16 @@ binary is nested one level in).
   time-based (simulated-seconds) checks rather than counting
   `_physics_process` calls against `--quit-after`, since headless idle-loop
   iterations and physics ticks don't run 1:1.
+- **Real issue found + fixed 2026-07-15 (review pass):**
+  `_physics_process` stops tracking/pruning shapes once `game_over` is
+  true, but the Godot physics engine itself keeps simulating every
+  `RigidBody2D` on screen regardless of my script — any blocks still
+  falling at the moment of game over would fall forever in the background,
+  off-screen, for as long as the game-over overlay stayed up. Fixed by
+  setting `freeze = true` on all remaining shapes in `_trigger_game_over()`
+  (also reads better — the tower visibly freezes instead of silently
+  vanishing). Also added `continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE`
+  to spawned blocks to reduce tunneling through the platform at high speed.
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ### 10. Loop It (loop-it/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
@@ -198,6 +236,11 @@ binary is nested one level in).
   logic, a full valid path completing a round, an early release clearing
   the stroke without penalty, draining strikes via timeout to game over,
   and restart — all passed.
+- **QoL added 2026-07-15 (review pass):** added a transient "TIME UP!"
+  flash on a timeout strike, matching the miss-feedback pattern added to
+  Chroma Mix. (Checked for a suspected `dragging`-not-reset bug reported
+  in an earlier draft of this review — re-read the actual shipped code and
+  confirmed `_new_round()` already resets it; no bug was actually present.)
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ### 11. Gravity Flip (gravity-flip/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
@@ -216,6 +259,81 @@ binary is nested one level in).
   out-of-range obstacle) and a full integration run (never flipping lets
   gravity pull the player to the floor, which reliably collides with a
   floor-blocking obstacle), and restart — all passed.
+- **QoL added 2026-07-15 (review pass):** added a small arrow indicator on
+  the player that always points the direction gravity is currently
+  pulling, so a flip reads instantly instead of only being inferable from
+  motion a moment later.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 12. Target Throw (target-throw/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- A Knife Hit-style precision game — the target spins entirely on its own
+  (unlike Spiral Drop, where the player rotates the tower); the player only
+  controls *when* to throw. Tap to throw a knife into the spinning target;
+  an empty spot sticks and rotates with the target from then on, a spot
+  that already has a knife (within a small angular tolerance) ends the run.
+  Every 6 successful throws advances a round and speeds up the spin.
+- High score via `user://targetthrow_highscore.cfg`.
+- Knife placement/collision uses `Node2D.to_local()` on a fixed world
+  contact point rather than hand-derived rotation trig, specifically to
+  avoid the class of sign-error bug Spiral Drop had (see its entry above).
+- Headless-verified: clean load + scripted self-test covering a first
+  throw always sticking, a second throw at unchanged rotation always
+  hitting the same spot (game over), a throw past the tolerance window
+  sticking cleanly, round advancement after 6 throws, and restart — all
+  passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 13. Pulse Tap (pulse-tap/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- A sound-free rhythm game: a ring shrinks continuously toward a fixed
+  target ring; tap the instant they align. No other game in the studio is
+  built around "wait for the right moment in a repeating cycle" — tapping
+  early/late, or letting a cycle run out untapped, all cost a strike (3
+  strikes ends the run); a successful hit immediately starts the next,
+  slightly faster cycle.
+- High score via `user://pulsetap_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering a
+  well-timed tap scoring without costing a strike, an early tap costing
+  exactly one strike (and not stacking penalties from spam-tapping the
+  same already-resolved cycle), an untapped cycle timing out into an
+  auto-miss, draining strikes to game over, and restart — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 14. Color Sort (color-sort/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- A Ball Sort Puzzle style stacking game — the only prototype in the
+  studio with zero reflex/timing component at all. Tap a tube to pick up
+  its top color, tap another to pour it in (legal only onto an empty tube
+  or a matching top color). Sorting every tube to a single color solves
+  the puzzle. A shared move budget across the whole session (not a
+  per-puzzle timer or strikes) is the twist: solving refills moves, so
+  efficient play is what keeps the run going.
+- High score (puzzles solved) via `user://colorsort_highscore.cfg`.
+- Puzzles are generated by randomly distributing colors into tubes with 2
+  empty tubes for maneuvering room — the standard approach for this genre.
+  Solvability isn't formally proven for every deal (same caveat real
+  mobile ball-sort games have); noted explicitly in `DESIGN.md` as a
+  known scope boundary rather than something to hide.
+- Headless-verified: clean load + scripted self-test covering the
+  generator's ball-count invariant (each color appears exactly CAPACITY
+  times across all tubes), top-run counting, pour legality, solve
+  detection, a move costing exactly 1 from the shared budget, running out
+  of moves ending the run, and restart — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 15. Flashlight Maze (flashlight-maze/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- A fog-of-war exploration game. Unlike Snake 3D (fully visible grid,
+  continuous auto-move) or Loop It (fully visible dot grid), only a small
+  radius around the player is ever revealed here — and it stays revealed
+  once seen, so the challenge is genuinely about exploring and
+  remembering the maze's layout under time pressure. A fresh perfect maze
+  (recursive-backtracker generation) is built each round; reach the exit
+  before the timer runs out. Move with WASD/arrows/swipe.
+- High score (mazes solved) via `user://flashlightmaze_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test that flood-fills the
+  generated maze and confirms every single cell is reachable from the
+  start (the generator's core correctness property — a broken maze
+  generator producing disconnected regions would otherwise be a silent,
+  unsolvable-puzzle bug), plus wall-bump no-ops, force-solving a round,
+  draining strikes via timeout to game over, and restart — all passed.
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ---
@@ -281,6 +399,7 @@ binary is nested one level in).
 4. **PR management workflow**: Beyond GitHub MCP — formalize PR creation, review, merge workflow.
 5. **Canonical Godot verification**: No project has had a formal playtest + user confirmation since latest edits.
 6. **Git push of latest commits**: Local commits exist for snake-3d scaffold but push keeps timing out.
-7. **User F5 playtest of all 8 hyper-casual prototypes** (stack-rush, spiral-drop, timber-tap, merge-numbers, chroma-mix, tilt-tower, loop-it, gravity-flip): all verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, and touch/mouse controls on this machine before calling any of them "done." Spiral Drop and Timber Tap specifically need reconfirmation since the 2026-07-15 round fixed a real rotation bug (Spiral Drop) and added onboarding (Timber Tap) in direct response to playtest feedback that the first pass hadn't caught.
-8. **Polish pass** (once user picks favorites among the 8 prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
-9. **Lesson learned 2026-07-15:** self-tests that re-derive the same formula the implementation uses (rather than checking against independent ground truth, e.g. actual rendered node transforms) can pass while the real mechanic is broken — this is exactly how Spiral Drop's rotation-sign bug slipped through the first verification pass. Future self-tests for anything involving rotation/orientation/geometry should validate against actual `global_transform` or an independently-derived expectation, not the same math path as the code under test.
+7. **User F5 playtest of all 12 hyper-casual prototypes** (stack-rush, spiral-drop, timber-tap, merge-numbers, chroma-mix, tilt-tower, loop-it, gravity-flip, target-throw, pulse-tap, color-sort, flashlight-maze): all verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, and touch/mouse controls on this machine before calling any of them "done." Spiral Drop and Timber Tap specifically need reconfirmation since the 2026-07-15 round fixed a real rotation bug (Spiral Drop) and added onboarding (Timber Tap) in direct response to playtest feedback that the first pass hadn't caught. Snake 3D and Lemonade Stand also need reconfirmation after the 2026-07-15 review pass fixed a restart deadlock and an autosave data-loss bug respectively.
+8. **Polish pass** (once user picks favorites among the 12 prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
+9. **Lesson learned 2026-07-15 (round 1):** self-tests that re-derive the same formula the implementation uses (rather than checking against independent ground truth, e.g. actual rendered node transforms) can pass while the real mechanic is broken — this is exactly how Spiral Drop's rotation-sign bug slipped through the first verification pass. Future self-tests for anything involving rotation/orientation/geometry should validate against actual `global_transform` or an independently-derived expectation, not the same math path as the code under test. Target Throw's knife-placement code applies this directly (`to_local()` instead of hand-derived trig).
+10. **Lesson learned 2026-07-15 (round 2, QoL/error review):** a full-repo review pass (all 10 then-existing prototypes, not just the newest ones) turned up 5 real, distinct bugs the per-game self-tests hadn't caught, because each bug was in a code path the self-tests never exercised or a cross-cutting concern no single-game test would catch: snake-3d's restart deadlock (`set_process_input(false)` disabling its own restart handler), lemonade-stand's missing autosave (only `_buy_upgrade` persisted state), stack-rush/snake-3d's missing `billboard` on `Label3D` nodes (a scene-file property, not something a GDScript self-test touches), and tilt-tower's physics continuing to simulate after game over (an engine-level behavior, not a script-state bug). Takeaway: self-tests validate the logic they're written to exercise, not the whole game — a periodic full-repo re-review (not just testing the newest additions) is worth doing, especially for scene-file properties (billboard, font colors, anchors) and cross-cutting lifecycle concerns (save/restart/pause) that no single feature's self-test happens to cover. Also confirmed a suspected Loop It bug (dragging flag not reset) was a false alarm on re-reading the actual shipped code — a reminder to verify against current code before fixing, not just from memory of what "should" be there.

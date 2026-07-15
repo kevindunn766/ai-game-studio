@@ -29,11 +29,13 @@ const DOT_VISITED_COLOR := Color(0.2, 0.55, 0.85, 1.0)
 @onready var ready_overlay: ColorRect = $ReadyOverlay
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
+@onready var miss_flash_label: Label = $MissFlashLabel
 
 var grid_size: int = MIN_GRID
 var dot_nodes: Dictionary = {}
 var path: Array = []
 var dragging: bool = false
+var miss_flash_timer: float = 0.0
 
 var score: int = 0
 var high_score: int = 0
@@ -108,6 +110,11 @@ func _circle_points(radius: float, segments: int) -> PackedVector2Array:
 
 
 func _process(delta: float) -> void:
+	if miss_flash_timer > 0.0:
+		miss_flash_timer -= delta
+		if miss_flash_timer <= 0.0:
+			miss_flash_label.visible = false
+
 	if game_over or not game_started:
 		return
 	time_left -= delta
@@ -230,6 +237,9 @@ func _on_round_won() -> void:
 func _on_timeout() -> void:
 	strikes -= 1
 	_update_strikes_label()
+	miss_flash_label.text = "TIME UP!"
+	miss_flash_label.visible = true
+	miss_flash_timer = 0.9
 	if strikes <= 0:
 		_trigger_game_over()
 	else:

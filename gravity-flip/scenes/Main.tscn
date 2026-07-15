@@ -27,6 +27,11 @@ color = Color(0.3, 0.32, 0.4, 1)
 size = Vector2(40, 40)
 color = Color(0.2, 0.75, 0.7, 1)
 
+[node name="GravityArrow" type="Polygon2D" parent="Player"]
+position = Vector2(20, 20)
+color = Color(0.08, 0.08, 0.1, 1)
+polygon = PackedVector2Array(0, 11, -8, -7, 8, -7)
+
 [node name="ScoreLabel" type="Label" parent="."]
 offset_left = 20.0
 offset_top = 20.0

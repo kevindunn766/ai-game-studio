@@ -118,6 +118,8 @@ func _spawn_shape() -> void:
 	shape.size = size
 	collision.shape = shape
 	body.add_child(collision)
+	# Reduces tunneling through the thin platform at higher fall speeds.
+	body.continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
 
 	var visual := Polygon2D.new()
 	var hw: float = size.x / 2.0
@@ -171,6 +173,14 @@ func _on_tap() -> void:
 
 func _trigger_game_over() -> void:
 	game_over = true
+	# _physics_process stops tracking/pruning shapes once game_over is true,
+	# but the physics engine itself doesn't know that — any blocks still on
+	# screen would otherwise keep falling forever in the background. Freeze
+	# them in place instead (also reads better than the tower silently
+	# vanishing off-screen behind the overlay).
+	for s in shapes:
+		if is_instance_valid(s):
+			s.freeze = true
 	if score > high_score:
 		high_score = score
 		_save_high_score()

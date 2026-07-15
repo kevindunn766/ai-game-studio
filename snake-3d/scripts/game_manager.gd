@@ -62,7 +62,12 @@ func _ensure_action(name: String, keys: Array) -> void:
 
 func _input(event: InputEvent) -> void:
 	if is_game_over:
-		if Input.is_action_just_pressed("ui_accept"):
+		var tapped := Input.is_action_just_pressed("ui_accept")
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			tapped = true
+		elif event is InputEventScreenTouch and event.pressed:
+			tapped = true
+		if tapped:
 			restart()
 		return
 
@@ -140,7 +145,6 @@ func _get_current_speed() -> float:
 
 
 func _trigger_game_over() -> void:
-	set_process_input(false)
 	_on_game_over(score)
 
 

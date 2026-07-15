@@ -24,6 +24,8 @@ var per_sec: float = 0.0:
 @onready var upgrades_container: VBoxContainer = $UpgradesContainer
 
 const SAVE_PATH = "user://lemonade_stand.json"
+const AUTOSAVE_INTERVAL = 5.0
+var _autosave_timer = 0.0
 
 var upgrades = {
     "lemons": { "name": "Better Lemons", "cost": 10, "click": 1, "owned": 0 },
@@ -44,6 +46,19 @@ func _process(delta):
     if per_sec > 0:
         coins += per_sec * delta
         update_ui()
+
+    # Idle income and click income were never persisted on their own before
+    # this fix - only buying an upgrade triggered a save, so closing the
+    # game after just clicking/idling lost all of that progress. Autosave
+    # periodically, and also on quit/background (see _notification below).
+    _autosave_timer += delta
+    if _autosave_timer >= AUTOSAVE_INTERVAL:
+        _autosave_timer = 0.0
+        save_game()
+
+func _notification(what):
+    if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
+        save_game()
 
 func _on_sell_pressed():
     coins += per_click

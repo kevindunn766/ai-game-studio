@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8h1s0loopit"]
+[gd_scene load_steps=2 format=3 uid="uid://c8h1s0pulsetap"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 
@@ -8,14 +8,26 @@ script = ExtResource("1_main")
 [node name="Background" type="ColorRect" parent="."]
 offset_right = 540.0
 offset_bottom = 960.0
-color = Color(0.95, 0.94, 0.9, 1)
+color = Color(0.13, 0.14, 0.19, 1)
+
+[node name="TargetRing" type="Line2D" parent="."]
+position = Vector2(270, 460)
+width = 8.0
+default_color = Color(0.93, 0.76, 0.15, 1)
+closed = true
+
+[node name="PulseRing" type="Line2D" parent="."]
+position = Vector2(270, 460)
+width = 6.0
+default_color = Color(0.2, 0.75, 0.95, 1)
+closed = true
 
 [node name="ScoreLabel" type="Label" parent="."]
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 300.0
 offset_bottom = 70.0
-theme_override_colors/font_color = Color(0.12, 0.1, 0.1, 1)
+theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
 theme_override_font_sizes/font_size = 36
 text = "0"
 
@@ -24,44 +36,21 @@ offset_left = 300.0
 offset_top = 20.0
 offset_right = 520.0
 offset_bottom = 70.0
-theme_override_colors/font_color = Color(0.85, 0.2, 0.2, 1)
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
 theme_override_font_sizes/font_size = 36
 horizontal_alignment = 2
 text = "* * *"
 
-[node name="TimerBarBg" type="ColorRect" parent="."]
-offset_left = 20.0
-offset_top = 80.0
-offset_right = 520.0
-offset_bottom = 100.0
-color = Color(0.1, 0.1, 0.12, 1)
-
-[node name="TimerBarFill" type="ColorRect" parent="."]
-offset_left = 20.0
-offset_top = 80.0
-offset_right = 520.0
-offset_bottom = 100.0
-color = Color(0.2, 0.55, 0.85, 1)
-
 [node name="MissFlashLabel" type="Label" parent="."]
 visible = false
 offset_left = 20.0
-offset_top = 170.0
+offset_top = 700.0
 offset_right = 520.0
-offset_bottom = 220.0
-theme_override_colors/font_color = Color(0.85, 0.15, 0.15, 1)
-theme_override_font_sizes/font_size = 32
+offset_bottom = 750.0
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
+theme_override_font_sizes/font_size = 34
 horizontal_alignment = 1
-text = "TIME UP!"
-
-[node name="PathLine" type="Line2D" parent="."]
-width = 10.0
-default_color = Color(0.2, 0.55, 0.85, 1)
-begin_cap_mode = 2
-end_cap_mode = 2
-joint_mode = 2
-
-[node name="DotsContainer" type="Node2D" parent="."]
+text = "MISS!"
 
 [node name="ReadyOverlay" type="ColorRect" parent="."]
 offset_right = 540.0
@@ -70,40 +59,40 @@ color = Color(0, 0, 0, 0.65)
 
 [node name="ReadyTitle" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 260.0
+offset_top = 150.0
 offset_right = 520.0
-offset_bottom = 320.0
+offset_bottom = 210.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
 theme_override_font_sizes/font_size = 48
 horizontal_alignment = 1
-text = "LOOP IT"
+text = "PULSE TAP"
 
 [node name="ReadyRule1" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 380.0
+offset_top = 780.0
 offset_right = 520.0
-offset_bottom = 460.0
+offset_bottom = 860.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
 theme_override_font_sizes/font_size = 27
 horizontal_alignment = 1
 autowrap_mode = 2
-text = "Drag through every dot in one continuous line — up/down/left/right only, no repeats"
+text = "Tap the instant the blue ring matches the gold ring"
 
 [node name="ReadyRule2" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 500.0
+offset_top = 860.0
 offset_right = 520.0
-offset_bottom = 550.0
-theme_override_colors/font_color = Color(0.85, 0.2, 0.2, 1)
-theme_override_font_sizes/font_size = 26
+offset_bottom = 900.0
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
+theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
-text = "Run out of time 3 times and you're out"
+text = "Early, late, or no tap at all = a strike. 3 strikes and you're out."
 
 [node name="ReadyStart" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 650.0
+offset_top = 60.0
 offset_right = 520.0
-offset_bottom = 700.0
+offset_bottom = 110.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
 theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
