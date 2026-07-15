@@ -1,6 +1,6 @@
 extends Node2D
 
-# Timber Tap — tap left or right to chop the trunk from that side. If the
+# Chop Chain — tap left or right to chop the trunk from that side. If the
 # bottom segment has a branch on the side you tap, it hits you. Otherwise
 # you chop it away and move to that side. A shrinking timer forces you to
 # keep tapping. Golden segments (no branch) are a bonus: they refill a
@@ -31,7 +31,7 @@ const GOLD_BONUS_SCORE := 2
 const GOLD_BONUS_TIME := 0.45
 
 const TIMER_BAR_MAX_WIDTH := 500.0
-const SAVE_PATH := "user://timbertap_highscore.cfg"
+const SAVE_PATH := "user://chopchain_highscore.cfg"
 
 # Studio Palette v1 (see COLOR_SYSTEM.md). Trunk stays a low-chroma neutral
 # earth tone (it's not a signal, it's scenery). The branch is the hazard, so

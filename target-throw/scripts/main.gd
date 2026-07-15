@@ -16,6 +16,15 @@ const SAVE_PATH := "user://targetthrow_highscore.cfg"
 const TARGET_COLOR := Color(0.4, 0.3, 0.22, 1.0)
 const KNIFE_COLOR := Color(0.8, 0.82, 0.86, 1.0)
 
+# Novelty twist: a rare bonus gem rides the target's rim each round. Land
+# a throw near it (without hitting an existing knife) to collect it for a
+# big score bump — a collectible-on-target mechanism distinct from the
+# gate/round bonuses used elsewhere in the studio.
+const GEM_CHANCE_PER_ROUND := 0.5
+const GEM_SCORE := 5
+const GEM_ANGLE_TOLERANCE := 0.4
+const GEM_COLOR := Color(0.2, 0.85, 0.55, 1.0)
+
 @onready var target: Node2D = $Target
 @onready var target_circle: Polygon2D = $Target/TargetCircle
 @onready var score_label: Label = $ScoreLabel
@@ -27,6 +36,8 @@ var knives: Array = []
 var knives_this_round: int = 0
 var round_number: int = 0
 var rotation_speed: float = BASE_ROTATION_SPEED
+var gem_angle: float = -10.0
+var gem_node: Node2D = null
 
 var score: int = 0
 var high_score: int = 0
@@ -64,6 +75,11 @@ func _start_game() -> void:
 	score_label.text = "0"
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
+	if is_instance_valid(gem_node):
+		gem_node.queue_free()
+	gem_node = null
+	gem_angle = -10.0
+	_maybe_spawn_gem()
 
 
 func _process(delta: float) -> void:
@@ -122,10 +138,31 @@ func _throw_knife() -> void:
 	knives.append(knife)
 
 	score += 1
+
+	if gem_angle > -5.0:
+		var gem_diff: float = wrapf(new_angle - gem_angle, -PI, PI)
+		if abs(gem_diff) < GEM_ANGLE_TOLERANCE:
+			score += GEM_SCORE
+			if is_instance_valid(gem_node):
+				gem_node.queue_free()
+			gem_node = null
+			gem_angle = -10.0
+
 	score_label.text = str(score)
 	knives_this_round += 1
 	if knives_this_round >= KNIVES_PER_ROUND:
 		_advance_round()
+
+
+func _maybe_spawn_gem() -> void:
+	if randf() >= GEM_CHANCE_PER_ROUND:
+		return
+	gem_angle = randf() * TAU
+	gem_node = Polygon2D.new()
+	gem_node.position = Vector2(cos(gem_angle), sin(gem_angle)) * (TARGET_RADIUS - 6.0)
+	gem_node.color = GEM_COLOR
+	gem_node.polygon = PackedVector2Array([Vector2(0, -14), Vector2(10, 0), Vector2(0, 14), Vector2(-10, 0)])
+	target.add_child(gem_node)
 
 
 func _advance_round() -> void:
@@ -135,6 +172,11 @@ func _advance_round() -> void:
 	knives_this_round = 0
 	round_number += 1
 	rotation_speed = BASE_ROTATION_SPEED + round_number * ROTATION_SPEED_GROWTH
+	if is_instance_valid(gem_node):
+		gem_node.queue_free()
+	gem_node = null
+	gem_angle = -10.0
+	_maybe_spawn_gem()
 
 
 func _trigger_game_over() -> void:

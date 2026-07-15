@@ -18,6 +18,12 @@ const MAX_STRIKES := 3
 const TIMER_BAR_MAX_WIDTH := 500.0
 const SAVE_PATH := "user://loopit_highscore.cfg"
 
+# Novelty twist: solving with time to spare is worth a bonus point — a
+# skill-based scoring condition rather than a new object/pickup, rewarding
+# players who plan the route instead of hunting for it dot-by-dot.
+const SPEED_BONUS_TIME_FRACTION := 0.5
+const SPEED_BONUS_SCORE := 1
+
 const DOT_COLOR := Color(0.3, 0.32, 0.38, 1.0)
 const DOT_VISITED_COLOR := Color(0.2, 0.55, 0.85, 1.0)
 
@@ -30,6 +36,8 @@ const DOT_VISITED_COLOR := Color(0.2, 0.55, 0.85, 1.0)
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
 @onready var miss_flash_label: Label = $MissFlashLabel
+@onready var bonus_flash_label: Label = $BonusFlashLabel
+var bonus_flash_timer: float = 0.0
 
 var grid_size: int = MIN_GRID
 var dot_nodes: Dictionary = {}
@@ -58,6 +66,8 @@ func _start_game() -> void:
 	game_started = false
 	score_label.text = "0"
 	_update_strikes_label()
+	bonus_flash_label.visible = false
+	bonus_flash_timer = 0.0
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
 	_new_round()
@@ -114,6 +124,11 @@ func _process(delta: float) -> void:
 		miss_flash_timer -= delta
 		if miss_flash_timer <= 0.0:
 			miss_flash_label.visible = false
+
+	if bonus_flash_timer > 0.0:
+		bonus_flash_timer -= delta
+		if bonus_flash_timer <= 0.0:
+			bonus_flash_label.visible = false
 
 	if game_over or not game_started:
 		return
@@ -230,6 +245,11 @@ func _redraw_path() -> void:
 
 func _on_round_won() -> void:
 	score += 1
+	if time_left >= time_limit * SPEED_BONUS_TIME_FRACTION:
+		score += SPEED_BONUS_SCORE
+		bonus_flash_label.text = "SPEED BONUS! +%d" % SPEED_BONUS_SCORE
+		bonus_flash_label.visible = true
+		bonus_flash_timer = 0.9
 	score_label.text = str(score)
 	_new_round()
 

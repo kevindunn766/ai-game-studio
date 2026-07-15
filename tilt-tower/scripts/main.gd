@@ -19,6 +19,15 @@ const MAX_STRIKES := 3
 const SPAWN_X_RANGE := 140.0
 const SAVE_PATH := "user://tilttower_highscore.cfg"
 
+# Novelty twist: periodic "gust" events add an automatic extra tilt force
+# the player has to react to and counter — a hazard/variety event, not a
+# bonus pickup, so the platform itself keeps you on your toes over a long
+# run instead of only ever getting harder via faster spawns.
+const GUST_MIN_INTERVAL := 10.0
+const GUST_MAX_INTERVAL := 18.0
+const GUST_DURATION := 1.2
+const GUST_FORCE := 1.4
+
 const SHAPE_PALETTE := [
 	Color(0.95, 0.6, 0.25, 1.0),
 	Color(0.35, 0.75, 0.55, 1.0),
@@ -33,8 +42,13 @@ const SHAPE_PALETTE := [
 @onready var ready_overlay: ColorRect = $ReadyOverlay
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
+@onready var gust_label: Label = $GustLabel
 
 var tilt: float = 0.0
+var gust_active: bool = false
+var gust_timer: float = 0.0
+var gust_dir: float = 0.0
+var next_gust_timer: float = 0.0
 var strikes: int = MAX_STRIKES
 var time_survived: float = 0.0
 var score: int = 0
@@ -66,6 +80,10 @@ func _start_game() -> void:
 	game_started = false
 	spawn_timer = 0.6
 	spawn_interval = SPAWN_INTERVAL_START
+	gust_active = false
+	gust_timer = 0.0
+	next_gust_timer = randf_range(GUST_MIN_INTERVAL, GUST_MAX_INTERVAL)
+	gust_label.visible = false
 	score_label.text = "0s"
 	_update_strikes_label()
 	game_over_overlay.visible = false
@@ -82,6 +100,22 @@ func _physics_process(delta: float) -> void:
 	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
 		dir += 1.0
 	tilt = clamp(tilt + dir * TILT_SPEED * delta, -MAX_TILT, MAX_TILT)
+
+	if gust_active:
+		gust_timer -= delta
+		tilt = clamp(tilt + gust_dir * GUST_FORCE * delta, -MAX_TILT, MAX_TILT)
+		if gust_timer <= 0.0:
+			gust_active = false
+			gust_label.visible = false
+	else:
+		next_gust_timer -= delta
+		if next_gust_timer <= 0.0:
+			gust_active = true
+			gust_timer = GUST_DURATION
+			gust_dir = -1.0 if randf() < 0.5 else 1.0
+			gust_label.visible = true
+			next_gust_timer = randf_range(GUST_MIN_INTERVAL, GUST_MAX_INTERVAL)
+
 	platform.rotation = tilt
 
 	time_survived += delta

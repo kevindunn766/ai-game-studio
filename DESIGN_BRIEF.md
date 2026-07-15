@@ -130,11 +130,14 @@ binary is nested one level in).
   game's own math, specifically to catch this class of bug.
 - **Not yet playtested by user in the Godot editor (F5) since this fix.**
 
-### 6. Timber Tap (timber-tap/) ✅ PROTOTYPE COMPLETE
+### 6. Chop Chain (chop-chain/) ✅ PROTOTYPE COMPLETE
+- **Renamed from "Timber Tap" 2026-07-16** (see `IP_POLICY.md`) — the
+  original name shared its root word with *Timberman* closely enough to
+  read as a direct reference. Mechanic is unchanged.
 - Hyper-casual Timberman-style chopper (2D, portrait). Tap left/right half of
   screen (or A/D, arrow keys) to chop from that side; a branch on the tapped
   side ends the run. Shrinking timer forces the pace.
-- High score via `user://timbertap_highscore.cfg`.
+- High score via `user://chopchain_highscore.cfg`.
 - Headless-verified: clean load + scripted self-test covering safe chops,
   forced hit (game over), timeout, and restart — all passed.
 - **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): **found a real signal
@@ -392,6 +395,63 @@ binary is nested one level in).
 
 ---
 
+## 2026-07-16 Update: novelty pass, IP mitigation, graphics polish, bug review
+
+User asked for four things across the whole 14-game studio: novelty
+improvements everywhere, a check that nothing risks aesthetic/copyright
+issues, a graphics improvement pass, and a bug fix pass. Summary (per-game
+detail lives in each project's own section above and `RESEARCH.md`):
+
+**Copyright/IP mitigation** (`IP_POLICY.md`, new): formalized the studio's
+existing practice (no external assets, original palettes, non-derivative
+names) into a written policy, and renamed `timber-tap` -> `chop-chain`
+(the one name close enough to an existing commercial title, *Timberman*,
+to be worth changing). All other names were reviewed and judged
+generic/descriptive or already original coined phrasing.
+
+**Bug-hunt pass**: re-reviewed the 4 newest games with fresh eyes and
+found one real fidelity bug — Flashlight Maze's "flashlight" reveal was
+actually a square (Chebyshev distance), not a circle; fixed to a proper
+circular reveal.
+
+**Novelty twist added to every game that didn't already have one**
+(stack-rush, chop-chain, and merge-numbers already got one in the prior
+round):
+- lemonade-stand-godot: **Rush Hour** — random event triples income for 12s.
+- snake-3d: rare **bonus food** (cyan, worth 3x, faster pulse).
+- chroma-mix: rare **wildcard round** — tap MIX for an automatic free pass.
+- tilt-tower: periodic **gust** event nudges tilt automatically.
+- loop-it: **speed bonus** — solving with >=50% time left scores +1 extra.
+- gravity-flip: floating **coin pickups** for bonus score (tracked
+  separately from the obstacle-pass count that drives difficulty).
+- spiral-drop: rare **golden gate** worth double score.
+- target-throw: rare **bonus gem** on the target rim worth +5.
+- pulse-tap: rare **double cycle** (magenta ring) worth 2x score.
+- color-sort: rare **wildcard ball** that pours onto/accepts any color —
+  the same motif as Merge Numbers' wildcard tile, applied to a different
+  genre.
+- flashlight-maze: rare **torch pickup** that permanently widens vision
+  radius for the rest of the current maze.
+
+**Graphics pass**: added font drop-shadows (`font_shadow_color` +
+`shadow_offset_x/y`) to the primary score label in all 11 2D games for
+more visual depth/pop, and added a `WorldEnvironment` with a
+`ProceduralSkyMaterial` gradient sky (replacing flat black/default void)
+to all 3 3D games (stack-rush, spiral-drop, snake-3d), each tinted to
+match that game's existing palette. Considered rounding UI panels via
+`Panel`/`StyleBoxFlat` but skipped it — converting `ColorRect` nodes that
+scripts type-check as `ColorRect` would have required touching working
+script code across many files for a cosmetic gain, not worth the risk
+this late in the session.
+
+All 14 games re-verified headless (clean load, zero script errors) after
+every change in this round; every new/changed mechanic got a scripted
+self-test (forced through the win/lose/edge-case paths) before being
+removed for the final commit, per the studio's established verification
+pattern.
+
+---
+
 ## Pending Tasks
 1. **Fix snake-3d**: Replace walls with endless obstacle planes (25% spawn, pastel colors, crane camera 75% distance). Verify collision visible.
 2. **Fix/build procedural-3d-godot**: Either fix existing broken files or rebuild clean from brief with user's constraints (camera downward, simple, no overengineering). User decision needed.
@@ -399,7 +459,7 @@ binary is nested one level in).
 4. **PR management workflow**: Beyond GitHub MCP — formalize PR creation, review, merge workflow.
 5. **Canonical Godot verification**: No project has had a formal playtest + user confirmation since latest edits.
 6. **Git push of latest commits**: Local commits exist for snake-3d scaffold but push keeps timing out.
-7. **User F5 playtest of all 12 hyper-casual prototypes** (stack-rush, spiral-drop, timber-tap, merge-numbers, chroma-mix, tilt-tower, loop-it, gravity-flip, target-throw, pulse-tap, color-sort, flashlight-maze): all verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, and touch/mouse controls on this machine before calling any of them "done." Spiral Drop and Timber Tap specifically need reconfirmation since the 2026-07-15 round fixed a real rotation bug (Spiral Drop) and added onboarding (Timber Tap) in direct response to playtest feedback that the first pass hadn't caught. Snake 3D and Lemonade Stand also need reconfirmation after the 2026-07-15 review pass fixed a restart deadlock and an autosave data-loss bug respectively.
-8. **Polish pass** (once user picks favorites among the 12 prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
+7. **User F5 playtest of all 14 hyper-casual prototypes** (lemonade-stand-godot, snake-3d, stack-rush, spiral-drop, chop-chain, merge-numbers, chroma-mix, tilt-tower, loop-it, gravity-flip, target-throw, pulse-tap, color-sort, flashlight-maze): all verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, touch/mouse controls, the new novelty twists actually feel good in practice (not just logically correct), and the new sky-gradient/font-shadow visuals render as intended, before calling any of them "done."
+8. **Polish pass** (once user picks favorites among the 14 prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
 9. **Lesson learned 2026-07-15 (round 1):** self-tests that re-derive the same formula the implementation uses (rather than checking against independent ground truth, e.g. actual rendered node transforms) can pass while the real mechanic is broken — this is exactly how Spiral Drop's rotation-sign bug slipped through the first verification pass. Future self-tests for anything involving rotation/orientation/geometry should validate against actual `global_transform` or an independently-derived expectation, not the same math path as the code under test. Target Throw's knife-placement code applies this directly (`to_local()` instead of hand-derived trig).
 10. **Lesson learned 2026-07-15 (round 2, QoL/error review):** a full-repo review pass (all 10 then-existing prototypes, not just the newest ones) turned up 5 real, distinct bugs the per-game self-tests hadn't caught, because each bug was in a code path the self-tests never exercised or a cross-cutting concern no single-game test would catch: snake-3d's restart deadlock (`set_process_input(false)` disabling its own restart handler), lemonade-stand's missing autosave (only `_buy_upgrade` persisted state), stack-rush/snake-3d's missing `billboard` on `Label3D` nodes (a scene-file property, not something a GDScript self-test touches), and tilt-tower's physics continuing to simulate after game over (an engine-level behavior, not a script-state bug). Takeaway: self-tests validate the logic they're written to exercise, not the whole game — a periodic full-repo re-review (not just testing the newest additions) is worth doing, especially for scene-file properties (billboard, font colors, anchors) and cross-cutting lifecycle concerns (save/restart/pause) that no single feature's self-test happens to cover. Also confirmed a suspected Loop It bug (dragging flag not reset) was a false alarm on re-reading the actual shipped code — a reminder to verify against current code before fixing, not just from memory of what "should" be there.

@@ -1,9 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8h1s0spiraldrop"]
+[gd_scene load_steps=5 format=3 uid="uid://c8h1s0spiraldrop"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 
+[sub_resource type="ProceduralSkyMaterial" id="SkyMaterial_spiraldrop"]
+sky_top_color = Color(0.02, 0.02, 0.06, 1)
+sky_horizon_color = Color(0.14, 0.11, 0.26, 1)
+ground_bottom_color = Color(0.02, 0.02, 0.04, 1)
+ground_horizon_color = Color(0.1, 0.08, 0.2, 1)
+
+[sub_resource type="Sky" id="Sky_spiraldrop"]
+sky_material = SubResource("SkyMaterial_spiraldrop")
+
+[sub_resource type="Environment" id="Environment_spiraldrop"]
+background_mode = 2
+sky = SubResource("Sky_spiraldrop")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.6
+
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_spiraldrop")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.85, -0.35, 0.35, 0, 0.7, 0.7, -0.5, -0.6, 0.6, 8, 10, 8)

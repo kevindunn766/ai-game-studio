@@ -31,8 +31,22 @@ offset_top = 20.0
 offset_right = 300.0
 offset_bottom = 70.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.35)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 36
 text = "0s"
+
+[node name="GustLabel" type="Label" parent="."]
+visible = false
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 520.0
+offset_bottom = 120.0
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+text = "GUST!"
 
 [node name="StrikesLabel" type="Label" parent="."]
 offset_left = 300.0

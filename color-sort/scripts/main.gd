@@ -32,6 +32,14 @@ const BALL_GAP := 4.0
 const TUBE_COLOR := Color(0.28, 0.3, 0.34, 1.0)
 const TUBE_SELECTED_COLOR := Color(0.35, 0.55, 0.78, 1.0)
 
+# Novelty twist: a rare wildcard ball pours onto (and accepts pours from)
+# any color — mirrors Merge Numbers' wildcard tile, applied to a stacking
+# puzzle instead of a slide-merge one. A studio-wide "wildcards show up
+# across genres" motif.
+const WILDCARD := -1
+const WILDCARD_CHANCE_PER_PUZZLE := 0.35
+const WILDCARD_COLOR := Color(0.92, 0.92, 0.95, 1.0)
+
 @onready var tubes_container: Node2D = $TubesContainer
 @onready var score_label: Label = $ScoreLabel
 @onready var moves_label: Label = $MovesLabel
@@ -75,6 +83,8 @@ func _generate_puzzle() -> void:
 		for _i in range(CAPACITY):
 			pool.append(c)
 	pool.shuffle()
+	if randf() < WILDCARD_CHANCE_PER_PUZZLE:
+		pool[randi() % pool.size()] = WILDCARD
 
 	tubes.clear()
 	var idx := 0
@@ -111,7 +121,9 @@ func _can_pour(src: int, dst: int) -> bool:
 		return false
 	if tubes[dst].is_empty():
 		return true
-	return tubes[dst].back() == tubes[src].back()
+	var src_top: int = tubes[src].back()
+	var dst_top: int = tubes[dst].back()
+	return src_top == dst_top or src_top == WILDCARD or dst_top == WILDCARD
 
 
 func _pour(src: int, dst: int) -> void:
@@ -130,10 +142,13 @@ func _is_solved() -> bool:
 			continue
 		if t.size() != CAPACITY:
 			return false
-		var color = t[0]
+		var color: int = WILDCARD
 		for v in t:
-			if v != color:
-				return false
+			if v != WILDCARD:
+				if color == WILDCARD:
+					color = v
+				elif v != color:
+					return false
 	return true
 
 
@@ -146,6 +161,8 @@ func _circle_points(radius: float, segments: int) -> PackedVector2Array:
 
 
 func _color_for(c: int) -> Color:
+	if c == WILDCARD:
+		return WILDCARD_COLOR
 	var hue: float = float(c) / float(MAX_COLOR_COUNT)
 	return Color.from_hsv(hue, 0.75, 0.85, 1.0)
 

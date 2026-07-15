@@ -103,3 +103,34 @@ on a fixed world contact point instead of hand-derived rotation trig —
 directly applying the lesson from Spiral Drop's rotation-sign bug (see
 `DESIGN_BRIEF.md`'s pending-tasks lesson-learned entries).
 
+---
+
+## 2026-07-16 — Round 4: novelty everywhere, IP check, graphics, bug review
+
+User asked for novelty improvements across *every* game in the studio (not
+just new ones), an explicit check against aesthetic/copyright risk, a
+graphics pass, and another bug-fix pass. Full detail is in
+`DESIGN_BRIEF.md`'s 2026-07-16 update section and `IP_POLICY.md`; the
+research-relevant takeaways:
+
+**On copyright/trade dress**: mechanics aren't copyrightable, but a game's
+*name* can still read as a direct reference to a specific commercial
+title even when the mechanic-inspiration itself is fine. `timber-tap` was
+renamed to `chop-chain` for exactly this reason (see `IP_POLICY.md` for
+the full check performed against all 14 names — historical mentions of
+"Timber Tap" elsewhere in this file predate the rename and are left as
+accurate-at-the-time notes rather than rewritten).
+
+**On novelty as a design habit, not a one-time pass**: the previous
+rounds only gave a mechanical twist to the games that got specific
+playtest complaints or were brand new. This round's brief made explicit
+what should probably be standard practice going forward: *every*
+prototype should ship with at least one twist that a generic clone
+wouldn't have, from day one, rather than retrofitting twists only after
+feedback calls out genericness. Two recurring twist *shapes* emerged
+across the 11 games twisted this round — rare bonus objects/rounds (gems,
+gold gates, double cycles, bonus food, coins) and rare wildcards that
+relax a rule (chroma-mix's free pass, color-sort's any-color ball) — both
+are cheap to reason about, cheap to self-test, and genre-agnostic, so
+they're a reasonable default toolkit for the next batch of prototypes too.
+

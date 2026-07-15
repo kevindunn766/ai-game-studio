@@ -23,6 +23,8 @@ color = Color(0.3, 0.32, 0.4, 1)
 
 [node name="ObstaclesContainer" type="Node2D" parent="."]
 
+[node name="CoinsContainer" type="Node2D" parent="."]
+
 [node name="Player" type="ColorRect" parent="."]
 size = Vector2(40, 40)
 color = Color(0.2, 0.75, 0.7, 1)
@@ -38,6 +40,9 @@ offset_top = 20.0
 offset_right = 300.0
 offset_bottom = 70.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.35)
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 32
 text = "0"
 

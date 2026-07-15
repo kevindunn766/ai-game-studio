@@ -1,4 +1,4 @@
-# Timber Tap — Minimal Hyper-Casual Game
+# Chop Chain — Minimal Hyper-Casual Game
 
 ## Aesthetic
 - Flat 2D, bright sky background, green ground strip.

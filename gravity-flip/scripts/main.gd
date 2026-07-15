@@ -30,9 +30,20 @@ const SCROLL_SPEED_GROWTH := 4.0
 const SAVE_PATH := "user://gravityflip_highscore.cfg"
 const OBSTACLE_COLOR := Color(0.95, 0.32, 0.12, 1.0)
 
+# Novelty twist: floating coins collectible anywhere in the corridor for
+# bonus score — a collectible-pickup mechanism (the natural fit for an
+# endless runner), kept separate from the obstacle-pass count so it never
+# distorts the difficulty ramp (which still scales off obstacles cleared).
+const COIN_RADIUS := 14.0
+const COIN_SCORE := 2
+const COIN_SPACING := 260.0
+const COIN_SPAWN_CHANCE := 0.6
+const COIN_COLOR := Color(0.93, 0.76, 0.15, 1.0)
+
 @onready var player: ColorRect = $Player
 @onready var gravity_arrow: Polygon2D = $Player/GravityArrow
 @onready var obstacles_container: Node2D = $ObstaclesContainer
+@onready var coins_container: Node2D = $CoinsContainer
 @onready var score_label: Label = $ScoreLabel
 @onready var ready_overlay: ColorRect = $ReadyOverlay
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
@@ -44,7 +55,10 @@ var gravity_dir: int = 1
 
 var world_offset: float = 0.0
 var next_spawn_world_x: float = 600.0
+var next_coin_world_x: float = 850.0
 var obstacles: Array = []
+var coins: Array = []
+var coin_score: int = 0
 
 var score: int = 0
 var high_score: int = 0
@@ -62,13 +76,19 @@ func _start_game() -> void:
 		if is_instance_valid(o["node"]):
 			o["node"].queue_free()
 	obstacles.clear()
+	for c in coins:
+		if is_instance_valid(c["node"]):
+			c["node"].queue_free()
+	coins.clear()
 
 	player_y = CORRIDOR_MID
 	vel_y = 0.0
 	gravity_dir = 1
 	world_offset = 0.0
 	next_spawn_world_x = 600.0
+	next_coin_world_x = 850.0
 	score = 0
+	coin_score = 0
 	game_over = false
 	game_started = false
 	score_label.text = "0"
@@ -76,6 +96,10 @@ func _start_game() -> void:
 	ready_overlay.visible = true
 	player.position = Vector2(PLAYER_X - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
 	gravity_arrow.rotation = 0.0
+
+
+func _total_score() -> int:
+	return score + coin_score
 
 
 func _process(delta: float) -> void:
@@ -96,6 +120,8 @@ func _process(delta: float) -> void:
 
 	_update_spawning()
 	_update_obstacles()
+	_update_coin_spawning()
+	_update_coins()
 
 
 func _update_spawning() -> void:
@@ -103,6 +129,50 @@ func _update_spawning() -> void:
 		_spawn_obstacle(next_spawn_world_x)
 		var spacing: float = max(MIN_SPACING, BASE_SPACING - score * SPACING_DECAY)
 		next_spawn_world_x += spacing
+
+
+func _update_coin_spawning() -> void:
+	while next_coin_world_x - world_offset < SPAWN_LOOKAHEAD:
+		if randf() < COIN_SPAWN_CHANCE:
+			_spawn_coin(next_coin_world_x)
+		next_coin_world_x += COIN_SPACING
+
+
+func _spawn_coin(world_x: float) -> void:
+	var y: float = randf_range(CEILING_Y + 40.0, FLOOR_Y - 40.0)
+	var node := Polygon2D.new()
+	node.polygon = _coin_circle_points(COIN_RADIUS)
+	node.color = COIN_COLOR
+	coins_container.add_child(node)
+	coins.append({"world_x": world_x, "y": y, "node": node, "collected": false})
+
+
+func _coin_circle_points(radius: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in range(12):
+		var a: float = i * TAU / 12.0
+		pts.append(Vector2(cos(a), sin(a)) * radius)
+	return pts
+
+
+func _update_coins() -> void:
+	var still: Array = []
+	for c in coins:
+		var screen_x: float = c["world_x"] - world_offset
+		c["node"].position = Vector2(screen_x, c["y"])
+
+		if not c["collected"]:
+			var dist: float = Vector2(screen_x - PLAYER_X, c["y"] - player_y).length()
+			if dist < COIN_RADIUS + PLAYER_SIZE / 2.0:
+				c["collected"] = true
+				coin_score += COIN_SCORE
+				score_label.text = str(_total_score())
+
+		if c["collected"] or screen_x < -50.0:
+			c["node"].queue_free()
+		else:
+			still.append(c)
+	coins = still
 
 
 func _spawn_obstacle(world_x: float) -> void:
@@ -124,7 +194,7 @@ func _update_obstacles() -> void:
 		if not o["passed"] and screen_x + OBSTACLE_WIDTH < PLAYER_X - PLAYER_SIZE / 2.0:
 			o["passed"] = true
 			score += 1
-			score_label.text = str(score)
+			score_label.text = str(_total_score())
 
 		if _check_collision(o, screen_x):
 			_trigger_game_over()
@@ -176,10 +246,11 @@ func _trigger_game_over() -> void:
 	if game_over:
 		return
 	game_over = true
-	if score > high_score:
-		high_score = score
+	var total: int = _total_score()
+	if total > high_score:
+		high_score = total
 		_save_high_score()
-	game_over_score_label.text = "Score: %d  Best: %d" % [score, high_score]
+	game_over_score_label.text = "Score: %d  Best: %d" % [total, high_score]
 	game_over_overlay.visible = true
 
 

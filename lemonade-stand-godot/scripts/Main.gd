@@ -22,10 +22,22 @@ var per_sec: float = 0.0:
 @onready var per_sec_label: Label = $PerSecLabel
 @onready var sell_button: Button = $SellButton
 @onready var upgrades_container: VBoxContainer = $UpgradesContainer
+@onready var rush_hour_label: Label = $RushHourLabel
 
 const SAVE_PATH = "user://lemonade_stand.json"
 const AUTOSAVE_INTERVAL = 5.0
 var _autosave_timer = 0.0
+
+# Novelty twist: a random "Rush Hour" event triples income for a short
+# window, giving idle-clicker players a reason to come back and actively
+# click instead of just watching numbers climb passively.
+const RUSH_HOUR_DURATION = 12.0
+const RUSH_HOUR_MULTIPLIER = 3.0
+const RUSH_HOUR_MIN_INTERVAL = 25.0
+const RUSH_HOUR_MAX_INTERVAL = 45.0
+var rush_hour_active = false
+var rush_hour_timer = 0.0
+var next_rush_hour_timer = 0.0
 
 var upgrades = {
     "lemons": { "name": "Better Lemons", "cost": 10, "click": 1, "owned": 0 },
@@ -41,11 +53,25 @@ func _ready():
     render_upgrades()
     update_ui()
     process_mode = Node.PROCESS_MODE_ALWAYS
+    rush_hour_label.visible = false
+    next_rush_hour_timer = randf_range(RUSH_HOUR_MIN_INTERVAL, RUSH_HOUR_MAX_INTERVAL)
 
 func _process(delta):
-    if per_sec > 0:
-        coins += per_sec * delta
+    var effective_per_sec = per_sec * RUSH_HOUR_MULTIPLIER if rush_hour_active else per_sec
+    if effective_per_sec > 0:
+        coins += effective_per_sec * delta
         update_ui()
+
+    if rush_hour_active:
+        rush_hour_timer -= delta
+        if rush_hour_timer <= 0.0:
+            _end_rush_hour()
+        else:
+            rush_hour_label.text = "RUSH HOUR! %dx COINS (%ds)" % [int(RUSH_HOUR_MULTIPLIER), ceil(rush_hour_timer)]
+    else:
+        next_rush_hour_timer -= delta
+        if next_rush_hour_timer <= 0.0:
+            _start_rush_hour()
 
     # Idle income and click income were never persisted on their own before
     # this fix - only buying an upgrade triggered a save, so closing the
@@ -56,12 +82,23 @@ func _process(delta):
         _autosave_timer = 0.0
         save_game()
 
+func _start_rush_hour():
+    rush_hour_active = true
+    rush_hour_timer = RUSH_HOUR_DURATION
+    rush_hour_label.visible = true
+
+func _end_rush_hour():
+    rush_hour_active = false
+    rush_hour_label.visible = false
+    next_rush_hour_timer = randf_range(RUSH_HOUR_MIN_INTERVAL, RUSH_HOUR_MAX_INTERVAL)
+
 func _notification(what):
     if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
         save_game()
 
 func _on_sell_pressed():
-    coins += per_click
+    var effective_per_click = per_click * RUSH_HOUR_MULTIPLIER if rush_hour_active else per_click
+    coins += effective_per_click
     update_ui()
 
 func update_ui():

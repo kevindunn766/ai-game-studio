@@ -25,6 +25,13 @@ const GATE_HUE_STEPS := 5
 const GATE_SATURATION := 0.48
 const GATE_VALUE := 0.78
 
+# Novelty twist: a rare golden gate (bright gold teeth, unmistakably
+# different from the muted cool palette) is worth double score if you
+# make it through.
+const GOLDEN_GATE_CHANCE := 0.12
+const GOLDEN_GATE_COLOR := Color(0.93, 0.76, 0.15, 1.0)
+const GOLDEN_GATE_SCORE := 2
+
 @onready var tower_root: Node3D = $TowerRoot
 @onready var ball: MeshInstance3D = $Ball
 @onready var camera: Camera3D = $Camera3D
@@ -94,7 +101,8 @@ func _generate_gates(count: int) -> void:
 		var idx: int = gates.size()
 		var y: float = -float(idx) * GATE_SPACING
 		var gap_start: int = randi() % NUM_TEETH
-		var color: Color = _gate_color(idx)
+		var is_golden: bool = randf() < GOLDEN_GATE_CHANCE
+		var color: Color = GOLDEN_GATE_COLOR if is_golden else _gate_color(idx)
 
 		var gate_node := Node3D.new()
 		gate_node.name = "Gate%d" % idx
@@ -127,7 +135,7 @@ func _generate_gates(count: int) -> void:
 
 			gate_node.add_child(tooth)
 
-		gates.append({"y": y, "gap_start": gap_start, "resolved": false})
+		gates.append({"y": y, "gap_start": gap_start, "resolved": false, "golden": is_golden})
 
 
 func _process(delta: float) -> void:
@@ -189,7 +197,7 @@ func _resolve_gate(index: int) -> void:
 			break
 
 	if in_gap:
-		score += 1
+		score += GOLDEN_GATE_SCORE if gate["golden"] else 1
 		score_label.text = str(score)
 		fall_speed = min(2.2 + score * 0.03, 6.0)
 	else:

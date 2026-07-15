@@ -103,7 +103,7 @@ func _process(delta: float) -> void:
 			return
 
 	if Vector2(head.x - food.global_position.x, head.z - food.global_position.z).length_squared() < 0.25:
-		score += 1
+		score += food.score_value()
 		food_eaten_count += 1
 		if score > high_score:
 			high_score = score
@@ -127,6 +127,9 @@ func _on_game_over(final: int) -> void:
 	game_over.emit(final)
 
 
+const BONUS_FOOD_CHANCE := 0.15
+
+
 func _spawn_food() -> void:
 	# Spawn food relative to snake head instead of fixed grid bounds.
 	if snake and snake.segments.size() > 0:
@@ -138,6 +141,9 @@ func _spawn_food() -> void:
 			0.45,
 			head.z + float(offset_z)
 		)
+		# Novelty twist: a rare bonus food worth 3x score, visually distinct
+		# (cyan, bigger, faster pulse) so it reads as a special pickup.
+		food.set_bonus(rng.randf() < BONUS_FOOD_CHANCE)
 
 
 func _get_current_speed() -> float:

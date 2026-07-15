@@ -24,6 +24,13 @@ const WALL_COLOR := Color(0.32, 0.34, 0.4, 1.0)
 const FOG_COLOR := Color(0.05, 0.05, 0.06, 1.0)
 const FLOOR_COLOR := Color(0.82, 0.8, 0.78, 1.0)
 const EXIT_COLOR := Color(0.2, 0.75, 0.4, 1.0)
+const TORCH_COLOR := Color(0.93, 0.76, 0.15, 1.0)
+
+# Novelty twist: an occasional torch pickup widens the vision radius for
+# the rest of the current maze — a utility power-up, distinct from the
+# studio's more common score bonuses.
+const TORCH_CHANCE := 0.5
+const TORCH_VISION_BOOST := 1
 
 @onready var maze_container: Node2D = $MazeContainer
 @onready var player_token: Polygon2D = $PlayerToken
@@ -40,6 +47,8 @@ var walls_open: Dictionary = {}
 var revealed: Dictionary = {}
 var player_cell: Vector2i = Vector2i.ZERO
 var exit_cell: Vector2i = Vector2i.ZERO
+var torch_cell: Vector2i = Vector2i(-1, -1)
+var vision_bonus: int = 0
 var drag_start: Vector2 = Vector2.INF
 var miss_flash_timer: float = 0.0
 
@@ -74,6 +83,12 @@ func _generate_new_maze() -> void:
 	_generate_maze(grid_size, grid_size)
 	player_cell = Vector2i.ZERO
 	exit_cell = Vector2i(grid_size - 1, grid_size - 1)
+	vision_bonus = 0
+	torch_cell = Vector2i(-1, -1)
+	if randf() < TORCH_CHANCE:
+		var candidate: Vector2i = Vector2i(randi() % grid_size, randi() % grid_size)
+		if candidate != Vector2i.ZERO and candidate != exit_cell:
+			torch_cell = candidate
 	revealed.clear()
 	_reveal_around(player_cell)
 
@@ -124,8 +139,14 @@ func _generate_maze(w: int, h: int) -> void:
 
 
 func _reveal_around(cell: Vector2i) -> void:
-	for dy in range(-VISION_RADIUS, VISION_RADIUS + 1):
-		for dx in range(-VISION_RADIUS, VISION_RADIUS + 1):
+	# A circular reveal (not a square) actually matches "flashlight" — a
+	# square vision radius was a leftover implementation shortcut.
+	var radius: int = VISION_RADIUS + vision_bonus
+	var radius_sq: float = (radius + 0.5) * (radius + 0.5)
+	for dy in range(-radius, radius + 1):
+		for dx in range(-radius, radius + 1):
+			if dx * dx + dy * dy > radius_sq:
+				continue
 			var c := cell + Vector2i(dx, dy)
 			if c.x >= 0 and c.x < grid_size and c.y >= 0 and c.y < grid_size:
 				revealed[c] = true
@@ -157,6 +178,17 @@ func _redraw() -> void:
 			else:
 				bg.color = FLOOR_COLOR
 			maze_container.add_child(bg)
+
+			if is_revealed and cell == torch_cell:
+				var torch := Polygon2D.new()
+				var cx: float = px + CELL_SIZE / 2.0
+				var cy: float = py + CELL_SIZE / 2.0
+				var r: float = CELL_SIZE * 0.28
+				torch.polygon = PackedVector2Array([
+					Vector2(cx, cy - r), Vector2(cx + r, cy), Vector2(cx, cy + r), Vector2(cx - r, cy)
+				])
+				torch.color = TORCH_COLOR
+				maze_container.add_child(torch)
 
 			if is_revealed:
 				var w: Dictionary = walls_open[cell]
@@ -219,6 +251,9 @@ func _try_move(dx: int, dy: int) -> void:
 		return
 
 	player_cell += Vector2i(dx, dy)
+	if player_cell == torch_cell:
+		vision_bonus += TORCH_VISION_BOOST
+		torch_cell = Vector2i(-1, -1)
 	_reveal_around(player_cell)
 	if player_cell == exit_cell:
 		_on_maze_solved()

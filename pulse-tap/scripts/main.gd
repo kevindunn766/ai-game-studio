@@ -16,6 +16,14 @@ const MAX_STRIKES := 3
 const SAVE_PATH := "user://pulsetap_highscore.cfg"
 const CIRCLE_SEGMENTS := 40
 
+# Novelty twist: an occasional "double" cycle tints the target ring a
+# distinct magenta and is worth 2x score if hit — a bonus-round mechanism
+# (the whole cycle is marked, not a separate object), distinct from the
+# studio's more common pickup-object bonuses.
+const DOUBLE_CYCLE_CHANCE := 0.2
+const DOUBLE_CYCLE_COLOR := Color(0.9, 0.25, 0.75, 1.0)
+const NORMAL_TARGET_COLOR := Color(0.93, 0.76, 0.15, 1.0)
+
 @onready var target_ring: Line2D = $TargetRing
 @onready var pulse_ring: Line2D = $PulseRing
 @onready var score_label: Label = $ScoreLabel
@@ -28,6 +36,7 @@ const CIRCLE_SEGMENTS := 40
 var pulse_radius: float = PULSE_START_RADIUS
 var shrink_speed: float = BASE_SHRINK_SPEED
 var resolved_this_cycle: bool = false
+var is_double_cycle: bool = false
 var miss_flash_timer: float = 0.0
 
 var score: int = 0
@@ -52,9 +61,7 @@ func _circle_points(radius: float) -> PackedVector2Array:
 
 
 func _start_game() -> void:
-	pulse_radius = PULSE_START_RADIUS
 	shrink_speed = BASE_SHRINK_SPEED
-	resolved_this_cycle = false
 	score = 0
 	strikes = MAX_STRIKES
 	game_over = false
@@ -64,6 +71,14 @@ func _start_game() -> void:
 	miss_flash_label.visible = false
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
+	_start_new_cycle()
+
+
+func _start_new_cycle() -> void:
+	pulse_radius = PULSE_START_RADIUS
+	resolved_this_cycle = false
+	is_double_cycle = randf() < DOUBLE_CYCLE_CHANCE
+	target_ring.default_color = DOUBLE_CYCLE_COLOR if is_double_cycle else NORMAL_TARGET_COLOR
 	pulse_ring.points = _circle_points(pulse_radius)
 
 
@@ -82,8 +97,7 @@ func _process(delta: float) -> void:
 	if pulse_radius <= 0.0:
 		if not resolved_this_cycle:
 			_register_miss("MISS!")
-		pulse_radius = PULSE_START_RADIUS
-		resolved_this_cycle = false
+		_start_new_cycle()
 
 
 func _input(event: InputEvent) -> void:
@@ -114,11 +128,10 @@ func _on_tap_action() -> void:
 		return
 
 	if abs(pulse_radius - TARGET_RADIUS) <= TOLERANCE:
-		score += 1
+		score += 2 if is_double_cycle else 1
 		score_label.text = str(score)
 		shrink_speed = min(MAX_SHRINK_SPEED, BASE_SHRINK_SPEED + score * SHRINK_SPEED_GROWTH)
-		pulse_radius = PULSE_START_RADIUS
-		resolved_this_cycle = false
+		_start_new_cycle()
 	else:
 		resolved_this_cycle = true
 		_register_miss("MISS!")

@@ -25,6 +25,12 @@ const MAX_STRIKES := 3
 const TIMER_BAR_MAX_WIDTH := 500.0
 const SAVE_PATH := "user://chromamix_highscore.cfg"
 
+# Novelty twist: a rare wildcard round shows up regardless of the selected
+# paints — tapping MIX while it's active is an automatic free pass. A
+# resource/escape-hatch mechanism, distinct from the studio's more common
+# "bonus points" pickups.
+const WILDCARD_CHANCE := 0.15
+
 @onready var source_nodes: Array = [$Source0, $Source1, $Source2]
 @onready var source_borders: Array = [$Source0Border, $Source1Border, $Source2Border]
 @onready var mix_button: ColorRect = $MixButton
@@ -38,9 +44,11 @@ const SAVE_PATH := "user://chromamix_highscore.cfg"
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
 @onready var miss_flash_label: Label = $MissFlashLabel
+@onready var wildcard_label: Label = $WildcardLabel
 
 var selected: Array = [false, false, false]
 var target_key: String = "0"
+var wildcard_available: bool = false
 var score: int = 0
 var high_score: int = 0
 var strikes: int = MAX_STRIKES
@@ -63,6 +71,8 @@ func _start_game() -> void:
 	game_started = false
 	score_label.text = "Score: 0"
 	_update_strikes_label()
+	wildcard_available = false
+	wildcard_label.visible = false
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
 	_new_round()
@@ -73,6 +83,8 @@ func _new_round() -> void:
 	var result: Dictionary = _mix_result(target_key)
 	target_swatch.color = result["color"]
 	target_label.text = "Match: %s" % result["name"]
+	wildcard_available = randf() < WILDCARD_CHANCE
+	wildcard_label.visible = wildcard_available
 	selected = [false, false, false]
 	_update_source_borders()
 	mix_well.color = EMPTY_MIX
@@ -188,6 +200,14 @@ func _update_source_borders() -> void:
 
 
 func _submit() -> void:
+	if wildcard_available:
+		wildcard_available = false
+		wildcard_label.visible = false
+		score += 1
+		score_label.text = "Score: %d" % score
+		_new_round()
+		return
+
 	var key: String = _selection_key()
 	if key == "":
 		return
