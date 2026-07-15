@@ -11,6 +11,13 @@ const GRID_TOP := 200.0
 const SWIPE_THRESHOLD := 40.0
 const SAVE_PATH := "user://mergenumbers_highscore.cfg"
 
+# Novelty twist: a rare Star wildcard tile merges with ANY neighbor it
+# touches (doubling that neighbor's value), not just an equal one — a
+# controlled-chaos escape valve generic 2048 clones don't have.
+const WILDCARD := -1
+const WILDCARD_CHANCE := 0.08
+const WILDCARD_COLOR := Color(0.55, 0.4, 0.75, 1.0)
+
 # Studio Palette v1 (see COLOR_SYSTEM.md). The old palette was a hand-copied
 # 2048 ramp that jumped between color families partway through (128 reset
 # back to a lighter gold after 64's deep red). Rebuilt as one continuous
@@ -28,6 +35,8 @@ const TILE_VAL_END := 0.78
 
 
 func _tile_color(value: int) -> Color:
+	if value == WILDCARD:
+		return WILDCARD_COLOR
 	if value <= 0:
 		return EMPTY_CELL_COLOR
 	var power: int = int(round(log(value) / log(2)))
@@ -107,7 +116,13 @@ func _spawn_random_tile() -> void:
 	if empties.is_empty():
 		return
 	var cell: Vector2i = empties[randi() % empties.size()]
-	grid[cell.y][cell.x] = 4 if randf() < 0.1 else 2
+	var roll := randf()
+	if roll < WILDCARD_CHANCE:
+		grid[cell.y][cell.x] = WILDCARD
+	elif roll < WILDCARD_CHANCE + 0.1:
+		grid[cell.y][cell.x] = 4
+	else:
+		grid[cell.y][cell.x] = 2
 
 
 func _redraw() -> void:
@@ -126,7 +141,7 @@ func _redraw() -> void:
 			tile_container.add_child(tile)
 
 			var label := Label.new()
-			label.text = str(value)
+			label.text = "★" if value == WILDCARD else str(value)
 			label.size = Vector2(CELL_SIZE, CELL_SIZE)
 			label.position = _cell_position(x, y)
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -185,6 +200,20 @@ func _handle_drag_end(end_pos: Vector2) -> void:
 		_move(0, 1 if delta.y > 0 else -1)
 
 
+func _can_merge(a: int, b: int) -> bool:
+	return a == b or a == WILDCARD or b == WILDCARD
+
+
+func _merge_result(a: int, b: int) -> int:
+	if a == WILDCARD and b == WILDCARD:
+		return 4
+	if a == WILDCARD:
+		return b * 2
+	if b == WILDCARD:
+		return a * 2
+	return a * 2
+
+
 func _process_line(line: Array) -> Dictionary:
 	var vals := []
 	for v in line:
@@ -195,8 +224,8 @@ func _process_line(line: Array) -> Dictionary:
 	var gained := 0
 	var i := 0
 	while i < vals.size():
-		if i + 1 < vals.size() and vals[i] == vals[i + 1]:
-			var new_val: int = vals[i] * 2
+		if i + 1 < vals.size() and _can_merge(vals[i], vals[i + 1]):
+			var new_val: int = _merge_result(vals[i], vals[i + 1])
 			merged.append(new_val)
 			gained += new_val
 			i += 2
@@ -262,9 +291,11 @@ func _no_moves_available() -> bool:
 		for x in range(GRID_SIZE):
 			if grid[y][x] == 0:
 				return false
-			if x + 1 < GRID_SIZE and grid[y][x] == grid[y][x + 1]:
+			if grid[y][x] == WILDCARD:
 				return false
-			if y + 1 < GRID_SIZE and grid[y][x] == grid[y + 1][x]:
+			if x + 1 < GRID_SIZE and _can_merge(grid[y][x], grid[y][x + 1]):
+				return false
+			if y + 1 < GRID_SIZE and _can_merge(grid[y][x], grid[y + 1][x]):
 				return false
 	return true
 

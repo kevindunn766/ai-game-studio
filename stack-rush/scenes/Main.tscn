@@ -30,6 +30,14 @@ font_size = 96
 outline_size = 12
 outline_color = Color(0, 0, 0, 1)
 
+[node name="ComboLabel" type="Label3D" parent="."]
+visible = false
+text = "COMBO REBUILD!"
+font_size = 64
+outline_size = 10
+outline_color = Color(0, 0, 0, 1)
+modulate = Color(0.93, 0.76, 0.15, 1)
+
 [node name="GameOverOverlay" type="Node3D" parent="."]
 visible = false
 

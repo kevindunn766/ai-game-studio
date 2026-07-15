@@ -171,7 +171,14 @@ func _resolve_gate(index: int) -> void:
 	gate["resolved"] = true
 	gates[index] = gate
 
-	var relative_angle: float = wrapf(-tower_rotation, 0.0, TAU)
+	# A tooth placed at local angle (tooth_i * SLOT_ANGLE) ends up at world
+	# angle (tooth_i * SLOT_ANGLE - tower_rotation) once TowerRoot's Y
+	# rotation is applied (Godot's rotation.y maps local (x,z) -> world
+	# angle = local_angle - rotation). The ball sits at world angle 0, so
+	# solve for which tooth slot lands there: slot = tower_rotation / SLOT_ANGLE.
+	# (Previously negated, which checked the mirror-image slot — the tower
+	# could never actually be rotated to a working position.)
+	var relative_angle: float = wrapf(tower_rotation, 0.0, TAU)
 	var slot: int = int(round(relative_angle / SLOT_ANGLE)) % NUM_TEETH
 	var gap_start: int = gate["gap_start"]
 

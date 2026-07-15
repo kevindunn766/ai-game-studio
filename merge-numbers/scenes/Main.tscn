@@ -31,7 +31,7 @@ offset_bottom = 910.0
 theme_override_colors/font_color = Color(0.15, 0.13, 0.1, 1)
 theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
-text = "Swipe or arrow keys to merge"
+text = "Swipe or arrow keys to merge — ★ merges with anything!"
 
 [node name="GameOverOverlay" type="ColorRect" parent="."]
 visible = false

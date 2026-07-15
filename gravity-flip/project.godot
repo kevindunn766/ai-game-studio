@@ -10,14 +10,14 @@ config_version=5
 
 [application]
 
-config/name="Timber Tap"
-config/description="Tap left or right to chop away from the branch before time runs out."
+config/name="Gravity Flip"
+config/description="Tap to flip gravity and dodge through the gaps in the ceiling and floor."
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 
 [display]
 
-window/size/viewport_width=540
-window/size/viewport_height=960
+window/size/viewport_width=960
+window/size/viewport_height=540
+window/handheld/orientation=0
 window/stretch/mode="canvas_items"
-window/handheld/orientation=1

@@ -75,7 +75,13 @@ binary is nested one level in).
 - **2026-07-14 color pass** (see `COLOR_SYSTEM.md`): layer palette rebuilt as
   an evenly-stepped hue rotation at fixed saturation/value instead of 7
   hand-picked RGB triples.
-- **Not yet playtested by user in the Godot editor (F5).**
+- **2026-07-15 user playtest feedback:** "just like another studio's with
+  nothing new." Added a **Combo Rebuild** twist: standard stack clones only
+  ever shrink the tower; here, chaining 3 near-perfect (>=92% overlap) drops
+  in a row widens the block back out (up to base size) instead — a
+  skill-driven comeback path. Verified via self-test forcing a shrink then a
+  3-drop streak and confirming the width grows back.
+- **Not yet playtested by user in the Godot editor (F5) since this change.**
 
 ### 5. Spiral Drop (spiral-drop/) ✅ PROTOTYPE COMPLETE
 - Hyper-casual helix-descent game. Ball falls down a fixed vertical line;
@@ -88,7 +94,17 @@ binary is nested one level in).
   and the ball's chroma raised, so the ball (the thing you track) reads
   clearly above the tower instead of competing with it (Itten's contrast of
   saturation used as a legibility cue).
-- **Not yet playtested by user in the Godot editor (F5).**
+- **Real bug found + fixed 2026-07-15** (user playtest: "the ball collides
+  with the rings" no matter how you rotate). Root cause: `_resolve_gate()`
+  computed the slot under the ball as `-tower_rotation / SLOT_ANGLE`
+  instead of `+tower_rotation / SLOT_ANGLE` — a sign error that checked the
+  mirror-image slot, so the tower could never actually be rotated to a
+  working position. The original self-test hadn't caught it because it
+  re-derived the *same* (wrong) formula instead of checking against
+  independent ground truth. Fixed, and re-verified against the actual
+  rendered tooth transforms (`global_transform.origin` angle), not just the
+  game's own math, specifically to catch this class of bug.
+- **Not yet playtested by user in the Godot editor (F5) since this fix.**
 
 ### 6. Timber Tap (timber-tap/) ✅ PROTOTYPE COMPLETE
 - Hyper-casual Timberman-style chopper (2D, portrait). Tap left/right half of
@@ -103,7 +119,15 @@ binary is nested one level in).
   player token moved to magenta so it never shares a hue family with trunk,
   branch, ground, or sky. Also added explicit label font colors (score/game
   over text had no override and was inheriting a low-contrast theme default).
-- **Not yet playtested by user in the Godot editor (F5).**
+- **2026-07-15 user playtest feedback:** "I don't even know what that is
+  doing or what I'm supposed to do" — zero onboarding. Added a `ReadyOverlay`
+  shown before the first tap explaining the branch/chop rule and the gold
+  bonus, gated behind an explicit first-tap-to-start (matches the pattern
+  now used in all 4 new prototypes below). Also added a novelty twist:
+  **Golden Log** segments (no branch, ~18% of branch-free segments) that
+  refill part of the timer and give bonus score — a comeback mechanic
+  standard Timberman clones don't have.
+- **Not yet playtested by user in the Godot editor (F5) since these changes.**
 
 ### 7. Merge Numbers (merge-numbers/) ✅ PROTOTYPE COMPLETE
 - Hyper-casual 2048-style merge puzzle (2D, portrait), riding the 2026
@@ -121,6 +145,77 @@ binary is nested one level in).
   explicit font color and were inheriting a light theme default over
   light/cream tile backgrounds — fixed with a luminance-based black/white
   text picker per tile.
+- **2026-07-15 user playtest feedback:** "very much generic too." Added a
+  novelty twist: a rare **Star wildcard tile** (~8% of spawns) that merges
+  with *any* adjacent tile it touches (doubling that tile's value) instead
+  of only equal values — a controlled-chaos escape valve standard 2048
+  clones don't have. Game-over detection updated: a wildcard on a full
+  board always means a move is still available.
+- **Not yet playtested by user in the Godot editor (F5) since this change.**
+
+### 8. Chroma Mix (chroma-mix/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- Color-theory matching puzzle grown directly out of `COLOR_SYSTEM.md`'s
+  research rather than a generic hyper-casual template. Tap 1-3 primary
+  paints (Red/Yellow/Blue) to mix them, then hit MIX to match the target
+  swatch. Follows Itten's real RYB pigment wheel: R+Y=Orange, Y+B=Green,
+  B+R=Purple, all three=Brown (true pigment-mixing lore, not an invented
+  rule).
+- 3 strikes (wrong mix or timeout) end the run; round timer shortens as
+  score climbs. High score via `user://chromamix_highscore.cfg`.
+- Onboarding `ReadyOverlay` explains the mix table before the first round.
+- Headless-verified: clean load + scripted self-test covering all 7 mix
+  results, a correct submit, a wrong submit (strike loss), draining all
+  strikes to game over, and restart — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 9. Tilt Tower (tilt-tower/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- The studio's first game built on a real physics simulation
+  (`RigidBody2D` + `AnimatableBody2D`) instead of scripted/deterministic
+  logic — stacking, sliding, and toppling are emergent, not scripted.
+  Tilt the platform (A/D, arrows, or click/touch-drag) to keep falling
+  blocks from sliding off; 3 lost blocks end the run. Score = seconds
+  survived.
+- High score via `user://tilttower_highscore.cfg`.
+- Headless-verified: clean load + a self-test that let real physics run
+  (flat-platform phase confirmed no blocks fall when centered and level;
+  forced-hard-tilt phase confirmed a block eventually falls and ends the
+  run) plus restart — all passed. Note: verifying this one required
+  time-based (simulated-seconds) checks rather than counting
+  `_physics_process` calls against `--quit-after`, since headless idle-loop
+  iterations and physics ticks don't run 1:1.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 10. Loop It (loop-it/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- A genuinely different genre for this studio: a drag-to-trace planning
+  puzzle (one-line / Hamiltonian-path style) instead of a reaction/timing
+  game. Drag through every dot on the grid in one continuous stroke
+  (up/down/left/right only, no revisiting a dot) before the timer runs out.
+  Releasing early just clears the stroke (no penalty beyond lost time);
+  letting the timer hit zero costs a strike. Grid grows 3x3 -> 6x6 with
+  score.
+- High score via `user://loopit_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering adjacency
+  logic, a full valid path completing a round, an early release clearing
+  the stroke without penalty, draining strikes via timeout to game over,
+  and restart — all passed.
+- **Not yet playtested by user in the Godot editor (F5).**
+
+### 11. Gravity Flip (gravity-flip/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-15
+- One-button endless dodge runner (Gravity Guy / Impossible Game genre).
+  The world auto-scrolls; tap/space flips which way gravity pulls the
+  player (with an instant velocity kick for a snappy feel). Each obstacle
+  blocks either the upper or lower half of the corridor — be on the open
+  half when it arrives. One hit ends the run (the genre's defining
+  instant-fail convention, deliberately different from the 3-strike
+  pattern used by the other three new prototypes). Landscape viewport
+  (960x540) — also deliberately different from the portrait layout used
+  everywhere else in the studio.
+- High score via `user://gravityflip_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering the
+  collision math directly (all 4 side/half combinations, plus an
+  out-of-range obstacle) and a full integration run (never flipping lets
+  gravity pull the player to the floor, which reliably collides with a
+  floor-blocking obstacle), and restart — all passed.
 - **Not yet playtested by user in the Godot editor (F5).**
 
 ---
@@ -186,5 +281,6 @@ binary is nested one level in).
 4. **PR management workflow**: Beyond GitHub MCP — formalize PR creation, review, merge workflow.
 5. **Canonical Godot verification**: No project has had a formal playtest + user confirmation since latest edits.
 6. **Git push of latest commits**: Local commits exist for snake-3d scaffold but push keeps timing out.
-7. **User F5 playtest of the 4 new prototypes** (stack-rush, spiral-drop, timber-tap, merge-numbers): these were verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, and touch/mouse controls on this machine before calling any of them "done."
-8. **Polish pass** (once user picks favorites among the 4 new prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
+7. **User F5 playtest of all 8 hyper-casual prototypes** (stack-rush, spiral-drop, timber-tap, merge-numbers, chroma-mix, tilt-tower, loop-it, gravity-flip): all verified headlessly (clean load + scripted self-tests per project) but need a hands-on pass in the Godot editor to confirm feel, camera framing, and touch/mouse controls on this machine before calling any of them "done." Spiral Drop and Timber Tap specifically need reconfirmation since the 2026-07-15 round fixed a real rotation bug (Spiral Drop) and added onboarding (Timber Tap) in direct response to playtest feedback that the first pass hadn't caught.
+8. **Polish pass** (once user picks favorites among the 8 prototypes): sound, particles, menu, tutorial-free onboarding tuning — deliberately deferred per "Prototype First, No Polish."
+9. **Lesson learned 2026-07-15:** self-tests that re-derive the same formula the implementation uses (rather than checking against independent ground truth, e.g. actual rendered node transforms) can pass while the real mechanic is broken — this is exactly how Spiral Drop's rotation-sign bug slipped through the first verification pass. Future self-tests for anything involving rotation/orientation/geometry should validate against actual `global_transform` or an independently-derived expectation, not the same math path as the code under test.

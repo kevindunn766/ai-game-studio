@@ -9,6 +9,13 @@ const SAVE_PATH := "user://stackrush_highscore.cfg"
 const MIN_OVERLAP := 0.12
 const CAMERA_OFFSET := Vector3(7.0, 6.0, 7.0)
 
+# Novelty twist: standard stack clones only ever shrink. Here, chaining
+# near-perfect drops rebuilds width instead — a skill-driven comeback path
+# rather than a one-way decay curve.
+const PERFECT_RATIO := 0.92
+const COMBO_TARGET := 3
+const REBUILD_GROWTH := 0.6
+
 # Studio Palette v1 (see COLOR_SYSTEM.md): layer color rotates fully around
 # the hue wheel, holding chroma/value fixed so every layer reads at the same
 # brightness instead of a hand-picked, unevenly saturated rainbow.
@@ -18,6 +25,7 @@ const PALETTE_VALUE := 0.88
 
 @onready var camera: Camera3D = $Camera3D
 @onready var score_label: Label3D = $ScoreLabel
+@onready var combo_label: Label3D = $ComboLabel
 @onready var game_over_overlay: Node3D = $GameOverOverlay
 @onready var game_over_score_label: Label3D = $GameOverOverlay/GameOverScore
 
@@ -36,6 +44,8 @@ var score: int = 0
 var high_score: int = 0
 var game_over: bool = false
 var camera_focus_y: float = 0.0
+var combo_streak: int = 0
+var combo_flash_timer: float = 0.0
 
 
 func _ready() -> void:
@@ -54,7 +64,10 @@ func _start_game() -> void:
 	game_over = false
 	t = 0.0
 	camera_focus_y = 0.0
+	combo_streak = 0
+	combo_flash_timer = 0.0
 	game_over_overlay.visible = false
+	combo_label.visible = false
 	score_label.text = "0"
 
 	var base_block := _make_block(BASE_SIZE, Vector3.ZERO, Color(0.85, 0.87, 0.92, 1.0))
@@ -117,6 +130,11 @@ func _process(delta: float) -> void:
 
 	_update_falling_pieces(delta)
 	_update_camera(delta)
+
+	if combo_flash_timer > 0.0:
+		combo_flash_timer -= delta
+		if combo_flash_timer <= 0.0:
+			combo_label.visible = false
 
 
 func _update_camera(delta: float) -> void:
@@ -194,6 +212,20 @@ func _try_drop() -> void:
 	new_center[axis] = (overlap_min + overlap_max) / 2.0
 	new_center.y = moving_node.position.y
 
+	# Combo rebuild: chain enough near-perfect drops and the tower widens
+	# back out instead of only ever shrinking.
+	var overlap_ratio: float = overlap / moving_size[axis]
+	if overlap_ratio >= PERFECT_RATIO:
+		combo_streak += 1
+	else:
+		combo_streak = 0
+
+	if combo_streak >= COMBO_TARGET:
+		combo_streak = 0
+		new_size.x = min(new_size.x + REBUILD_GROWTH, BASE_SIZE.x)
+		new_size.z = min(new_size.z + REBUILD_GROWTH, BASE_SIZE.z)
+		_show_combo_flash()
+
 	var box: BoxMesh = moving_node.mesh as BoxMesh
 	box.size = new_size
 	moving_node.position = new_center
@@ -207,6 +239,13 @@ func _try_drop() -> void:
 	move_speed = 1.6 + score * 0.045
 
 	_spawn_next_moving_block()
+
+
+func _show_combo_flash() -> void:
+	combo_label.text = "COMBO REBUILD!"
+	combo_label.position = Vector3(0, camera_focus_y + 3.5, 0)
+	combo_label.visible = true
+	combo_flash_timer = 1.2
 
 
 func _spawn_debris(axis: int, from_edge: float, to_edge: float, y: float, out_dir: float) -> void:

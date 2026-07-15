@@ -39,3 +39,35 @@ Each follows the studio's locked production rules: one scene, GDScript only,
 primitive meshes / ColorRect UI (no external art imports), `Color(r,g,b,a)`
 always 4-argument, high score persisted via `user://*.cfg`, prototype-quality
 only (no menus/sound/particles/IAP in this pass).
+
+---
+
+## 2026-07-15 — Round 2: playtest feedback and 4 new concepts
+
+User playtest verdict on the first batch: Spiral Drop was actually broken
+(a real rotation-sign bug, fixed — see `DESIGN_BRIEF.md`), Timber Tap had
+zero onboarding so the mechanic wasn't legible, and Stack Rush / Merge
+Numbers read as "generic, nothing new." Response was two-pronged:
+
+1. **Added a genuine novelty twist to each of the 4 existing prototypes**
+   instead of just polish (Stack Rush's Combo Rebuild, Spiral Drop's bug
+   fix, Timber Tap's Golden Log + onboarding, Merge Numbers' Star wildcard)
+   — see each project's `DESIGN_BRIEF.md` entry for specifics.
+2. **Picked 4 new concepts that are different genres, not reskins.** The
+   first batch all sit in the same broad "reaction/precision" bucket
+   (tap-to-drop, rotate-to-align, alternate-tap, grid-slide) — same input
+   grammar, different dressing. This batch was chosen specifically to break
+   that pattern:
+
+| Game | Genre | Why it's not a reskin |
+|---|---|---|
+| **Chroma Mix** | Matching puzzle | Grown directly from `COLOR_SYSTEM.md`'s own research (Itten's RYB wheel) instead of a generic template — the studio's research fed back into a game concept instead of just decorating existing ones. |
+| **Tilt Tower** | Physics sandbox | First game in the studio built on a *real* physics simulation (`RigidBody2D`); stacking/toppling is emergent, not scripted. Every other game (including Stack Rush) is deterministic logic wearing a 3D skin. |
+| **Loop It** | Planning puzzle | Drag-to-trace input (continuous stroke, plan-then-execute) instead of tap/swipe-direction/drag-to-rotate. No reaction-speed component at all — success is about seeing the path, not reacting fast. |
+| **Gravity Flip** | One-button endless runner | Binary state (gravity up/down) with an instant single-hit fail, landscape orientation — deliberately different fail-state convention (3-strike is the house default for the others) and viewport orientation. |
+
+Considered and rejected as too close to existing mechanics: a top-down
+rhythm/pulse-dodge game (too similar to Spiral Drop's "find the gap"
+loop) and a lane-based color-runner (too similar to the shelved
+procedural-3d-godot lane runner).
+
