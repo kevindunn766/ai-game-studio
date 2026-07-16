@@ -1,0 +1,153 @@
+AI GAME STUDIO — SESSION DESIGN BRIEF
+Date: 2026-07-16
+Repo: https://github.com/kevindunn766/ai-game-studio
+
+SCOPE OF THIS SESSION
+----------------------
+The user asked for four things, applied across every game in the studio
+(14 hyper-casual prototypes at the start of the session):
+
+  1. Novelty improvements to all games in the list.
+  2. A check that no game risks aesthetic/copyright issues.
+  3. A graphics improvement pass across the board.
+  4. A bug-fix pass.
+
+This brief describes what was done for each, and how it was verified.
+Full line-by-line detail lives in DESIGN_BRIEF.md's "2026-07-16 Update"
+section and in RESEARCH.md's "Round 4" section; this document is the
+standalone summary of that same work.
+
+STARTING STATE
+--------------
+14 prototypes existed going into this session, three of which already had
+a novelty twist from an earlier round (Stack Rush's combo-rebuild,
+Merge Numbers' wildcard tile, and the game then still named Timber Tap).
+The other 11 had only been reviewed for bugs/quality-of-life and had not
+yet received a deliberate mechanical twist.
+
+1) COPYRIGHT / AESTHETIC-RISK MITIGATION
+-----------------------------------------
+Wrote IP_POLICY.md, a written policy for the studio going forward:
+  - No external art/audio assets, ever — every visual is built
+    procedurally from primitives (BoxMesh, Polygon2D, ColorRect, Line2D).
+    This was already the studio's practice; the policy makes it explicit.
+  - Original color palettes derived from the studio's own color-systems
+    research (COLOR_SYSTEM.md), not copied from a specific commercial
+    game's iconic look.
+  - Game names checked against existing commercial titles. Mechanics
+    themselves are not copyrightable, but a name sharing a distinctive
+    root word with a real product is an avoidable trademark-adjacent risk.
+
+Result of the name check: renamed timber-tap -> chop-chain. It was the
+one name close enough to an existing commercial title (Timberman) to
+read as a direct reference. The mechanic did not change — only the
+project folder name, the in-game title text, the project.godot
+config/name, and the save-file key (now user://chopchain_highscore.cfg).
+All other 13 names were reviewed and judged either generic/descriptive
+(Snake, Merge Numbers, Color Sort, Lemonade Stand) or original coined
+phrasing that doesn't reuse a specific title's distinctive word (Spiral
+Drop vs. Helix Jump, Target Throw vs. Knife Hit, Gravity Flip vs.
+Gravity Guy) — kept as-is.
+
+2) BUG FIX
+----------
+Re-reviewed the four newest games with fresh eyes (rather than trusting
+memory of having just built them) and found one real fidelity bug:
+Flashlight Maze's "flashlight" reveal was implemented as a square
+(a Chebyshev-distance check), not a circle. Fixed to an actual circular
+reveal using a real distance check. Everything else held up on
+re-inspection.
+
+3) NOVELTY TWIST ADDED TO EVERY GAME THAT DIDN'T ALREADY HAVE ONE
+------------------------------------------------------------------
+lemonade-stand-godot : Rush Hour — a random event triples income (click
+                        and idle) for 12 seconds, then cools down on a
+                        randomized timer before it can fire again.
+snake-3d              : Bonus food — a rare (15%), visually distinct
+                        (cyan, larger, faster pulse) food item worth 3x
+                        the normal score.
+chroma-mix            : Wildcard round — a rare (15%) round can be
+                        cleared by tapping MIX with no correct selection
+                        at all, an automatic free pass.
+tilt-tower            : Gust event — every 10-18 seconds, a brief
+                        automatic tilt force nudges the platform that the
+                        player has to counter, on top of manual input.
+loop-it               : Speed bonus — solving a round with at least half
+                        the timer remaining scores an extra point.
+gravity-flip          : Coin pickups — floating collectibles placed
+                        independently of obstacles, worth bonus score.
+                        Tracked in a separate counter so collecting coins
+                        never distorts the difficulty ramp (which still
+                        scales strictly off obstacles passed).
+spiral-drop           : Golden gate — a rare (12%) gate is rendered gold
+                        instead of the normal muted palette and is worth
+                        double score if passed cleanly.
+target-throw          : Bonus gem — a rare gem rides the spinning
+                        target's rim each round; landing a throw on it
+                        (without hitting an existing knife) is worth +5.
+pulse-tap             : Double cycle — a rare (20%) cycle tints the
+                        target ring magenta and is worth 2x score if hit.
+color-sort            : Wildcard ball — a rare ball that pours onto (and
+                        accepts pours from) any color, regardless of
+                        matching. The same "wildcard" motif as Merge
+                        Numbers' tile, applied to a different genre.
+flashlight-maze       : Torch pickup — a rare item that permanently
+                        widens the vision radius for the remainder of the
+                        current maze once collected.
+
+Two recurring twist "shapes" came out of this pass: rare bonus
+objects/rounds (gems, gold gates, double cycles, bonus food, coins) and
+rare wildcards that relax a rule (chroma-mix's free pass, color-sort's
+any-color ball). Both are cheap to reason about and cheap to
+self-test, and are a reasonable default toolkit for future prototypes.
+
+4) GRAPHICS PASS
+-----------------
+Two changes applied consistently rather than a bespoke pass per game:
+  - Font drop-shadows (font_shadow_color + shadow_offset_x/y) added to
+    the primary score label in all 11 2D games, for visual depth without
+    touching any script logic.
+  - Gradient sky backgrounds (WorldEnvironment + ProceduralSkyMaterial)
+    added to all 3 3D games (stack-rush, spiral-drop, snake-3d),
+    replacing the flat black/default void, each tinted to match that
+    game's existing palette (stack-rush: warm dusty gradient; spiral-drop:
+    cool nocturnal navy/purple; snake-3d: near-black with a hint of the
+    snake's green).
+
+Rounding UI panels via Panel/StyleBoxFlat was considered and deliberately
+skipped: it would have meant converting ColorRect nodes that scripts
+type-check as ColorRect (@onready var x: ColorRect = $Node) across many
+files, for a cosmetic gain that didn't justify the risk of touching
+working script code this late in the session.
+
+VERIFICATION METHOD
+--------------------
+Every change in this session was verified the same way the studio has
+been verifying all along:
+  1. Headless clean-load check via Godot's --headless --quit-after flags
+     (confirms no parse/script errors) after every edit.
+  2. For any change with real logic (a new twist, a bug fix), a temporary
+     self-test was added behind a --selftest command-line flag, run
+     headless, checked for the expected behavior via printed assertions,
+     then deleted before the file was considered done — the studio does
+     not commit test scaffolding into the shipped scripts.
+  3. A final full-repo sweep re-ran all 14 projects headless with zero
+     errors before this session's commit.
+
+RESULT
+------
+All 14 prototypes are still headless-clean, each now has at least one
+mechanical twist beyond a generic clone, one real bug is fixed, one name
+was changed to remove a copyright-adjacent risk, and the whole studio has
+two consistent graphics upgrades. None of this has been confirmed by a
+hands-on F5 playtest yet — that remains the standing pending task before
+any of these are called fully "done."
+
+Studio list as of this session (14 total):
+  lemonade-stand-godot, snake-3d, stack-rush, spiral-drop, chop-chain,
+  merge-numbers, chroma-mix, tilt-tower, loop-it, gravity-flip,
+  target-throw, pulse-tap, color-sort, flashlight-maze.
+
+(procedural-3d-godot remains broken/unbuilt and arcadia-clash remains a
+design document with no implemented scene; both are out of scope for
+this session, same as prior sessions.)

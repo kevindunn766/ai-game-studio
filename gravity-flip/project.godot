@@ -19,5 +19,4 @@ config/features=PackedStringArray("4.7", "Mobile")
 
 window/size/viewport_width=960
 window/size/viewport_height=540
-window/handheld/orientation=0
 window/stretch/mode="canvas_items"
