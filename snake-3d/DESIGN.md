@@ -15,6 +15,10 @@
 5. Speed increases slightly every 5 food
 6. Game over screen: show score + restart prompt
 7. High score persisted via config file
+8. Structural twist: paired portal gates. A rare pair of linked gates
+   spawns near the snake; stepping onto either one instantly teleports
+   the whole snake (every segment, rigidly) to the other, letting a run
+   cut across the map or escape a tight obstacle pocket.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

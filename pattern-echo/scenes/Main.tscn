@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8h1s0targetthrow"]
+[gd_scene load_steps=2 format=3 uid="uid://c8h1s0patternecho"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
 
@@ -8,21 +8,7 @@ script = ExtResource("1_main")
 [node name="Background" type="ColorRect" parent="."]
 offset_right = 540.0
 offset_bottom = 960.0
-color = Color(0.14, 0.15, 0.2, 1)
-
-[node name="Target" type="Node2D" parent="."]
-position = Vector2(270, 340)
-
-[node name="TargetCircle" type="Polygon2D" parent="Target"]
-color = Color(0.4, 0.3, 0.22, 1)
-
-[node name="InnerRing" type="Node2D" parent="."]
-position = Vector2(270, 340)
-
-[node name="ThrowerKnife" type="Polygon2D" parent="."]
-position = Vector2(270, 760)
-color = Color(0.8, 0.82, 0.86, 1)
-polygon = PackedVector2Array(0, -30, -10, 10, 10, 10)
+color = Color(0.13, 0.13, 0.17, 1)
 
 [node name="ScoreLabel" type="Label" parent="."]
 offset_left = 20.0
@@ -36,42 +22,89 @@ theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 36
 text = "0"
 
+[node name="StrikesLabel" type="Label" parent="."]
+offset_left = 300.0
+offset_top = 20.0
+offset_right = 520.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
+theme_override_font_sizes/font_size = 36
+horizontal_alignment = 2
+text = "* * *"
+
+[node name="StatusLabel" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 90.0
+offset_right = 520.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(0.93, 0.76, 0.15, 1)
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+text = "WATCH"
+
+[node name="Panel0" type="ColorRect" parent="."]
+offset_left = 42.0
+offset_top = 320.0
+offset_right = 262.0
+offset_bottom = 540.0
+color = Color(0.5, 0.12, 0.12, 1)
+
+[node name="Panel1" type="ColorRect" parent="."]
+offset_left = 278.0
+offset_top = 320.0
+offset_right = 498.0
+offset_bottom = 540.0
+color = Color(0.12, 0.3, 0.55, 1)
+
+[node name="Panel2" type="ColorRect" parent="."]
+offset_left = 42.0
+offset_top = 556.0
+offset_right = 262.0
+offset_bottom = 776.0
+color = Color(0.55, 0.45, 0.1, 1)
+
+[node name="Panel3" type="ColorRect" parent="."]
+offset_left = 278.0
+offset_top = 556.0
+offset_right = 498.0
+offset_bottom = 776.0
+color = Color(0.15, 0.4, 0.2, 1)
+
 [node name="ReadyOverlay" type="ColorRect" parent="."]
 offset_right = 540.0
 offset_bottom = 960.0
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 0.68)
 
 [node name="ReadyTitle" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 200.0
+offset_top = 220.0
 offset_right = 520.0
-offset_bottom = 260.0
+offset_bottom = 280.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 46
 horizontal_alignment = 1
-text = "TARGET THROW"
+text = "PATTERN ECHO"
 
 [node name="ReadyRule1" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 320.0
+offset_top = 340.0
 offset_right = 520.0
-offset_bottom = 400.0
+offset_bottom = 420.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 27
 horizontal_alignment = 1
 autowrap_mode = 2
-text = "Tap to throw a knife into the spinning target"
+text = "Watch the panels flash in order, then tap them back in the same order"
 
 [node name="ReadyRule2" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 440.0
+offset_top = 460.0
 offset_right = 520.0
-offset_bottom = 500.0
+offset_bottom = 520.0
 theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
-theme_override_font_sizes/font_size = 26
+theme_override_font_sizes/font_size = 24
 horizontal_alignment = 1
-autowrap_mode = 2
-text = "Don't hit a knife you already stuck — it speeds up every round"
+text = "The sequence grows by one every round. 3 mistakes and you're out."
 
 [node name="ReadyStart" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
@@ -87,7 +120,7 @@ text = "Tap to start"
 visible = false
 offset_right = 540.0
 offset_bottom = 960.0
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 0.68)
 
 [node name="GameOverTitle" type="Label" parent="GameOverOverlay"]
 offset_left = 20.0
@@ -95,7 +128,7 @@ offset_top = 380.0
 offset_right = 520.0
 offset_bottom = 450.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 60
+theme_override_font_sizes/font_size = 56
 horizontal_alignment = 1
 text = "GAME OVER"
 
@@ -105,7 +138,7 @@ offset_top = 460.0
 offset_right = 520.0
 offset_bottom = 510.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
 text = "Score: 0  Best: 0"
 

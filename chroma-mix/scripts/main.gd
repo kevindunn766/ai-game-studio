@@ -16,7 +16,18 @@ const PURPLE := Color(0.5, 0.22, 0.65, 1.0)
 const BROWN := Color(0.42, 0.3, 0.18, 1.0)
 const EMPTY_MIX := Color(0.85, 0.85, 0.85, 1.0)
 
-const ALL_KEYS := ["0", "1", "2", "01", "12", "02", "012"]
+# Structural addition: a progressive unlock curve instead of drawing every
+# target uniformly from round 1. Runs start primaries-only; secondaries
+# unlock at a score milestone, and the three-way brown mix (the hardest
+# read) unlocks after that — the pool of possible targets actually grows
+# as a run goes on, rather than staying fixed the whole time.
+const PRIMARY_KEYS := ["0", "1", "2"]
+const SECONDARY_KEYS := ["01", "12", "02"]
+const TERTIARY_KEYS := ["012"]
+const TIER1_UNLOCK_SCORE := 5
+const TIER2_UNLOCK_SCORE := 12
+const MISS_FLASH_COLOR := Color(0.85, 0.15, 0.15, 1.0)
+const UNLOCK_FLASH_COLOR := Color(0.93, 0.76, 0.15, 1.0)
 
 const BASE_TIME := 3.2
 const MIN_TIME := 1.4
@@ -57,6 +68,8 @@ var time_left: float = BASE_TIME
 var game_over: bool = false
 var game_started: bool = false
 var miss_flash_timer: float = 0.0
+var unlocked_secondaries: bool = false
+var unlocked_brown: bool = false
 
 
 func _ready() -> void:
@@ -69,6 +82,8 @@ func _start_game() -> void:
 	strikes = MAX_STRIKES
 	game_over = false
 	game_started = false
+	unlocked_secondaries = false
+	unlocked_brown = false
 	score_label.text = "Score: 0"
 	_update_strikes_label()
 	wildcard_available = false
@@ -78,8 +93,34 @@ func _start_game() -> void:
 	_new_round()
 
 
+func _available_keys() -> Array:
+	var keys: Array = PRIMARY_KEYS.duplicate()
+	if unlocked_secondaries:
+		keys += SECONDARY_KEYS
+	if unlocked_brown:
+		keys += TERTIARY_KEYS
+	return keys
+
+
+func _check_unlocks() -> void:
+	if not unlocked_secondaries and score >= TIER1_UNLOCK_SCORE:
+		unlocked_secondaries = true
+		_show_flash("SECONDARIES UNLOCKED!", UNLOCK_FLASH_COLOR)
+	elif not unlocked_brown and score >= TIER2_UNLOCK_SCORE:
+		unlocked_brown = true
+		_show_flash("BROWN UNLOCKED!", UNLOCK_FLASH_COLOR)
+
+
+func _show_flash(text: String, color: Color) -> void:
+	miss_flash_label.text = text
+	miss_flash_label.add_theme_color_override("font_color", color)
+	miss_flash_label.visible = true
+	miss_flash_timer = 0.9
+
+
 func _new_round() -> void:
-	target_key = ALL_KEYS[randi() % ALL_KEYS.size()]
+	var keys: Array = _available_keys()
+	target_key = keys[randi() % keys.size()]
 	var result: Dictionary = _mix_result(target_key)
 	target_swatch.color = result["color"]
 	target_label.text = "Match: %s" % result["name"]
@@ -205,6 +246,7 @@ func _submit() -> void:
 		wildcard_label.visible = false
 		score += 1
 		score_label.text = "Score: %d" % score
+		_check_unlocks()
 		_new_round()
 		return
 
@@ -214,6 +256,7 @@ func _submit() -> void:
 	if key == target_key:
 		score += 1
 		score_label.text = "Score: %d" % score
+		_check_unlocks()
 		_new_round()
 	else:
 		_on_miss("WRONG MIX!")
@@ -222,9 +265,7 @@ func _submit() -> void:
 func _on_miss(reason: String) -> void:
 	strikes -= 1
 	_update_strikes_label()
-	miss_flash_label.text = reason
-	miss_flash_label.visible = true
-	miss_flash_timer = 0.9
+	_show_flash(reason, MISS_FLASH_COLOR)
 	if strikes <= 0:
 		_trigger_game_over()
 	else:

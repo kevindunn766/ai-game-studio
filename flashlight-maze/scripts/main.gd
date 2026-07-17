@@ -32,6 +32,17 @@ const TORCH_COLOR := Color(0.93, 0.76, 0.15, 1.0)
 const TORCH_CHANCE := 0.5
 const TORCH_VISION_BOOST := 1
 
+# Structural addition: a roaming guard. Unlike the timer (a passive
+# resource drain), the guard is an active hazard that wanders the maze's
+# corridors in real time on its own schedule — catching up to the player
+# costs a strike immediately, regardless of how much time is left. It's
+# always drawn (even through fog), since a threat you can't see coming
+# would just feel cheap rather than tense; only the static layout stays
+# fog-gated.
+const GUARD_MOVE_INTERVAL := 0.9
+const GUARD_MIN_START_DISTANCE := 3
+const GUARD_COLOR := Color(0.95, 0.32, 0.12, 1.0)
+
 @onready var maze_container: Node2D = $MazeContainer
 @onready var player_token: Polygon2D = $PlayerToken
 @onready var score_label: Label = $ScoreLabel
@@ -51,6 +62,8 @@ var torch_cell: Vector2i = Vector2i(-1, -1)
 var vision_bonus: int = 0
 var drag_start: Vector2 = Vector2.INF
 var miss_flash_timer: float = 0.0
+var guard_cell: Vector2i = Vector2i(-1, -1)
+var guard_move_timer: float = 0.0
 
 var score: int = 0
 var high_score: int = 0
@@ -89,6 +102,7 @@ func _generate_new_maze() -> void:
 		var candidate: Vector2i = Vector2i(randi() % grid_size, randi() % grid_size)
 		if candidate != Vector2i.ZERO and candidate != exit_cell:
 			torch_cell = candidate
+	_spawn_guard()
 	revealed.clear()
 	_reveal_around(player_cell)
 
@@ -152,6 +166,51 @@ func _reveal_around(cell: Vector2i) -> void:
 				revealed[c] = true
 
 
+func _spawn_guard() -> void:
+	guard_move_timer = GUARD_MOVE_INTERVAL
+	var candidates: Array = []
+	for y in range(grid_size):
+		for x in range(grid_size):
+			var c := Vector2i(x, y)
+			if c == player_cell or c == exit_cell or c == torch_cell:
+				continue
+			if abs(c.x - player_cell.x) + abs(c.y - player_cell.y) < GUARD_MIN_START_DISTANCE:
+				continue
+			candidates.append(c)
+	if candidates.is_empty():
+		guard_cell = Vector2i(-1, -1)
+		return
+	guard_cell = candidates[randi() % candidates.size()]
+
+
+func _move_guard() -> void:
+	if guard_cell == Vector2i(-1, -1):
+		return
+	var dirs := [
+		{"name": "N", "dx": 0, "dy": -1},
+		{"name": "E", "dx": 1, "dy": 0},
+		{"name": "S", "dx": 0, "dy": 1},
+		{"name": "W", "dx": -1, "dy": 0},
+	]
+	var open_dirs: Array = []
+	var walls: Dictionary = walls_open[guard_cell]
+	for d in dirs:
+		if walls[d["name"]]:
+			open_dirs.append(d)
+	if open_dirs.is_empty():
+		return
+	var pick: Dictionary = open_dirs[randi() % open_dirs.size()]
+	guard_cell += Vector2i(pick["dx"], pick["dy"])
+
+
+func _circle_points(radius: float, segments: int) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	for i in range(segments):
+		var a: float = i * TAU / segments
+		pts.append(Vector2(cos(a), sin(a)) * radius)
+	return pts
+
+
 func _grid_origin_x() -> float:
 	return (540.0 - grid_size * CELL_SIZE) / 2.0
 
@@ -189,6 +248,16 @@ func _redraw() -> void:
 				])
 				torch.color = TORCH_COLOR
 				maze_container.add_child(torch)
+
+			if cell == guard_cell:
+				var guard := Polygon2D.new()
+				var gcx: float = px + CELL_SIZE / 2.0
+				var gcy: float = py + CELL_SIZE / 2.0
+				var gr: float = CELL_SIZE * 0.3
+				guard.polygon = _circle_points(gr, 12)
+				guard.position = Vector2(gcx, gcy)
+				guard.color = GUARD_COLOR
+				maze_container.add_child(guard)
 
 			if is_revealed:
 				var w: Dictionary = walls_open[cell]
@@ -229,6 +298,15 @@ func _process(delta: float) -> void:
 	timer_bar_fill.size.x = TIMER_BAR_MAX_WIDTH * ratio
 	if time_left <= 0.0:
 		_on_timeout()
+		return
+
+	guard_move_timer -= delta
+	if guard_move_timer <= 0.0:
+		guard_move_timer = GUARD_MOVE_INTERVAL
+		_move_guard()
+		_redraw()
+		if guard_cell == player_cell:
+			_on_caught()
 
 
 func _dir_for(dx: int, dy: int) -> String:
@@ -255,6 +333,10 @@ func _try_move(dx: int, dy: int) -> void:
 		vision_bonus += TORCH_VISION_BOOST
 		torch_cell = Vector2i(-1, -1)
 	_reveal_around(player_cell)
+	if player_cell == guard_cell:
+		_redraw()
+		_on_caught()
+		return
 	if player_cell == exit_cell:
 		_on_maze_solved()
 	_redraw()
@@ -272,6 +354,18 @@ func _on_timeout() -> void:
 	strikes -= 1
 	_update_strikes_label()
 	miss_flash_label.text = "TIME'S UP!"
+	miss_flash_label.visible = true
+	miss_flash_timer = 0.9
+	if strikes <= 0:
+		_trigger_game_over()
+	else:
+		_generate_new_maze()
+
+
+func _on_caught() -> void:
+	strikes -= 1
+	_update_strikes_label()
+	miss_flash_label.text = "CAUGHT!"
 	miss_flash_label.visible = true
 	miss_flash_timer = 0.9
 	if strikes <= 0:

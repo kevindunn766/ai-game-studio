@@ -18,9 +18,15 @@ remembering the maze's layout under time pressure, not reacting fast.
 2. Move with WASD, arrows, or a swipe — one cell per input, blocked by walls.
 3. Only cells within a small radius of the player are ever revealed;
    revealed cells stay revealed (an "explored map," not a moving spotlight).
-4. Reach the exit cell before the timer runs out to solve the maze: score
+4. Structural twist: a roaming guard (always visible, even through fog)
+   wanders the maze's corridors in real time on its own schedule. Unlike
+   the timer, it's an active hazard — if it ever shares your cell (either
+   of you moves into the other), that's a strike immediately, regardless
+   of time remaining.
+5. Reach the exit cell before the timer runs out to solve the maze: score
    +1, a new (occasionally larger) maze generates.
-5. Running out of time costs a strike; 3 strikes ends the run.
+6. Running out of time, or getting caught by the guard, costs a strike;
+   3 strikes ends the run.
 6. Grid size grows every 2 solves (7x7 up to 11x11); timer scales with cell
    count. High score persisted via config file.
 

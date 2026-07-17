@@ -25,8 +25,24 @@ const GEM_SCORE := 5
 const GEM_ANGLE_TOLERANCE := 0.4
 const GEM_COLOR := Color(0.2, 0.85, 0.55, 1.0)
 
+# Structural addition: a second, independently-rotating inner ring the
+# knife must ALSO clear on every throw. Unlike the outer target (which is
+# only "blocked" by knives the player has already stuck), this inner ring
+# has a fixed narrow gap and spins on its own — usually the opposite way
+# from the outer target — so lining up a throw means tracking two
+# independently rotating references at once instead of just dodging your
+# own past throws.
+const INNER_RADIUS := 55.0
+const NUM_INNER_TEETH := 8
+const INNER_GAP_TEETH := 2
+const INNER_TOOTH_SIZE := Vector2(11.0, 9.0)
+const INNER_BASE_ROTATION_SPEED := -1.4
+const INNER_ROTATION_SPEED_GROWTH := -0.08
+const INNER_TOOTH_COLOR := Color(0.55, 0.58, 0.65, 1.0)
+
 @onready var target: Node2D = $Target
 @onready var target_circle: Polygon2D = $Target/TargetCircle
+@onready var inner_ring: Node2D = $InnerRing
 @onready var score_label: Label = $ScoreLabel
 @onready var ready_overlay: ColorRect = $ReadyOverlay
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
@@ -36,6 +52,7 @@ var knives: Array = []
 var knives_this_round: int = 0
 var round_number: int = 0
 var rotation_speed: float = BASE_ROTATION_SPEED
+var inner_rotation_speed: float = INNER_BASE_ROTATION_SPEED
 var gem_angle: float = -10.0
 var gem_node: Node2D = null
 
@@ -48,8 +65,27 @@ var game_started: bool = false
 func _ready() -> void:
 	target_circle.polygon = _circle_points(TARGET_RADIUS, 32)
 	target_circle.color = TARGET_COLOR
+	_build_inner_ring()
 	_load_high_score()
 	_start_game()
+
+
+func _build_inner_ring() -> void:
+	for c in inner_ring.get_children():
+		c.queue_free()
+	var slot_angle: float = TAU / NUM_INNER_TEETH
+	for tooth_i in range(NUM_INNER_TEETH):
+		if tooth_i < INNER_GAP_TEETH:
+			continue
+		var angle: float = tooth_i * slot_angle
+		var tooth := Polygon2D.new()
+		var hw: float = INNER_TOOTH_SIZE.x / 2.0
+		var hh: float = INNER_TOOTH_SIZE.y / 2.0
+		tooth.polygon = PackedVector2Array([Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(hw, hh), Vector2(-hw, hh)])
+		tooth.position = Vector2(cos(angle), sin(angle)) * INNER_RADIUS
+		tooth.rotation = angle
+		tooth.color = INNER_TOOTH_COLOR
+		inner_ring.add_child(tooth)
 
 
 func _circle_points(radius: float, segments: int) -> PackedVector2Array:
@@ -68,7 +104,9 @@ func _start_game() -> void:
 	knives_this_round = 0
 	round_number = 0
 	rotation_speed = BASE_ROTATION_SPEED
+	inner_rotation_speed = INNER_BASE_ROTATION_SPEED
 	target.rotation = 0.0
+	inner_ring.rotation = 0.0
 	score = 0
 	game_over = false
 	game_started = false
@@ -86,6 +124,7 @@ func _process(delta: float) -> void:
 	if game_over or not game_started:
 		return
 	target.rotation += rotation_speed * delta
+	inner_ring.rotation += inner_rotation_speed * delta
 
 
 func _input(event: InputEvent) -> void:
@@ -122,6 +161,10 @@ func _throw_knife() -> void:
 	var local_contact: Vector2 = target.to_local(contact_world)
 	var new_angle: float = local_contact.angle()
 
+	if not _inner_ring_clear(contact_world):
+		_trigger_game_over()
+		return
+
 	for k in knives:
 		var existing_angle: float = k.position.angle()
 		var diff: float = wrapf(new_angle - existing_angle, -PI, PI)
@@ -154,6 +197,14 @@ func _throw_knife() -> void:
 		_advance_round()
 
 
+func _inner_ring_clear(contact_world: Vector2) -> bool:
+	var local_contact: Vector2 = inner_ring.to_local(contact_world)
+	var angle: float = wrapf(local_contact.angle(), 0.0, TAU)
+	var slot_angle: float = TAU / NUM_INNER_TEETH
+	var slot: int = int(round(angle / slot_angle)) % NUM_INNER_TEETH
+	return slot < INNER_GAP_TEETH
+
+
 func _maybe_spawn_gem() -> void:
 	if randf() >= GEM_CHANCE_PER_ROUND:
 		return
@@ -172,6 +223,7 @@ func _advance_round() -> void:
 	knives_this_round = 0
 	round_number += 1
 	rotation_speed = BASE_ROTATION_SPEED + round_number * ROTATION_SPEED_GROWTH
+	inner_rotation_speed = INNER_BASE_ROTATION_SPEED + round_number * INNER_ROTATION_SPEED_GROWTH
 	if is_instance_valid(gem_node):
 		gem_node.queue_free()
 	gem_node = null

@@ -32,6 +32,18 @@ const GOLDEN_GATE_CHANCE := 0.12
 const GOLDEN_GATE_COLOR := Color(0.93, 0.76, 0.15, 1.0)
 const GOLDEN_GATE_SCORE := 2
 
+# Structural addition: dual-gap gates. Instead of one gap to find, some
+# gates open TWO separate gaps on opposite sides of the ring — a wide
+# "safe" gap worth the normal point, and a narrower "risk" gap (flagged
+# with amber marker teeth) worth more. The player has to commit to a lane
+# before the gate arrives, a real choice rather than just aiming for the
+# single opening. Mutually exclusive with the golden-gate twist so each
+# gate reads as exactly one clear thing.
+const DUAL_GAP_CHANCE := 0.3
+const RISK_GAP_WIDTH := 1
+const RISK_GAP_SCORE := 2
+const RISK_MARKER_COLOR := Color(0.95, 0.55, 0.12, 1.0)
+
 @onready var tower_root: Node3D = $TowerRoot
 @onready var ball: MeshInstance3D = $Ball
 @onready var camera: Camera3D = $Camera3D
@@ -101,8 +113,11 @@ func _generate_gates(count: int) -> void:
 		var idx: int = gates.size()
 		var y: float = -float(idx) * GATE_SPACING
 		var gap_start: int = randi() % NUM_TEETH
-		var is_golden: bool = randf() < GOLDEN_GATE_CHANCE
+		var is_dual: bool = randf() < DUAL_GAP_CHANCE
+		var is_golden: bool = (not is_dual) and randf() < GOLDEN_GATE_CHANCE
 		var color: Color = GOLDEN_GATE_COLOR if is_golden else _gate_color(idx)
+
+		var risk_gap_start: int = (gap_start + NUM_TEETH / 2) % NUM_TEETH
 
 		var gate_node := Node3D.new()
 		gate_node.name = "Gate%d" % idx
@@ -115,6 +130,11 @@ func _generate_gates(count: int) -> void:
 				if (gap_start + k) % NUM_TEETH == tooth_i:
 					in_gap = true
 					break
+			if is_dual and not in_gap:
+				for k in range(RISK_GAP_WIDTH):
+					if (risk_gap_start + k) % NUM_TEETH == tooth_i:
+						in_gap = true
+						break
 			if in_gap:
 				continue
 
@@ -135,7 +155,38 @@ func _generate_gates(count: int) -> void:
 
 			gate_node.add_child(tooth)
 
-		gates.append({"y": y, "gap_start": gap_start, "resolved": false, "golden": is_golden})
+		if is_dual:
+			_add_risk_marker(gate_node, risk_gap_start)
+
+		gates.append({
+			"y": y,
+			"gap_start": gap_start,
+			"resolved": false,
+			"golden": is_golden,
+			"dual": is_dual,
+			"risk_gap_start": risk_gap_start,
+		})
+
+
+func _add_risk_marker(gate_node: Node3D, risk_gap_start: int) -> void:
+	var center_slot: float = float(risk_gap_start) + (float(RISK_GAP_WIDTH) - 1.0) / 2.0
+	var angle: float = center_slot * SLOT_ANGLE
+	var marker := MeshInstance3D.new()
+	var disc := CylinderMesh.new()
+	disc.top_radius = 0.28
+	disc.bottom_radius = 0.28
+	disc.height = 0.08
+	marker.mesh = disc
+	marker.position = Vector3(GATE_RADIUS * cos(angle), 0, GATE_RADIUS * sin(angle))
+
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = RISK_MARKER_COLOR
+	mat.emission_enabled = true
+	mat.emission = RISK_MARKER_COLOR
+	mat.emission_energy_multiplier = 0.9
+	marker.set_surface_override_material(0, mat)
+
+	gate_node.add_child(marker)
 
 
 func _process(delta: float) -> void:
@@ -190,13 +241,25 @@ func _resolve_gate(index: int) -> void:
 	var slot: int = int(round(relative_angle / SLOT_ANGLE)) % NUM_TEETH
 	var gap_start: int = gate["gap_start"]
 
-	var in_gap := false
+	var in_safe_gap := false
 	for k in range(GAP_WIDTH):
 		if (gap_start + k) % NUM_TEETH == slot:
-			in_gap = true
+			in_safe_gap = true
 			break
 
-	if in_gap:
+	var in_risk_gap := false
+	if gate["dual"]:
+		var risk_gap_start: int = gate["risk_gap_start"]
+		for k in range(RISK_GAP_WIDTH):
+			if (risk_gap_start + k) % NUM_TEETH == slot:
+				in_risk_gap = true
+				break
+
+	if in_risk_gap:
+		score += RISK_GAP_SCORE
+		score_label.text = str(score)
+		fall_speed = min(2.2 + score * 0.03, 6.0)
+	elif in_safe_gap:
 		score += GOLDEN_GATE_SCORE if gate["golden"] else 1
 		score_label.text = str(score)
 		fall_speed = min(2.2 + score * 0.03, 6.0)

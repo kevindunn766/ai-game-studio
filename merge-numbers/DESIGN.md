@@ -10,7 +10,13 @@
    in that direction.
 2. Colliding tiles of equal value merge into one tile of double value.
 3. Each move that changes the board spawns one new tile (2, 90% / 4, 10%).
-4. Game over when the board is full and no adjacent equal tiles remain.
+4. Structural twist: as score crosses fixed milestones (every 300 points,
+   up to 3 at once), one empty cell permanently freezes — it never moves
+   or merges and blocks tiles from sliding through it, splitting that
+   row/column into independent segments on either side of it.
+5. Game over when the board is full and no adjacent equal tiles remain
+   (frozen cells never count as a valid merge with anything, including
+   each other).
 5. Score = running total of all merge values.
 6. High score persisted via config file.
 

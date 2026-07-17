@@ -8,10 +8,15 @@
 ## Mechanics (LOCKED - do NOT add more)
 1. Ball falls continuously down a fixed vertical line.
 2. Every gate ring has one gap (2 of 10 teeth removed); rest are solid.
-3. Player rotates the whole tower (A/D, arrow keys, or click-drag / touch-drag)
-   so the gap lines up with the ball before it reaches that ring's height.
-4. Missing the gap = game over.
-5. Passing a gate = +1 score; fall speed ramps up slightly with score.
+3. Structural twist: some gates instead open TWO separate gaps, half the
+   ring apart — a normal-width safe gap and a narrower amber-marked risk
+   gap worth more points. The player has to commit to a lane before the
+   gate arrives. Mutually exclusive with the golden-gate twist.
+4. Player rotates the whole tower (A/D, arrow keys, or click-drag / touch-drag)
+   so a gap lines up with the ball before it reaches that ring's height.
+5. Missing every gap on a gate = game over.
+6. Passing through the safe gap = +1 score (golden gate: +2); passing
+   through a risk gap = +2 score. Fall speed ramps up slightly with score.
 6. Gates generate endlessly ahead of the ball.
 7. High score persisted via config file.
 

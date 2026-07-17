@@ -12,7 +12,11 @@
 3. Each trunk segment has a branch on at most one side (or none).
 4. Tapping the side with the branch on the current bottom segment = game over.
 5. Tapping the clear side chops the segment away and moves the player there.
-6. A shrinking timer forces a tap each round; running out = game over.
+6. Structural twist: some hazardous segments come back reinforced
+   (visibly tinted, with a crack line after the first hit). Tapping the
+   branch side still kills instantly, but the safe side has to be tapped
+   TWICE — a clean hit only cracks it — before it actually falls away.
+7. A shrinking timer forces a tap each round; running out = game over.
 7. Timer duration shortens slightly as score increases (difficulty ramp).
 8. High score persisted via config file.
 

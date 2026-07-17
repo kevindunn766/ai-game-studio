@@ -40,6 +40,17 @@ const COIN_SPACING := 260.0
 const COIN_SPAWN_CHANCE := 0.6
 const COIN_COLOR := Color(0.93, 0.76, 0.15, 1.0)
 
+# Structural addition: a rotating gravity axis. Gravity no longer pulls
+# along a fixed vertical line — its axis slowly oscillates a few degrees
+# off true vertical (a sine sweep, not a one-off event), which does two
+# things: it slightly scales the vertical pull (cos of the tilt) and it
+# sways the player's effective X position within a bounded range. Dodge
+# timing now depends on where the rotating axis currently has the player
+# sitting in X, not just their Y position in the corridor.
+const GRAVITY_TILT_MAX := deg_to_rad(20)
+const GRAVITY_TILT_PERIOD := 6.0
+const LATERAL_MAX := 30.0
+
 @onready var player: ColorRect = $Player
 @onready var gravity_arrow: Polygon2D = $Player/GravityArrow
 @onready var obstacles_container: Node2D = $ObstaclesContainer
@@ -52,6 +63,10 @@ const COIN_COLOR := Color(0.93, 0.76, 0.15, 1.0)
 var player_y: float = CORRIDOR_MID
 var vel_y: float = 0.0
 var gravity_dir: int = 1
+var gravity_tilt_time: float = 0.0
+var gravity_angle: float = 0.0
+var lateral_offset: float = 0.0
+var effective_player_x: float = PLAYER_X
 
 var world_offset: float = 0.0
 var next_spawn_world_x: float = 600.0
@@ -84,6 +99,10 @@ func _start_game() -> void:
 	player_y = CORRIDOR_MID
 	vel_y = 0.0
 	gravity_dir = 1
+	gravity_tilt_time = 0.0
+	gravity_angle = 0.0
+	lateral_offset = 0.0
+	effective_player_x = PLAYER_X
 	world_offset = 0.0
 	next_spawn_world_x = 600.0
 	next_coin_world_x = 850.0
@@ -94,7 +113,7 @@ func _start_game() -> void:
 	score_label.text = "0"
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
-	player.position = Vector2(PLAYER_X - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
+	player.position = Vector2(effective_player_x - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
 	gravity_arrow.rotation = 0.0
 
 
@@ -109,14 +128,20 @@ func _process(delta: float) -> void:
 	var scroll_speed: float = min(MAX_SCROLL_SPEED, BASE_SCROLL_SPEED + score * SCROLL_SPEED_GROWTH)
 	world_offset += scroll_speed * delta
 
-	vel_y += gravity_dir * GRAVITY * delta
+	gravity_tilt_time += delta
+	var phase: float = sin(TAU * gravity_tilt_time / GRAVITY_TILT_PERIOD)
+	gravity_angle = GRAVITY_TILT_MAX * phase
+	lateral_offset = LATERAL_MAX * phase
+	effective_player_x = PLAYER_X + lateral_offset
+
+	vel_y += gravity_dir * GRAVITY * cos(gravity_angle) * delta
 	vel_y = clamp(vel_y, -MAX_FALL_SPEED, MAX_FALL_SPEED)
 	player_y += vel_y * delta
 	player_y = clamp(player_y, CEILING_Y + PLAYER_SIZE / 2.0, FLOOR_Y - PLAYER_SIZE / 2.0)
-	player.position = Vector2(PLAYER_X - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
+	player.position = Vector2(effective_player_x - PLAYER_SIZE / 2.0, player_y - PLAYER_SIZE / 2.0)
 	# QoL: the arrow always points the way gravity is currently pulling, so
 	# a flip reads instantly instead of only being inferable from motion.
-	gravity_arrow.rotation = 0.0 if gravity_dir == 1 else PI
+	gravity_arrow.rotation = gravity_angle if gravity_dir == 1 else PI - gravity_angle
 
 	_update_spawning()
 	_update_obstacles()
@@ -162,7 +187,7 @@ func _update_coins() -> void:
 		c["node"].position = Vector2(screen_x, c["y"])
 
 		if not c["collected"]:
-			var dist: float = Vector2(screen_x - PLAYER_X, c["y"] - player_y).length()
+			var dist: float = Vector2(screen_x - effective_player_x, c["y"] - player_y).length()
 			if dist < COIN_RADIUS + PLAYER_SIZE / 2.0:
 				c["collected"] = true
 				coin_score += COIN_SCORE
@@ -191,7 +216,7 @@ func _update_obstacles() -> void:
 		var screen_x: float = o["world_x"] - world_offset
 		o["node"].position.x = screen_x
 
-		if not o["passed"] and screen_x + OBSTACLE_WIDTH < PLAYER_X - PLAYER_SIZE / 2.0:
+		if not o["passed"] and screen_x + OBSTACLE_WIDTH < effective_player_x - PLAYER_SIZE / 2.0:
 			o["passed"] = true
 			score += 1
 			score_label.text = str(_total_score())
@@ -207,8 +232,8 @@ func _update_obstacles() -> void:
 
 
 func _check_collision(o: Dictionary, screen_x: float) -> bool:
-	var player_left: float = PLAYER_X - PLAYER_SIZE / 2.0
-	var player_right: float = PLAYER_X + PLAYER_SIZE / 2.0
+	var player_left: float = effective_player_x - PLAYER_SIZE / 2.0
+	var player_right: float = effective_player_x + PLAYER_SIZE / 2.0
 	var obstacle_right: float = screen_x + OBSTACLE_WIDTH
 	if obstacle_right < player_left or screen_x > player_right:
 		return false

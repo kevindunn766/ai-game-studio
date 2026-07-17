@@ -134,3 +134,55 @@ relax a rule (chroma-mix's free pass, color-sort's any-color ball) — both
 are cheap to reason about, cheap to self-test, and genre-agnostic, so
 they're a reasonable default toolkit for the next batch of prototypes too.
 
+---
+
+## 2026-07-16/17 — Round 5: 4 more new concepts + structural redesign of all 14
+
+User's brief this round was explicitly a step up from "add a twist": "add
+novel gaming components to all games... things that structurally change
+the game design... big novel changes." The distinction that mattered
+going in: a rare-bonus-object twist (round 4's default toolkit above)
+layers a reward on top of an unchanged rule system; a *structural* change
+alters the rule system or control scheme itself. Full detail on both the
+4 new games and all 14 redesigns is in `DESIGN_BRIEF.md`'s 2026-07-16/17
+update section.
+
+**4 new concepts**, chosen to fill genre/pacing gaps the studio's other
+17 games (13 hyper-casual + shiftlight) didn't cover:
+
+| Game | Genre | Why it's not a reskin |
+|---|---|---|
+| **Pattern Echo** | Memory sequence (Simon-style) | Memorize-then-recall pacing — zero reflex pressure during the watch phase. Loop It and Color Sort are also untimed-per-move, but neither is watch-then-repeat; this is the only game built around holding a growing sequence in short-term memory. |
+| **Anchor Drop** | Rope-cut physics puzzle | Order-of-operations planning (which rope to cut last) resolved through real `RigidBody2D` physics once the last rope releases — distinct from Tilt Tower's continuous balance-under-emergent-physics and from every scripted/deterministic game in the studio. |
+| **Flash Tap** | Single-target reflex | Raw "tap the one lit thing before it fades" reflex speed, no aiming/rotation/timing-a-moving-element component. Pulse Tap is timing a moving ring, Target Throw is aim-then-commit; this is neither. |
+| **Number Slide** | Sliding-tile puzzle (15-puzzle) | The classic public-domain slide puzzle — pure planning, reuses the shared-move-budget fail state Color Sort established rather than inventing a new one, and reuses the solvability-by-construction generation technique (shuffle via reverse legal moves) already used by Color Sort/Flashlight Maze. |
+
+**Structural redesign, one genuine rule/control change per original
+game** (not a bonus pickup) — see `DESIGN_BRIEF.md` for the full list of
+all 14. A few patterns worth naming for future rounds:
+- **Reused-technique motif**: "solvability by construction" (generate a
+  known-solvable state, then scramble via reversible moves) now appears
+  in four different genres — Color Sort's tube distribution, Number
+  Slide's reverse-shuffle, and this round's Loop It wall-dots (wall off a
+  random suffix of a generated Hamiltonian ordering, so the remaining
+  prefix is always traceable). A reliable pattern worth reaching for
+  first whenever a new structural change risks an unsolvable state.
+- **Decoupling an axis from a fixed control**: several redesigns added a
+  genuinely new degree of freedom to an existing single-axis control
+  scheme — Tilt Tower's platform translation riding the *other* component
+  of the same drag gesture that already drove tilt, Stack Rush's block
+  sweeping both X and Z instead of alternating one per layer, Gravity
+  Flip's gravity axis rotating instead of only flipping sign. In each
+  case the new axis was made to interact with (not just sit beside) the
+  existing one, so it reads as one richer mechanic instead of a bolted-on
+  second minigame.
+- **Independent concurrent instances of the same mechanic**: Pulse Tap
+  (two rings) and Target Throw (a second independently-rotating inner
+  ring) both turned a single serial timing/aiming loop into two
+  simultaneous ones — a cheap, genre-agnostic way to add real structural
+  depth without inventing a new core verb.
+
+All 18 games (14 redesigned + 4 new) were headless-verified clean, both
+per-change and in a final full-repo sweep, matching the studio's
+established verification discipline.
+

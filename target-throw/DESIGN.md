@@ -12,10 +12,15 @@ Timing, not alignment, is the skill.
 
 ## Mechanics (LOCKED - do NOT add more)
 1. The target spins continuously, speeding up every round.
-2. Tap / click / space throws a knife straight into the target from below.
-3. If the spot is empty, the knife sticks and now rotates with the target.
-4. If the spot already has a stuck knife (within a small angular
-   tolerance), the throw hits it instead — game over.
+2. Structural twist: a second, independently-rotating inner ring (usually
+   spinning the opposite way) sits between the thrower and the target,
+   with a fixed narrow gap. Every throw must ALSO clear that gap — lining
+   up a throw means tracking two independently rotating references at
+   once, not just avoiding your own past knives.
+3. Tap / click / space throws a knife straight into the target from below.
+4. If the inner ring blocks the throw, or the target spot already has a
+   stuck knife (within a small angular tolerance), the throw fails —
+   game over. Otherwise the knife sticks and rotates with the target.
 5. Every 6 successful throws advances a round: knives clear, rotation
    speeds up.
 6. Score = total knives successfully stuck. High score persisted via config.

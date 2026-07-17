@@ -16,16 +16,24 @@ const MAX_STRIKES := 3
 const SAVE_PATH := "user://pulsetap_highscore.cfg"
 const CIRCLE_SEGMENTS := 40
 
-# Novelty twist: an occasional "double" cycle tints the target ring a
-# distinct magenta and is worth 2x score if hit — a bonus-round mechanism
-# (the whole cycle is marked, not a separate object), distinct from the
+# Novelty twist: an occasional "double" pulse tints its ring a distinct
+# magenta and is worth 2x score if hit — a bonus-round mechanism (the
+# whole pulse is marked, not a separate object), distinct from the
 # studio's more common pickup-object bonuses.
 const DOUBLE_CYCLE_CHANCE := 0.2
 const DOUBLE_CYCLE_COLOR := Color(0.9, 0.25, 0.75, 1.0)
-const NORMAL_TARGET_COLOR := Color(0.93, 0.76, 0.15, 1.0)
+
+# Structural addition: two pulse rings run concurrently instead of one.
+# They're started out of phase and each respawns independently the moment
+# IT resolves (hit or miss) rather than the whole cycle resetting together
+# — so the two rings drift in and out of sync on their own, and the
+# player has to track two independent timing windows at once instead of
+# one serial "wait, tap, repeat" loop.
+const NUM_PULSES := 2
+const BASE_PULSE_COLORS := [Color(0.2, 0.75, 0.95, 1.0), Color(0.55, 0.8, 0.3, 1.0)]
 
 @onready var target_ring: Line2D = $TargetRing
-@onready var pulse_ring: Line2D = $PulseRing
+@onready var pulse_ring_nodes: Array = [$PulseRing, $PulseRingB]
 @onready var score_label: Label = $ScoreLabel
 @onready var strikes_label: Label = $StrikesLabel
 @onready var miss_flash_label: Label = $MissFlashLabel
@@ -33,10 +41,8 @@ const NORMAL_TARGET_COLOR := Color(0.93, 0.76, 0.15, 1.0)
 @onready var game_over_overlay: ColorRect = $GameOverOverlay
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
 
-var pulse_radius: float = PULSE_START_RADIUS
+var pulses: Array = []
 var shrink_speed: float = BASE_SHRINK_SPEED
-var resolved_this_cycle: bool = false
-var is_double_cycle: bool = false
 var miss_flash_timer: float = 0.0
 
 var score: int = 0
@@ -71,15 +77,28 @@ func _start_game() -> void:
 	miss_flash_label.visible = false
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
-	_start_new_cycle()
+
+	pulses.clear()
+	for i in range(NUM_PULSES):
+		# Stagger each ring's starting radius so they don't launch in lockstep.
+		var start_radius: float = PULSE_START_RADIUS * (1.0 - float(i) / float(NUM_PULSES) * 0.5)
+		pulses.append({"radius": start_radius, "resolved": false, "is_double": randf() < DOUBLE_CYCLE_CHANCE})
+	_redraw_pulses()
 
 
-func _start_new_cycle() -> void:
-	pulse_radius = PULSE_START_RADIUS
-	resolved_this_cycle = false
-	is_double_cycle = randf() < DOUBLE_CYCLE_CHANCE
-	target_ring.default_color = DOUBLE_CYCLE_COLOR if is_double_cycle else NORMAL_TARGET_COLOR
-	pulse_ring.points = _circle_points(pulse_radius)
+func _respawn_pulse(i: int) -> void:
+	pulses[i]["radius"] = PULSE_START_RADIUS
+	pulses[i]["resolved"] = false
+	pulses[i]["is_double"] = randf() < DOUBLE_CYCLE_CHANCE
+
+
+func _redraw_pulses() -> void:
+	for i in range(NUM_PULSES):
+		var color: Color = BASE_PULSE_COLORS[i]
+		if pulses[i]["is_double"]:
+			color = color.lerp(DOUBLE_CYCLE_COLOR, 0.7)
+		pulse_ring_nodes[i].default_color = color
+		pulse_ring_nodes[i].points = _circle_points(max(pulses[i]["radius"], 0.0))
 
 
 func _process(delta: float) -> void:
@@ -91,13 +110,17 @@ func _process(delta: float) -> void:
 	if game_over or not game_started:
 		return
 
-	pulse_radius -= shrink_speed * delta
-	pulse_ring.points = _circle_points(max(pulse_radius, 0.0))
-
-	if pulse_radius <= 0.0:
-		if not resolved_this_cycle:
+	for i in range(NUM_PULSES):
+		if pulses[i]["resolved"]:
+			continue
+		pulses[i]["radius"] -= shrink_speed * delta
+		if pulses[i]["radius"] <= 0.0:
 			_register_miss("MISS!")
-		_start_new_cycle()
+			_respawn_pulse(i)
+			if game_over:
+				return
+
+	_redraw_pulses()
 
 
 func _input(event: InputEvent) -> void:
@@ -124,16 +147,23 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_tap_action() -> void:
-	if resolved_this_cycle:
-		return
+	var best_i := -1
+	var best_dist: float = TOLERANCE
+	for i in range(NUM_PULSES):
+		if pulses[i]["resolved"]:
+			continue
+		var dist: float = abs(pulses[i]["radius"] - TARGET_RADIUS)
+		if dist <= best_dist:
+			best_dist = dist
+			best_i = i
 
-	if abs(pulse_radius - TARGET_RADIUS) <= TOLERANCE:
-		score += 2 if is_double_cycle else 1
+	if best_i != -1:
+		score += 2 if pulses[best_i]["is_double"] else 1
 		score_label.text = str(score)
 		shrink_speed = min(MAX_SHRINK_SPEED, BASE_SHRINK_SPEED + score * SHRINK_SPEED_GROWTH)
-		_start_new_cycle()
+		_respawn_pulse(best_i)
+		_redraw_pulses()
 	else:
-		resolved_this_cycle = true
 		_register_miss("MISS!")
 
 

@@ -16,6 +16,16 @@ const PERFECT_RATIO := 0.92
 const COMBO_TARGET := 3
 const REBUILD_GROWTH := 0.6
 
+# Structural change: the moving block sweeps BOTH horizontal axes at once
+# (a Lissajous drift) instead of alternating a single axis per layer. Every
+# drop now has to line up on X and Z simultaneously, and a drop only
+# survives if it overlaps on both. Because the Z sweep rides a fixed ratio
+# on top of the X speed (which still climbs with score), the two axes
+# drift further out of sync as a run goes on — the timing gets genuinely
+# two-dimensional instead of just faster.
+const Z_FREQ_RATIO := 1.37
+const Z_PHASE_OFFSET := PI / 2.0
+
 # Studio Palette v1 (see COLOR_SYSTEM.md): layer color rotates fully around
 # the hue wheel, holding chroma/value fixed so every layer reads at the same
 # brightness instead of a hand-picked, unevenly saturated rainbow.
@@ -33,7 +43,6 @@ var blocks: Array = []
 var layer_index: int = 0
 var moving_node: MeshInstance3D = null
 var moving_size: Vector3 = BASE_SIZE
-var moving_axis_idx: int = 0
 var move_amplitude: float = 2.2
 var move_speed: float = 1.6
 var t: float = 0.0
@@ -103,7 +112,6 @@ func _make_block(size: Vector3, center: Vector3, color: Color) -> MeshInstance3D
 
 func _spawn_next_moving_block() -> void:
 	layer_index += 1
-	moving_axis_idx = 0 if layer_index % 2 == 1 else 2
 
 	var last: Dictionary = blocks.back()
 	moving_size = last["size"]
@@ -124,8 +132,8 @@ func _process(delta: float) -> void:
 		if moving_node:
 			var last: Dictionary = blocks.back()
 			var pos: Vector3 = moving_node.position
-			var axis_center: float = last["center"][moving_axis_idx]
-			pos[moving_axis_idx] = axis_center + sin(t * move_speed) * move_amplitude
+			pos.x = last["center"].x + sin(t * move_speed) * move_amplitude
+			pos.z = last["center"].z + sin(t * move_speed * Z_FREQ_RATIO + Z_PHASE_OFFSET) * move_amplitude
 			moving_node.position = pos
 
 	_update_falling_pieces(delta)
@@ -180,41 +188,48 @@ func _try_drop() -> void:
 		return
 
 	var last: Dictionary = blocks.back()
-	var axis := moving_axis_idx
+	var moving_pos: Vector3 = moving_node.position
 
-	var moving_half: float = moving_size[axis] / 2.0
-	var moving_pos: float = moving_node.position[axis]
-	var moving_min: float = moving_pos - moving_half
-	var moving_max: float = moving_pos + moving_half
-
-	var last_half: float = last["size"][axis] / 2.0
-	var last_center: float = last["center"][axis]
-	var last_min: float = last_center - last_half
-	var last_max: float = last_center + last_half
-
-	var overlap_min: float = max(moving_min, last_min)
-	var overlap_max: float = min(moving_max, last_max)
-	var overlap: float = overlap_max - overlap_min
-
-	if overlap <= MIN_OVERLAP:
-		_trigger_game_over()
-		return
-
-	# Spawn debris for the sliced-off overhang piece(s).
-	if moving_min < overlap_min:
-		_spawn_debris(axis, moving_min, overlap_min, moving_node.position.y, -1.0)
-	if moving_max > overlap_max:
-		_spawn_debris(axis, overlap_max, moving_max, moving_node.position.y, 1.0)
-
+	var current_min: Vector3 = moving_pos - moving_size / 2.0
+	var current_max: Vector3 = moving_pos + moving_size / 2.0
 	var new_size: Vector3 = moving_size
-	new_size[axis] = overlap
 	var new_center: Vector3 = last["center"]
-	new_center[axis] = (overlap_min + overlap_max) / 2.0
-	new_center.y = moving_node.position.y
+	new_center.y = moving_pos.y
 
-	# Combo rebuild: chain enough near-perfect drops and the tower widens
-	# back out instead of only ever shrinking.
-	var overlap_ratio: float = overlap / moving_size[axis]
+	var overlaps: Array = []
+
+	# Clip X first, then Z against the already-clipped X extent — a
+	# sequential guillotine cut, applied once per axis.
+	for axis in [0, 2]:
+		var other_axis: int = 2 if axis == 0 else 0
+		var last_half: float = last["size"][axis] / 2.0
+		var last_center_axis: float = last["center"][axis]
+		var last_min: float = last_center_axis - last_half
+		var last_max: float = last_center_axis + last_half
+
+		var overlap_min: float = max(current_min[axis], last_min)
+		var overlap_max: float = min(current_max[axis], last_max)
+		var overlap: float = overlap_max - overlap_min
+
+		if overlap <= MIN_OVERLAP:
+			_trigger_game_over()
+			return
+
+		overlaps.append(overlap)
+
+		if current_min[axis] < overlap_min:
+			_spawn_debris_axis(axis, other_axis, current_min[axis], overlap_min, current_min[other_axis], current_max[other_axis], moving_pos.y, -1.0)
+		if current_max[axis] > overlap_max:
+			_spawn_debris_axis(axis, other_axis, overlap_max, current_max[axis], current_min[other_axis], current_max[other_axis], moving_pos.y, 1.0)
+
+		current_min[axis] = overlap_min
+		current_max[axis] = overlap_max
+		new_size[axis] = overlap
+		new_center[axis] = (overlap_min + overlap_max) / 2.0
+
+	# Combo rebuild: chain enough near-perfect drops (on BOTH axes at once)
+	# and the tower widens back out instead of only ever shrinking.
+	var overlap_ratio: float = (overlaps[0] * overlaps[1]) / (moving_size.x * moving_size.z)
 	if overlap_ratio >= PERFECT_RATIO:
 		combo_streak += 1
 	else:
@@ -248,14 +263,17 @@ func _show_combo_flash() -> void:
 	combo_flash_timer = 1.2
 
 
-func _spawn_debris(axis: int, from_edge: float, to_edge: float, y: float, out_dir: float) -> void:
+func _spawn_debris_axis(axis: int, other_axis: int, from_edge: float, to_edge: float, other_min: float, other_max: float, y: float, out_dir: float) -> void:
 	var length: float = to_edge - from_edge
 	if length <= 0.001:
 		return
 	var size: Vector3 = moving_size
 	size[axis] = length
-	var center: Vector3 = moving_node.position
+	size[other_axis] = other_max - other_min
+	var center: Vector3 = Vector3.ZERO
 	center[axis] = (from_edge + to_edge) / 2.0
+	center[other_axis] = (other_min + other_max) / 2.0
+	center.y = y
 
 	var mat_color: Color = (moving_node.get_surface_override_material(0) as StandardMaterial3D).albedo_color
 	var debris := _make_block(size, center, mat_color)

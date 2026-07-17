@@ -19,7 +19,11 @@ an invented rule.
 2. Tap MIX to submit. The mix table is fixed:
    R=Red, Y=Yellow, B=Blue, R+Y=Orange, Y+B=Green, B+R=Purple, R+Y+B=Brown.
 3. Correct match = +1 score, new target, timer resets.
-4. Wrong match or letting the timer run out = lose a strike.
+4. Structural twist: a progressive unlock curve. A run starts with only
+   the three primaries as possible targets; secondaries unlock at a score
+   milestone, and brown (the hardest read) unlocks after that. The pool
+   of things you're asked to mix actually grows over a run.
+5. Wrong match or letting the timer run out = lose a strike.
 5. 3 strikes and the run ends.
 6. Round timer shortens slightly as score climbs.
 7. High score persisted via config file.

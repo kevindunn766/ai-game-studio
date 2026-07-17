@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8h1s0targetthrow"]
+[gd_scene load_steps=3 format=3 uid="uid://c8h1s0anchordrop"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_weight"]
+radius = 22.0
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -10,19 +13,21 @@ offset_right = 540.0
 offset_bottom = 960.0
 color = Color(0.14, 0.15, 0.2, 1)
 
-[node name="Target" type="Node2D" parent="."]
-position = Vector2(270, 340)
+[node name="RopesContainer" type="Node2D" parent="."]
 
-[node name="TargetCircle" type="Polygon2D" parent="Target"]
-color = Color(0.4, 0.3, 0.22, 1)
+[node name="ButtonsContainer" type="Node2D" parent="."]
 
-[node name="InnerRing" type="Node2D" parent="."]
-position = Vector2(270, 340)
+[node name="GroundContainer" type="Node2D" parent="."]
 
-[node name="ThrowerKnife" type="Polygon2D" parent="."]
-position = Vector2(270, 760)
-color = Color(0.8, 0.82, 0.86, 1)
-polygon = PackedVector2Array(0, -30, -10, 10, 10, 10)
+[node name="Weight" type="RigidBody2D" parent="."]
+gravity_scale = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Weight"]
+shape = SubResource("CircleShape2D_weight")
+
+[node name="Visual" type="Polygon2D" parent="Weight"]
+color = Color(0.86, 0.24, 0.62, 1)
+polygon = PackedVector2Array(22, 0, 15.6, 15.6, 0, 22, -15.6, 15.6, -22, 0, -15.6, -15.6, 0, -22, 15.6, -15.6)
 
 [node name="ScoreLabel" type="Label" parent="."]
 offset_left = 20.0
@@ -36,10 +41,30 @@ theme_override_constants/shadow_offset_y = 3
 theme_override_font_sizes/font_size = 36
 text = "0"
 
+[node name="StrikesLabel" type="Label" parent="."]
+offset_left = 300.0
+offset_top = 20.0
+offset_right = 520.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
+theme_override_font_sizes/font_size = 36
+horizontal_alignment = 2
+text = "* * *"
+
+[node name="HintLabel" type="Label" parent="."]
+offset_left = 20.0
+offset_top = 900.0
+offset_right = 520.0
+offset_bottom = 950.0
+theme_override_colors/font_color = Color(0.7, 0.7, 0.74, 1)
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+text = "Cut ropes so the LAST one left is above the green zone"
+
 [node name="ReadyOverlay" type="ColorRect" parent="."]
 offset_right = 540.0
 offset_bottom = 960.0
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 0.68)
 
 [node name="ReadyTitle" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
@@ -47,37 +72,47 @@ offset_top = 200.0
 offset_right = 520.0
 offset_bottom = 260.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 48
+theme_override_font_sizes/font_size = 44
 horizontal_alignment = 1
-text = "TARGET THROW"
+text = "ANCHOR DROP"
 
 [node name="ReadyRule1" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
 offset_top = 320.0
 offset_right = 520.0
-offset_bottom = 400.0
+offset_bottom = 420.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 28
-horizontal_alignment = 1
-autowrap_mode = 2
-text = "Tap to throw a knife into the spinning target"
-
-[node name="ReadyRule2" type="Label" parent="ReadyOverlay"]
-offset_left = 20.0
-offset_top = 440.0
-offset_right = 520.0
-offset_bottom = 500.0
-theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
 theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 autowrap_mode = 2
-text = "Don't hit a knife you already stuck — it speeds up every round"
+text = "Tap CUT buttons to cut the ropes holding the weight. Each cut pulls it toward the remaining ropes."
+
+[node name="ReadyRule2" type="Label" parent="ReadyOverlay"]
+offset_left = 20.0
+offset_top = 460.0
+offset_right = 520.0
+offset_bottom = 540.0
+theme_override_colors/font_color = Color(0.93, 0.76, 0.15, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+autowrap_mode = 2
+text = "Leave the rope above the green zone for last — cutting it drops the weight straight down"
+
+[node name="ReadyRule3" type="Label" parent="ReadyOverlay"]
+offset_left = 20.0
+offset_top = 580.0
+offset_right = 520.0
+offset_bottom = 620.0
+theme_override_colors/font_color = Color(0.95, 0.32, 0.12, 1)
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+text = "Land in a red zone and it's a strike. 3 strikes and you're out."
 
 [node name="ReadyStart" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0
-offset_top = 650.0
+offset_top = 700.0
 offset_right = 520.0
-offset_bottom = 700.0
+offset_bottom = 750.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
 theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
@@ -87,7 +122,7 @@ text = "Tap to start"
 visible = false
 offset_right = 540.0
 offset_bottom = 960.0
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 0.68)
 
 [node name="GameOverTitle" type="Label" parent="GameOverOverlay"]
 offset_left = 20.0
@@ -95,7 +130,7 @@ offset_top = 380.0
 offset_right = 520.0
 offset_bottom = 450.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 60
+theme_override_font_sizes/font_size = 56
 horizontal_alignment = 1
 text = "GAME OVER"
 
@@ -105,7 +140,7 @@ offset_top = 460.0
 offset_right = 520.0
 offset_bottom = 510.0
 theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
 text = "Score: 0  Best: 0"
 

@@ -61,6 +61,12 @@ func grow() -> void:
 	_segments_changed()
 
 
+func teleport(offset: Vector3) -> void:
+	for i in range(segments.size()):
+		segments[i] += offset
+	_segments_changed()
+
+
 func _setup_materials() -> void:
 	var head_color := Color(0.05, 0.9, 0.3, 1.0)
 	var body_color := Color(0.05, 0.65, 0.22, 1.0)

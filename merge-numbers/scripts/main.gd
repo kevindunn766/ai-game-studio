@@ -18,6 +18,16 @@ const WILDCARD := -1
 const WILDCARD_CHANCE := 0.08
 const WILDCARD_COLOR := Color(0.55, 0.4, 0.75, 1.0)
 
+# Structural addition: frozen cells. As the score crosses fixed milestones,
+# a patch of ice permanently locks one empty cell — it never moves, never
+# merges, and blocks tiles from sliding through it, splitting a row/column
+# into independent segments on either side. This changes the board's
+# topology over a run instead of just adding another tile type to merge.
+const FROZEN := -2
+const FROZEN_COLOR := Color(0.4, 0.48, 0.55, 1.0)
+const MAX_FROZEN := 3
+const FREEZE_SCORE_INTERVAL := 300
+
 # Studio Palette v1 (see COLOR_SYSTEM.md). The old palette was a hand-copied
 # 2048 ramp that jumped between color families partway through (128 reset
 # back to a lighter gold after 64's deep red). Rebuilt as one continuous
@@ -35,6 +45,8 @@ const TILE_VAL_END := 0.78
 
 
 func _tile_color(value: int) -> Color:
+	if value == FROZEN:
+		return FROZEN_COLOR
 	if value == WILDCARD:
 		return WILDCARD_COLOR
 	if value <= 0:
@@ -65,6 +77,7 @@ var score: int = 0
 var high_score: int = 0
 var game_over: bool = false
 var drag_start: Vector2 = Vector2.INF
+var next_freeze_score: int = FREEZE_SCORE_INTERVAL
 
 
 func _ready() -> void:
@@ -100,6 +113,7 @@ func _start_game() -> void:
 		grid.append(row)
 	score = 0
 	game_over = false
+	next_freeze_score = FREEZE_SCORE_INTERVAL
 	score_label.text = "Score: 0"
 	game_over_overlay.visible = false
 	_spawn_random_tile()
@@ -141,7 +155,12 @@ func _redraw() -> void:
 			tile_container.add_child(tile)
 
 			var label := Label.new()
-			label.text = "★" if value == WILDCARD else str(value)
+			if value == FROZEN:
+				label.text = "❄"
+			elif value == WILDCARD:
+				label.text = "★"
+			else:
+				label.text = str(value)
 			label.size = Vector2(CELL_SIZE, CELL_SIZE)
 			label.position = _cell_position(x, y)
 			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -201,6 +220,8 @@ func _handle_drag_end(end_pos: Vector2) -> void:
 
 
 func _can_merge(a: int, b: int) -> bool:
+	if a == FROZEN or b == FROZEN:
+		return false
 	return a == b or a == WILDCARD or b == WILDCARD
 
 
@@ -238,6 +259,55 @@ func _process_line(line: Array) -> Dictionary:
 	return {"line": merged, "score": gained}
 
 
+func _process_line_with_barriers(line: Array) -> Dictionary:
+	var result_line: Array = line.duplicate()
+	var total_gain := 0
+	var segment_start := 0
+	for i in range(line.size() + 1):
+		var at_end: bool = i == line.size()
+		var is_frozen: bool = (not at_end) and line[i] == FROZEN
+		if at_end or is_frozen:
+			var seg_len: int = i - segment_start
+			if seg_len > 0:
+				var segment: Array = line.slice(segment_start, i)
+				var processed: Dictionary = _process_line(segment)
+				var processed_line: Array = processed["line"]
+				for k in range(seg_len):
+					result_line[segment_start + k] = processed_line[k]
+				total_gain += processed["score"]
+			segment_start = i + 1
+	return {"line": result_line, "score": total_gain}
+
+
+func _frozen_count() -> int:
+	var count := 0
+	for y in range(GRID_SIZE):
+		for x in range(GRID_SIZE):
+			if grid[y][x] == FROZEN:
+				count += 1
+	return count
+
+
+func _freeze_random_cell() -> bool:
+	var empties := []
+	for y in range(GRID_SIZE):
+		for x in range(GRID_SIZE):
+			if grid[y][x] == 0:
+				empties.append(Vector2i(x, y))
+	if empties.is_empty():
+		return false
+	var cell: Vector2i = empties[randi() % empties.size()]
+	grid[cell.y][cell.x] = FROZEN
+	return true
+
+
+func _process_freeze_threshold() -> void:
+	while score >= next_freeze_score and _frozen_count() < MAX_FROZEN:
+		if not _freeze_random_cell():
+			break
+		next_freeze_score += FREEZE_SCORE_INTERVAL
+
+
 func _move(dx: int, dy: int) -> bool:
 	var changed := false
 	var total_gain := 0
@@ -249,7 +319,7 @@ func _move(dx: int, dy: int) -> bool:
 				row.append(grid[y][x])
 			if dx == 1:
 				row.reverse()
-			var result: Dictionary = _process_line(row)
+			var result: Dictionary = _process_line_with_barriers(row)
 			var new_row: Array = result["line"]
 			if dx == 1:
 				new_row.reverse()
@@ -265,7 +335,7 @@ func _move(dx: int, dy: int) -> bool:
 				col.append(grid[y][x])
 			if dy == 1:
 				col.reverse()
-			var result: Dictionary = _process_line(col)
+			var result: Dictionary = _process_line_with_barriers(col)
 			var new_col: Array = result["line"]
 			if dy == 1:
 				new_col.reverse()
@@ -278,6 +348,7 @@ func _move(dx: int, dy: int) -> bool:
 	if changed:
 		score += total_gain
 		score_label.text = "Score: %d" % score
+		_process_freeze_threshold()
 		_spawn_random_tile()
 		_redraw()
 		if _no_moves_available():

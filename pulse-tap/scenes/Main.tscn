@@ -22,6 +22,12 @@ width = 6.0
 default_color = Color(0.2, 0.75, 0.95, 1)
 closed = true
 
+[node name="PulseRingB" type="Line2D" parent="."]
+position = Vector2(270, 460)
+width = 6.0
+default_color = Color(0.55, 0.8, 0.3, 1)
+closed = true
+
 [node name="ScoreLabel" type="Label" parent="."]
 offset_left = 20.0
 offset_top = 20.0
@@ -79,7 +85,7 @@ theme_override_colors/font_color = Color(0.97, 0.97, 0.95, 1)
 theme_override_font_sizes/font_size = 27
 horizontal_alignment = 1
 autowrap_mode = 2
-text = "Tap the instant the blue ring matches the gold ring"
+text = "Tap the instant either ring matches the gold target ring"
 
 [node name="ReadyRule2" type="Label" parent="ReadyOverlay"]
 offset_left = 20.0

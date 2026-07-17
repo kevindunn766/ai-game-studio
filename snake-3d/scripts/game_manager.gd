@@ -26,6 +26,21 @@ var rng: RandomNumberGenerator
 
 const HIGH_SCORE_PATH := "user://snake3d_highscore.cfg"
 
+# Structural addition: paired portal gates. A rare pair of linked gates
+# spawns near the snake; stepping onto one instantly teleports the whole
+# snake (every segment, rigidly, preserving shape) to the other, letting a
+# run escape a tight obstacle pocket or cut across the map. This changes
+# navigation itself rather than just adding a scoring twist on top of it.
+const PORTAL_SPAWN_CHANCE := 0.2
+const PORTAL_MIN_RADIUS := 3
+const PORTAL_MAX_RADIUS := 6
+var portals_container: Node3D
+var portal_active: bool = false
+var portal_a: Vector3 = Vector3.ZERO
+var portal_b: Vector3 = Vector3.ZERO
+var portal_a_node: Node3D
+var portal_b_node: Node3D
+
 
 func _ready() -> void:
 	_ensure_action("move_up", [KEY_W, KEY_UP])
@@ -38,6 +53,10 @@ func _ready() -> void:
 	rng.randomize()
 	high_score = _load_high_score()
 	current_speed = initial_speed
+
+	portals_container = Node3D.new()
+	portals_container.name = "Portals"
+	add_child(portals_container)
 
 	var score_label: Label3D = get_node_or_null("ScoreLabel")
 	if score_label:
@@ -96,6 +115,14 @@ func _process(delta: float) -> void:
 
 	var head := snake.segments.front() as Vector3
 
+	if portal_active:
+		if head.is_equal_approx(portal_a):
+			_teleport_snake(portal_b - portal_a)
+			head = snake.segments.front()
+		elif head.is_equal_approx(portal_b):
+			_teleport_snake(portal_a - portal_b)
+			head = snake.segments.front()
+
 	# Obstacle death
 	if floor_manager and floor_manager.has_method("is_tile_obstacle_at"):
 		if floor_manager.is_tile_obstacle_at(head):
@@ -113,6 +140,9 @@ func _process(delta: float) -> void:
 
 		snake.grow()
 		_spawn_food()
+
+		if not portal_active and rng.randf() < PORTAL_SPAWN_CHANCE:
+			_spawn_portal_pair()
 
 		if food_eaten_count % speed_increase_interval == 0:
 			current_speed = max(0.06, current_speed - speed_increment)
@@ -144,6 +174,80 @@ func _spawn_food() -> void:
 		# Novelty twist: a rare bonus food worth 3x score, visually distinct
 		# (cyan, bigger, faster pulse) so it reads as a special pickup.
 		food.set_bonus(rng.randf() < BONUS_FOOD_CHANCE)
+
+
+func _random_open_cell(min_r: int, max_r: int, avoid: Array) -> Vector3:
+	var head := snake.segments.front() as Vector3
+	for _attempt in range(24):
+		var ox: int = rng.randi_range(-max_r, max_r)
+		var oz: int = rng.randi_range(-max_r, max_r)
+		var dist_sq: int = ox * ox + oz * oz
+		if dist_sq < min_r * min_r or dist_sq > max_r * max_r:
+			continue
+		var candidate := Vector3(head.x + float(ox), 0.0, head.z + float(oz))
+		if floor_manager and floor_manager.has_method("is_tile_obstacle_at"):
+			if floor_manager.is_tile_obstacle_at(candidate):
+				continue
+		var too_close := false
+		for a in avoid:
+			if candidate.is_equal_approx(a):
+				too_close = true
+				break
+		if too_close:
+			continue
+		return candidate
+	return Vector3.INF
+
+
+func _make_portal_visual(color: Color) -> Node3D:
+	var node := MeshInstance3D.new()
+	var mesh := TorusMesh.new()
+	mesh.inner_radius = 0.22
+	mesh.outer_radius = 0.4
+	node.mesh = mesh
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.emission_enabled = true
+	mat.emission = color
+	mat.emission_energy_multiplier = 1.2
+	mat.roughness = 0.2
+	node.material_override = mat
+	node.rotation_degrees = Vector3(90, 0, 0)
+	return node
+
+
+func _spawn_portal_pair() -> void:
+	var a := _random_open_cell(PORTAL_MIN_RADIUS, PORTAL_MAX_RADIUS, [food.global_position])
+	if not is_finite(a.x):
+		return
+	var b := _random_open_cell(PORTAL_MIN_RADIUS, PORTAL_MAX_RADIUS, [food.global_position, a])
+	if not is_finite(b.x):
+		return
+
+	portal_a = a
+	portal_b = b
+	portal_a_node = _make_portal_visual(Color.from_hsv(0.6, 0.85, 0.95, 1.0))
+	portal_a_node.position = a + Vector3(0, 0.45, 0)
+	portals_container.add_child(portal_a_node)
+	portal_b_node = _make_portal_visual(Color.from_hsv(0.82, 0.85, 0.95, 1.0))
+	portal_b_node.position = b + Vector3(0, 0.45, 0)
+	portals_container.add_child(portal_b_node)
+	portal_active = true
+
+
+func _remove_portal_pair() -> void:
+	if portal_a_node:
+		portal_a_node.queue_free()
+		portal_a_node = null
+	if portal_b_node:
+		portal_b_node.queue_free()
+		portal_b_node = null
+	portal_active = false
+
+
+func _teleport_snake(offset: Vector3) -> void:
+	snake.teleport(offset)
+	_remove_portal_pair()
 
 
 func _get_current_speed() -> float:

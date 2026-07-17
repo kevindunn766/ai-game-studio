@@ -13,12 +13,18 @@ state. This one is a continuous, looping timing window.
   shrinking pulse the player is tracking.
 
 ## Mechanics (LOCKED - do NOT add more)
-1. The pulse ring shrinks steadily from off-screen-large toward zero.
-2. Tap when it matches the target ring's radius (within a small tolerance)
-   to score a point; the cycle immediately resets and speeds up slightly.
-3. Tapping outside the tolerance window costs a strike (and the current
-   cycle is spent — no second chance until it naturally resets at zero).
-4. Letting a cycle reach zero without ever tapping also costs a strike.
+1. Structural twist: TWO pulse rings (blue and green) shrink concurrently
+   instead of one, started out of phase. Each respawns independently the
+   instant IT resolves (hit or timeout) rather than the whole game
+   resetting together, so the two rings drift in and out of sync on
+   their own — tracking two independent timing windows at once.
+2. Tap when either ring matches the target ring's radius (within a small
+   tolerance) to score a point; that ring alone respawns and speeds up
+   slightly (shared speed ramp, both rings get faster together).
+3. Tapping when neither ring is in tolerance costs a strike, without
+   disturbing either ring's progress.
+4. Letting a ring reach zero without ever tapping it also costs a strike
+   and respawns just that ring.
 5. 3 strikes ends the run. Score = number of successful hits.
 6. High score persisted via config file.
 

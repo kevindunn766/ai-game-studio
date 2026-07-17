@@ -13,9 +13,15 @@ stacking behavior is scripted. Tilt the platform to keep them on.
 
 ## Mechanics (LOCKED - do NOT add more)
 1. Blocks spawn from the top at a shrinking interval and fall under gravity.
-2. Tilt the platform with A/D, arrow keys, or click/touch-drag (clamped to
-   +-35 degrees) to keep blocks from sliding off either edge.
-3. A block falling past the bottom of the screen costs a strike.
+2. Tilt the platform with A/D, arrow keys, or the horizontal component of
+   a click/touch-drag (clamped to +-35 degrees) to keep blocks from
+   sliding off either edge.
+3. Structural twist: the platform can also translate left/right — W/S or
+   Up/Down keys, or the vertical component of the same drag gesture
+   (clamped to +-160px either side of center) — so the player can
+   physically reposition the platform under a falling block instead of
+   only ever rotating to slide things toward center.
+4. A block falling past the bottom of the screen costs a strike.
 4. 3 strikes and the run ends.
 5. Score is seconds survived.
 6. High score persisted via config file.

@@ -18,7 +18,13 @@ other new prototypes.
    velocity kick in the new direction for a snappy, arcade feel).
 3. Each obstacle blocks either the upper half or lower half of the
    corridor — be on the open half when it reaches the player.
-4. One hit ends the run (the genre's defining fail state).
+4. Structural twist: the gravity axis itself slowly oscillates a few
+   degrees off true vertical (a continuous sine sweep, not a one-off
+   event). This slightly scales the vertical pull and sways the player's
+   effective X position within a bounded range — dodge timing now depends
+   on where the rotating axis currently has the player sitting in X, not
+   just their Y position in the corridor.
+5. One hit ends the run (the genre's defining fail state).
 5. Scroll speed ramps up and obstacle spacing tightens as score climbs.
 6. Score = obstacles successfully passed. High score persisted via config.
 

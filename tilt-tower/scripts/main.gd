@@ -28,6 +28,17 @@ const GUST_MAX_INTERVAL := 18.0
 const GUST_DURATION := 1.2
 const GUST_FORCE := 1.4
 
+# Structural addition: the platform can now translate horizontally, not
+# just tilt in place. A single drag gesture drives both axes at once — its
+# horizontal component still controls tilt, its vertical component now
+# shifts the platform left/right — so the player can physically reposition
+# the platform under a falling block instead of only ever rotating to
+# slide things toward center. Keyboard gets a second key pair (W/S or
+# Up/Down) since A/D and Left/Right are already claimed by tilt.
+const PLATFORM_MOVE_SPEED := 220.0
+const PLATFORM_DRAG_SENSITIVITY := 0.5
+const PLATFORM_X_RANGE := 160.0
+
 const SHAPE_PALETTE := [
 	Color(0.95, 0.6, 0.25, 1.0),
 	Color(0.35, 0.75, 0.55, 1.0),
@@ -59,9 +70,12 @@ var spawn_timer: float = 0.0
 var spawn_interval: float = SPAWN_INTERVAL_START
 var shapes: Array = []
 var color_cycle: int = 0
+var base_platform_x: float = 0.0
+var platform_offset_x: float = 0.0
 
 
 func _ready() -> void:
+	base_platform_x = platform.position.x
 	_load_high_score()
 	_start_game()
 
@@ -73,6 +87,8 @@ func _start_game() -> void:
 	shapes.clear()
 	tilt = 0.0
 	platform.rotation = 0.0
+	platform_offset_x = 0.0
+	platform.position.x = base_platform_x
 	strikes = MAX_STRIKES
 	time_survived = 0.0
 	score = 0
@@ -101,6 +117,13 @@ func _physics_process(delta: float) -> void:
 		dir += 1.0
 	tilt = clamp(tilt + dir * TILT_SPEED * delta, -MAX_TILT, MAX_TILT)
 
+	var move_dir := 0.0
+	if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP):
+		move_dir -= 1.0
+	if Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN):
+		move_dir += 1.0
+	platform_offset_x = clamp(platform_offset_x + move_dir * PLATFORM_MOVE_SPEED * delta, -PLATFORM_X_RANGE, PLATFORM_X_RANGE)
+
 	if gust_active:
 		gust_timer -= delta
 		tilt = clamp(tilt + gust_dir * GUST_FORCE * delta, -MAX_TILT, MAX_TILT)
@@ -117,6 +140,7 @@ func _physics_process(delta: float) -> void:
 			next_gust_timer = randf_range(GUST_MIN_INTERVAL, GUST_MAX_INTERVAL)
 
 	platform.rotation = tilt
+	platform.position.x = base_platform_x + platform_offset_x
 
 	time_survived += delta
 	score = int(floor(time_survived))
@@ -192,8 +216,10 @@ func _input(event: InputEvent) -> void:
 		_on_tap()
 	elif event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0 and game_started and not game_over:
 		tilt = clamp(tilt + event.relative.x * DRAG_SENSITIVITY, -MAX_TILT, MAX_TILT)
+		platform_offset_x = clamp(platform_offset_x + event.relative.y * PLATFORM_DRAG_SENSITIVITY, -PLATFORM_X_RANGE, PLATFORM_X_RANGE)
 	elif event is InputEventScreenDrag and game_started and not game_over:
 		tilt = clamp(tilt + event.relative.x * DRAG_SENSITIVITY, -MAX_TILT, MAX_TILT)
+		platform_offset_x = clamp(platform_offset_x + event.relative.y * PLATFORM_DRAG_SENSITIVITY, -PLATFORM_X_RANGE, PLATFORM_X_RANGE)
 
 
 func _on_tap() -> void:

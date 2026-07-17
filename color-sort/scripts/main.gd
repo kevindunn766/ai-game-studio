@@ -13,7 +13,16 @@ extends Node2D
 # genre. Solvability isn't formally proven for every deal — same as most
 # mobile ball-sort games, an unlucky deal is rare but possible.
 
-const CAPACITY := 4
+# Structural addition: variable tube capacity. Instead of every tube
+# sharing one fixed size, each tube in a puzzle rolls its own capacity
+# (3-5). Every color still only ever has MIN_CAPACITY balls, so any tube
+# can still hold a full color if maneuvered there — solvable by
+# construction — but the uneven capacities change the maneuvering-room
+# math: a capacity-5 tube is generous parking space, a capacity-3 tube
+# fills up fast and forces earlier commitments.
+const MIN_CAPACITY := 3
+const MAX_CAPACITY := 5
+const BALL_COUNT_PER_COLOR := MIN_CAPACITY
 const BASE_COLOR_COUNT := 4
 const MAX_COLOR_COUNT := 5
 const EMPTY_TUBES := 2
@@ -48,6 +57,7 @@ const WILDCARD_COLOR := Color(0.92, 0.92, 0.95, 1.0)
 @onready var game_over_score_label: Label = $GameOverOverlay/GameOverScore
 
 var tubes: Array = []
+var tube_capacities: Array = []
 var selected_tube: int = -1
 var color_count: int = BASE_COLOR_COUNT
 
@@ -80,22 +90,25 @@ func _start_game() -> void:
 func _generate_puzzle() -> void:
 	var pool: Array = []
 	for c in range(color_count):
-		for _i in range(CAPACITY):
+		for _i in range(BALL_COUNT_PER_COLOR):
 			pool.append(c)
 	pool.shuffle()
 	if randf() < WILDCARD_CHANCE_PER_PUZZLE:
 		pool[randi() % pool.size()] = WILDCARD
 
 	tubes.clear()
+	tube_capacities.clear()
 	var idx := 0
 	for _c in range(color_count):
 		var t: Array = []
-		for _i in range(CAPACITY):
+		for _i in range(BALL_COUNT_PER_COLOR):
 			t.append(pool[idx])
 			idx += 1
 		tubes.append(t)
+		tube_capacities.append(randi_range(MIN_CAPACITY, MAX_CAPACITY))
 	for _e in range(EMPTY_TUBES):
 		tubes.append([])
+		tube_capacities.append(randi_range(MIN_CAPACITY, MAX_CAPACITY))
 
 	selected_tube = -1
 	_redraw_tubes()
@@ -117,7 +130,7 @@ func _top_run_count(tube: Array) -> int:
 func _can_pour(src: int, dst: int) -> bool:
 	if tubes[src].is_empty():
 		return false
-	if tubes[dst].size() >= CAPACITY:
+	if tubes[dst].size() >= tube_capacities[dst]:
 		return false
 	if tubes[dst].is_empty():
 		return true
@@ -129,7 +142,7 @@ func _can_pour(src: int, dst: int) -> bool:
 func _pour(src: int, dst: int) -> void:
 	var color: int = tubes[src].back()
 	var run: int = _top_run_count(tubes[src])
-	var space: int = CAPACITY - tubes[dst].size()
+	var space: int = tube_capacities[dst] - tubes[dst].size()
 	var move_count: int = min(run, space)
 	for _i in range(move_count):
 		tubes[src].pop_back()
@@ -137,11 +150,11 @@ func _pour(src: int, dst: int) -> void:
 
 
 func _is_solved() -> bool:
+	# A tube counts as settled once it's monochrome — it no longer has to
+	# be full, since capacity is decoupled from each color's ball count.
 	for t in tubes:
 		if t.is_empty():
 			continue
-		if t.size() != CAPACITY:
-			return false
 		var color: int = WILDCARD
 		for v in t:
 			if v != WILDCARD:
@@ -177,10 +190,13 @@ func _redraw_tubes() -> void:
 
 	for i in range(tube_count):
 		var tube_x: float = origin_x + i * (TUBE_WIDTH + TUBE_SPACING)
+		var capacity: int = tube_capacities[i]
+		var tube_height: float = TUBE_HEIGHT * float(capacity) / float(MAX_CAPACITY)
+		var tube_top: float = TUBES_TOP + (TUBE_HEIGHT - tube_height)
 
 		var bg := ColorRect.new()
-		bg.size = Vector2(TUBE_WIDTH, TUBE_HEIGHT)
-		bg.position = Vector2(tube_x, TUBES_TOP)
+		bg.size = Vector2(TUBE_WIDTH, tube_height)
+		bg.position = Vector2(tube_x, tube_top)
 		bg.color = TUBE_SELECTED_COLOR if i == selected_tube else TUBE_COLOR
 		tubes_container.add_child(bg)
 
@@ -188,7 +204,7 @@ func _redraw_tubes() -> void:
 		for slot in range(t.size()):
 			var ball := Polygon2D.new()
 			ball.polygon = _circle_points(BALL_RADIUS, 16)
-			var ball_y: float = TUBES_TOP + TUBE_HEIGHT - 8.0 - slot * (BALL_RADIUS * 2.0 + BALL_GAP) - BALL_RADIUS
+			var ball_y: float = tube_top + tube_height - 8.0 - slot * (BALL_RADIUS * 2.0 + BALL_GAP) - BALL_RADIUS
 			ball.position = Vector2(tube_x + TUBE_WIDTH / 2.0, ball_y)
 			ball.color = _color_for(t[slot])
 			tubes_container.add_child(ball)

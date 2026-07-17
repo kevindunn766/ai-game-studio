@@ -14,8 +14,14 @@ continuous-drag path tracing as its core input.
 ## Mechanics (LOCKED - do NOT add more)
 1. Drag from any dot; the line extends to the next dot only if it's
    directly up/down/left/right of the current end and hasn't been visited.
-2. Visit every dot on the grid in one continuous stroke to win the round.
-3. Releasing before the grid is complete clears the current stroke (no
+2. Visit every PLAYABLE dot on the grid in one continuous stroke to win.
+3. Structural twist: some rounds wall off a chunk of the grid (rust-colored
+   square markers, not draggable/traceable) instead of using the full
+   rectangle. Solvability is guaranteed by construction: a full zigzag
+   Hamiltonian ordering of the grid is generated, then a random-length
+   suffix of it is walled off — the remaining prefix is always itself
+   traceable in one line.
+4. Releasing before the playable dots are complete clears the current stroke (no
    penalty beyond the lost time) — the round timer keeps running.
 4. Letting the timer reach zero costs a strike; 3 strikes ends the run.
 5. Grid grows (3x3 up to 6x6) as score climbs; timer scales with dot count.

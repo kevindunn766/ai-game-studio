@@ -13,12 +13,18 @@ solving refills moves, so efficient play is what keeps the run going.
   the wheel for maximum distinctness.
 
 ## Mechanics (LOCKED - do NOT add more)
-1. Tap a non-empty tube to select it (pick up its top color run).
-2. Tap another tube to pour: legal only if it's empty, or its top color
-   matches the color being poured, and it has room.
-3. Tapping the same tube again deselects. Tapping a different non-empty
+1. Structural twist: every tube rolls its own capacity (3-5), drawn fresh
+   each puzzle — some tubes are generous parking space, others fill up
+   fast. Every color still only ever has 3 balls (the minimum capacity),
+   so any tube can hold a full color if maneuvered there — solvable by
+   construction, but the uneven capacities change the maneuvering math.
+2. Tap a non-empty tube to select it (pick up its top color run).
+3. Tap another tube to pour: legal only if it's empty, or its top color
+   matches the color being poured, and it has room under ITS OWN capacity.
+4. Tapping the same tube again deselects. Tapping a different non-empty
    tube re-targets the selection instead of failing silently.
-4. A tube is solved when it's either empty or completely full of one color.
+5. A tube is solved once it's either empty or monochrome — it no longer
+   has to be filled to its own capacity.
 5. Solving every tube completes the puzzle: +1 to the solved counter, a
    move-budget refill, and a new (slightly harder) puzzle generates.
 6. Each successful pour costs 1 move from the shared budget; illegal taps

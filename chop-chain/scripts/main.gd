@@ -30,6 +30,18 @@ const GOLD_CHANCE := 0.18
 const GOLD_BONUS_SCORE := 2
 const GOLD_BONUS_TIME := 0.45
 
+# Structural addition: reinforced (double-chop) segments. A hazardous
+# segment can come back reinforced — the safe side still has to be tapped
+# to survive it, but it takes two clean hits on that side before it
+# actually falls away, instead of every safe tap clearing a segment. That
+# spends an extra beat of the shrinking timer on one segment rather than
+# advancing the chain, so the risk/reward shifts from "which side" to
+# "can I afford to spend two taps here."
+const REINFORCED_CHANCE := 0.22
+const REINFORCED_TINT_MIX := 0.45
+const REINFORCED_TINT_COLOR := Color(0.75, 0.72, 0.68, 1.0)
+const CRACK_COLOR := Color(0.95, 0.95, 0.9, 1.0)
+
 const TIMER_BAR_MAX_WIDTH := 500.0
 const SAVE_PATH := "user://chopchain_highscore.cfg"
 
@@ -93,7 +105,8 @@ func _generate_segments(count: int) -> void:
 		elif roll < 0.5:
 			side = RIGHT
 		var golden: bool = side == NONE and randf() < GOLD_CHANCE
-		segments.append({"side": side, "golden": golden})
+		var reinforced: bool = side != NONE and randf() < REINFORCED_CHANCE
+		segments.append({"side": side, "golden": golden, "reinforced": reinforced, "hits_taken": 0})
 
 
 func _redraw() -> void:
@@ -108,8 +121,18 @@ func _redraw() -> void:
 		var trunk_rect := ColorRect.new()
 		trunk_rect.size = Vector2(TRUNK_WIDTH, SEGMENT_HEIGHT)
 		trunk_rect.position = Vector2(CENTER_X - TRUNK_WIDTH / 2.0, y)
-		trunk_rect.color = GOLD_COLOR if seg["golden"] else TRUNK_COLORS[i % TRUNK_COLORS.size()]
+		var base_color: Color = GOLD_COLOR if seg["golden"] else TRUNK_COLORS[i % TRUNK_COLORS.size()]
+		if seg["reinforced"]:
+			base_color = base_color.lerp(REINFORCED_TINT_COLOR, REINFORCED_TINT_MIX)
+		trunk_rect.color = base_color
 		trunk_container.add_child(trunk_rect)
+
+		if seg["reinforced"] and seg["hits_taken"] >= 1:
+			var crack := ColorRect.new()
+			crack.size = Vector2(TRUNK_WIDTH * 0.9, 4.0)
+			crack.position = Vector2(CENTER_X - TRUNK_WIDTH * 0.45, y + SEGMENT_HEIGHT / 2.0 - 2.0)
+			crack.color = CRACK_COLOR
+			trunk_container.add_child(crack)
 
 		var side: int = seg["side"]
 		if side != NONE:
@@ -180,11 +203,21 @@ func _chop(side: int) -> void:
 		_trigger_game_over()
 		return
 
-	segments.pop_front()
 	player_side = side
-	score += 1
 	time_limit = max(MIN_TIME_LIMIT, BASE_TIME_LIMIT - score * TIME_DECAY)
 	time_left = time_limit
+
+	if bottom["reinforced"]:
+		bottom["hits_taken"] += 1
+		segments[0] = bottom
+		if bottom["hits_taken"] < 2:
+			# Partial chop: the reinforced segment held — timer refreshed,
+			# but it stays put for one more clean hit.
+			_redraw()
+			return
+
+	segments.pop_front()
+	score += 1
 
 	if bottom["golden"]:
 		score += GOLD_BONUS_SCORE
