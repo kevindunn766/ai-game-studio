@@ -66,7 +66,7 @@ signal hazard_hit(hazard: Hazard)
 @onready var ignite_area: Area3D = $IgniteArea
 @onready var ignite_shape: CollisionShape3D = $IgniteArea/IgniteShape
 @onready var body: Node3D = $Body
-@onready var body_mesh: MeshInstance3D = $Body/BodyMesh
+@onready var body_mesh: Node3D = $Body/BodyMesh
 
 # Single source of truth for the flame's growth scale is GrowthController;
 # this is kept in sync via set_scale_factor() (called from grow_tick) so
@@ -106,6 +106,14 @@ func _ready() -> void:
 	ignite_area.area_entered.connect(_on_ignite_area_entered)
 	ignite_area.area_exited.connect(_on_ignite_area_exited)
 	_update_ignite_radius()
+	# Snap the fire visual to the starting scale instantly (no tween), or the
+	# match-flame would visibly shrink down from the FireEffect's 1m authoring
+	# scale on the first frame and read as a false shrink event.
+	if mesh:
+		mesh.scale = Vector3.ONE * scale_factor
+	if body_mesh:
+		body_mesh.scale = Vector3.ONE * scale_factor * body_scale_fraction
+	_update_flame_flicker()
 
 
 func _on_ignite_area_entered(area: Area3D) -> void:
@@ -310,17 +318,28 @@ func set_scale_factor(new_scale: float) -> void:
 		_scale_tween.kill()
 	_scale_tween = create_tween()
 	_scale_tween.set_parallel(true)
+	# mesh/body_mesh are FireEffect nodes authored for a ~1m fire (local_coords
+	# particles), so scaling the node transform scales the whole fire sim --
+	# positions AND velocities -- keeping it physically proportional from a 2cm
+	# match to a 140m inferno. No position:y offset: fire emits upward from its
+	# own origin at the flame's ground base, unlike the old centered box that
+	# had to sit at half its height.
 	_scale_tween.tween_property(mesh, "scale", Vector3.ONE * new_scale, mesh_scale_tween_time)
-	# Mesh's base BoxMesh is 1x1x1 centered on its own origin, so it must sit
-	# at half its current (scaled) height to stay grounded instead of
-	# floating or clipping into the ground as new_scale changes.
-	_scale_tween.tween_property(mesh, "position:y", new_scale * 0.5, mesh_scale_tween_time)
 	if body_mesh:
 		# Trailing "bulk" reads slightly smaller than the leading edge
 		# (body_scale_fraction) so the two visually read as one fire with a
-		# hot tip, not two identical stacked boxes.
+		# hot tip, not two identical stacked plumes.
 		_scale_tween.tween_property(body_mesh, "scale", Vector3.ONE * new_scale * body_scale_fraction, mesh_scale_tween_time)
-		_scale_tween.tween_property(body_mesh, "position:y", new_scale * 0.5, mesh_scale_tween_time)
+	_update_flame_flicker()
+
+
+# Push the current real-world size into both FireEffects so their flicker rate
+# tracks it (Froude scaling: a match shimmers fast, a city fire billows slowly).
+func _update_flame_flicker() -> void:
+	if mesh and mesh.has_method("set_flicker_for_scale"):
+		mesh.set_flicker_for_scale(scale_factor)
+	if body_mesh and body_mesh.has_method("set_flicker_for_scale"):
+		body_mesh.set_flicker_for_scale(scale_factor * body_scale_fraction)
 
 
 func _update_ignite_radius() -> void:

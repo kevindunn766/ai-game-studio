@@ -50,6 +50,25 @@ Verified via headless sweep across all 9 bands: crossing time holds at exactly *
 
 **Known follow-up (not fixed here, flagged):** `movement_trail.gd` thresholds `flame.velocity.length()` against a flat `move_speed_threshold = 0.15`, but proportional speed makes match-scale top speed only ~0.23 m/s — so embers kick in only near full-stick at tiny scale. Trail-system work; make the threshold scale-relative when that system is revisited.
 
+## Fire particle system — replaces the grey-box cube player visual (built, headless structure only)
+
+The player's two orange `BoxMesh` cubes (`Flame/Mesh` leading edge + `Flame/Body/BodyMesh` mass-follow bulk) are replaced by a reusable fire+smoke particle effect, `scripts/fire_effect.gd` (`class_name FireEffect`). Both scene nodes now run that script; `flame.gd` scales their node transform exactly as it scaled the cubes, so all existing growth/mass-follow machinery is reused unchanged.
+
+**Fire physics modeled** (researched first — see the fire-physics report; sources: Katamari-adjacent particle work, GPU fire sim papers):
+- **Buoyancy** — `ParticleProcessMaterial.gravity` is *positive* Y, so particles accelerate upward and the flame tapers.
+- **Blackbody cooling gradient** — `color_ramp` runs hot white-yellow core → orange → red → transparent, so particles visually cool as they rise. Additive blend means the cool (dark) end fades to nothing for free.
+- **Turbulence** — built-in `turbulence_*` noise gives the flicker/lick.
+- **Froude-scaled flicker** — real flames flicker at f≈1.5/√D, so `set_flicker_for_scale()` drives `speed_scale` inversely with the flame's real size (clamped): a 2cm match shimmers ~2×, a 100m inferno billows ~0.6×. Called from `flame.gd::set_scale_factor()`.
+- **Smoke** — a separate, slower, longer-lived, *expanding* (`scale_curve` grows), alpha-blended dark plume above the fire.
+
+**Not big squares:** particles are billboarded (`BILLBOARD_PARTICLES`) soft-round dots — a **procedural radial `GradientTexture2D`** (white center → transparent edge), *no external texture asset*, matching the studio's procedural rule. `scale_min`/`scale_max` give a real spread of small sizes.
+
+**Scaling:** `fire_effect.gd` is authored for a ~1m reference fire with `local_coords=true` particles, so scaling the node transform scales the whole sim (positions AND velocities) proportionally across 2cm→140m. No `position.y` offset anymore (the old centered cube needed one; fire emits upward from its ground-level origin).
+
+**Trail (`movement_trail.gd`, reworked):** now two **world-space** (`local_coords=false`) systems — additive fire embers + alpha smoke — sharing `fire_effect.gd`'s soft-round particle material. World-space means emitted particles stay behind and fade where dropped, so a moving flame leaves a diminishing trail of fire + smoke that thins to nothing when it stops. Draw-mesh size, velocity and buoyancy are multiplied by `flame_scale` each frame (node scale doesn't reliably scale world-space particles). The scorch decal is unchanged.
+
+**Verified headless:** an API-property check (turbulence, `FILL_RADIAL`, `BILLBOARD_PARTICLES`, `local_coords`, additive/mix blends, Froude flicker ordering) and a `Main.tscn` integration check (core fire+smoke emitting, body fire built, core scaled to ~0.02 at match, trail's two systems emitting while moving) both pass; all prior tests still pass. **Caveat, same as everything past Band 1: headless uses a dummy renderer, so this proves the systems instantiate/scale/emit correctly — it does NOT prove the actual on-screen look (particle shapes, colors, motion feel). That needs an in-editor look.** Used the established preload-const workaround in `movement_trail.gd` since the brand-new `FireEffect` class_name global doesn't resolve headless.
+
 This also surfaced a real, unrelated bug in the same area: `CameraController.MAX_SIZE` was still `30.0`, a leftover from when only Bands 1-3 (max scale 0.6m) existed. Band 9 pushes `flame_scale` to 140m, which needs an uncapped view of ~560m — at the old cap the camera would've stopped zooming out around Band 6 while the flame kept growing past its own view, and (since speed is now derived from that same clamped value) movement would have silently stopped scaling too. Raised to `600.0`. Nothing yet has actually run at Band 6+ in a live game to confirm this feels right — flagged as another "headless-verified only" item alongside everything else past Band 1.
 
 ## Fuel spawn window widened, then a bad "zero points" mechanic added and reverted

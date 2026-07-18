@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://c8n2kindling01"]
+[gd_scene load_steps=14 format=3 uid="uid://c8n2kindling01"]
 
 [ext_resource type="Script" path="res://scripts/kindling_manager.gd" id="1_km"]
 [ext_resource type="Script" path="res://scripts/flame.gd" id="2_flame"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/camera_controller.gd" id="4_cam"]
 [ext_resource type="Script" path="res://scripts/prop_manager.gd" id="5_props"]
 [ext_resource type="Script" path="res://scripts/movement_trail.gd" id="6_trail"]
+[ext_resource type="Script" path="res://scripts/fire_effect.gd" id="7_fire"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1200, 1200)
@@ -13,21 +14,6 @@ size = Vector2(1200, 1200)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.22, 0.32, 0.16, 1)
 roughness = 0.9
-
-[sub_resource type="BoxMesh" id="BoxMesh_debugcube"]
-size = Vector3(1, 1, 1)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_debugcube"]
-albedo_color = Color(0.95, 0.4, 0.1, 1)
-emission_enabled = true
-emission = Color(0.95, 0.4, 0.1, 1)
-emission_energy_multiplier = 1.2
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
-albedo_color = Color(0.7, 0.22, 0.05, 1)
-emission_enabled = true
-emission = Color(0.7, 0.22, 0.05, 1)
-emission_energy_multiplier = 0.6
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_trunk"]
 top_radius = 0.35
@@ -104,17 +90,16 @@ surface_material_override/0 = SubResource("StandardMaterial3D_foundation")
 [node name="Flame" type="Node3D" parent="."]
 script = ExtResource("2_flame")
 
-[node name="Mesh" type="MeshInstance3D" parent="Flame"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
-mesh = SubResource("BoxMesh_debugcube")
-surface_material_override/0 = SubResource("StandardMaterial3D_debugcube")
+[node name="Mesh" type="Node3D" parent="Flame"]
+script = ExtResource("7_fire")
 
 [node name="Body" type="Node3D" parent="Flame"]
 
-[node name="BodyMesh" type="MeshInstance3D" parent="Flame/Body"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.01, 0)
-mesh = SubResource("BoxMesh_debugcube")
-surface_material_override/0 = SubResource("StandardMaterial3D_body")
+[node name="BodyMesh" type="Node3D" parent="Flame/Body"]
+script = ExtResource("7_fire")
+fire_amount = 26
+smoke_amount = 10
+intensity = 0.85
 
 [node name="MovementTrail" type="Node3D" parent="Flame"]
 script = ExtResource("6_trail")

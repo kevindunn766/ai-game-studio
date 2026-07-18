@@ -4,7 +4,7 @@ Living document, per `../kindling-design-brief.md`'s Asset Registry section. Eve
 
 | ID | Tier | Role | Stand-in (pristine) | Stand-in (burnt-down, Structure Fuel only) | Intended final look (notes for future art pass) | Status |
 |---|---|---|---|---|---|---|
-| FLAME_01 | player (all tiers) | player | Orange emissive `BoxMesh` cube, `flame.gd`, scales with `GrowthController.flame_scale` | n/a | Volumetric/shader-driven flame body, licking tongues of fire, brightens during Charge | Built |
+| FLAME_01 | player (all tiers) | player | Fire + smoke `GPUParticles3D` (`fire_effect.gd`): additive billboarded soft-round particles (radial `GradientTexture2D`, no texture asset), blackbody cooling color ramp, buoyant +Y gravity, turbulence flicker (Froude-scaled: fast at match, slow at inferno), plus an alpha smoke plume. Leading `Mesh` core + smaller trailing `Body/BodyMesh` bulk (mass-follow). Scales with `GrowthController.flame_scale` via node transform | n/a | Volumetric/shader-driven flame body, licking tongues of fire, brightens during Charge | Built (headless-verified structure only — actual look needs an in-editor look) |
 | GROUND_01 | n/a | prop (yard parcel backdrop) | 40x40 `PlaneMesh`, flat green-brown `StandardMaterial3D` | n/a | Textured lawn/dirt with patchy detail | Built |
 | PROP_TREETRUNK_01 | landmark (future Structure Fuel, later band) | prop | `CylinderMesh` trunk + `SphereMesh` canopy, fixed position, non-burnable in M1 | n/a | Detailed bark-textured trunk, leafy canopy | Built |
 | PROP_HOUSEFOUNDATION_01 | landmark (future Structure Fuel, much later band) | prop | Flat grey `BoxMesh` slab, fixed position, non-burnable in M1 | n/a | Concrete foundation with visible texture/cracks | Built |
@@ -16,7 +16,7 @@ Living document, per `../kindling-design-brief.md`'s Asset Registry section. Eve
 | FUEL_PINE_01 | 2 | Quick Fuel | Dark green cone `CylinderMesh`, `pine_needle` tier | n/a | Fanned pine needle cluster | Built |
 | FUEL_TWIGNEST_01 | 2 | Quick Fuel | Brown `TorusMesh`, `twig_nest` tier | n/a | Woven nest of dry twigs | Built |
 | FX_SCORCH_DECAL_01 | n/a | movement trail | Flattened dark `BoxMesh` decal, alpha-fades over ~25s, `movement_trail.gd` | n/a | Baked scorch texture decal on ground material | Built |
-| FX_EMBER_TRAIL_01 | n/a | movement trail | `GPUParticles3D` + `QuadMesh` billboard, orange emissive, toggled by movement speed | n/a | Textured ember sprite sheet, glow shader | Built |
+| FX_EMBER_TRAIL_01 | n/a | movement trail | Two world-space (`local_coords=false`) `GPUParticles3D` in `movement_trail.gd`: additive fire embers + alpha smoke, soft-round particles shared with `fire_effect.gd`, emit while moving so the trail diminishes when stopped, sized/velocity-scaled by `flame_scale` each frame | n/a | Textured ember sprite sheet, glow shader | Built (headless-verified structure only) |
 | FX_BURN_PARTICLES_01 | n/a | Quick Fuel ignite feedback | `GPUParticles3D` one-shot burst on `Fuel.ignite()`, orange `QuadMesh` billboards | n/a | Fire/ember/smoke sprite burst | Built |
 | HUD_CHARGEGROW_BAR_01 | n/a | HUD | `ColorRect` bar (`hud_bar.gd`): brightness pulse during Charge, fill during Grow, squash-pop on band change | n/a | Stylized HUD chrome matching final UI theme | Built |
 | FUEL_BRUSHPILE_01 | 3 | Quick Fuel | Squashed brown `SphereMesh`, `brush_pile` tier | n/a | Tangled cluster of dry branches | Built |
