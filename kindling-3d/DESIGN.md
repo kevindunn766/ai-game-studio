@@ -187,6 +187,19 @@ Verified via `tests/test_flame_locomotion.gd` (pure-function coverage of both `c
 
 **Not yet looked at in a running game** — same caveat as Bands 2-9, this is headless-verified only.
 
+## Frond-system foliage — phase-1 plant set (built, in-editor verified via renders)
+
+Per the design brief's new "Procedural Asset & World Generation System" section, the frond system is the plant workhorse. Ported chimera-drift's `LevelGeo.frond` into `scripts/frond.gd` (no `class_name` — preload-const per the headless rule) and retooled it. Shared conventions across every plant: real-world metres, flat per-face normals with Godot-convention winding (CLAUDE.md mesh rule), **vertex COLOR = albedo** (per-instance tint + a green→dry-ochre tip gradient), **sway weight baked into UV.y** (moved off COLOR so COLOR can carry colour; a future wiggle shader reads UV.y), and a **`thickness` param**: 0 = flat two-sided blades (lightweight / far LOD), >0 = solid triangular-prism blades (near LOD). `grass_lod(scale, seed, mat, near_dist)` pairs a thick-near and flat-far mesh via Godot `visibility_range` (same seed ⇒ identical layout, invisible swap). Render everything with a `vertex_color_use_as_albedo` material.
+
+**Kevin's stem-zero rule:** `Frond.build(scale, seed, stem_length, thickness)` with `stem_length == 0` makes grass (blades straight from the ground); `> 0` grows a stalked frond.
+
+Three phase-1 foliage types, each with built-in variety so a scattered field reads naturally (all logged in `ASSET_REGISTRY.md`):
+- **Grass** — clump = main tuft + 2–5 dispersed child tufts; blade origins spread across a disc; dome splay (rim blades tip down & out, parabolic in radius); **4 species** (fresh lawn / tall meadow / dry olive / broad lush) driving palette + proportions; random dry-ochre tips.
+- **Clover** (`build_clover`) — domed clump of thin petioles topped with rounded (obovate) trefoil leaflets; **3 species tints**, rare **four-leaf**, occasional **white→faint-pink globular flower heads**.
+- **Dandelion** (`build_dandelion`, `flower_kind` -1/0/1/2) — basal leaf rosette + scape with **three forms**: wide/dense **yellow→orange flower** (short scape), white **seed puff** (tall scape), green **unopened bud**.
+
+These three are the **locked phase-1 foliage set** (per Kevin: "move forward with these three"). Verified by rendered screenshots (real GPU render via a non-headless `--script` scene, screenshots inspected — not just no-crash). **Not yet wired into world spawning/streaming** — that's the next step (a pool of clump variants MultiMesh-scattered, with `grass_lod` for the near ring), and the `.png` card LOD for the tiniest scum is still to come. Cards/billboards not built yet; the current `prop_manager.gd` grass (`dry_grass` one-node-per-blade) is still what runs in-game until placement swaps to this.
+
 ## Known gaps / explicitly deferred
 - No menu, leaderboard, or persistent score — death just reloads the scene.
 - No audio.
