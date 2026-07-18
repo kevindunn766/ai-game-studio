@@ -2,8 +2,18 @@ class_name Flame extends Node3D
 
 signal hazard_hit(hazard: Hazard)
 
-# Flat top speed, same at every scale.
-@export var move_speed_constant: float = 2.0
+# Top speed is derived every physics tick from CameraController's own
+# target_size_for_scale(), NOT a flat constant. Perceived (on-screen) speed
+# is world_speed / camera_view_span; deriving world speed from the SAME size
+# value that frames the flame holds that ratio constant BY CONSTRUCTION, so
+# the flame feels like it moves at the same speed at every scale -- a 2cm
+# match flame and a 140m inferno both cross one screen-height in
+# view_crossing_seconds. A flat world speed did the opposite: it read as
+# teleporting at match-scale (2 m/s across a ~0.68m view) and frozen at Band 9
+# (2 m/s across a ~560m view). This is the Katamari trick -- zoom out with
+# growth, scale world speed to the zoom. view_crossing_seconds is the single
+# knob that sets the actual felt speed; larger = more stately, smaller = zippier.
+@export var view_crossing_seconds: float = 3.0
 # Time to reach full speed from a stop, and to fully decelerate -- kept
 # constant (not itself scale-derived) so controls feel equally responsive
 # at every scale even though the top speed they ramp to varies hugely.
@@ -145,10 +155,12 @@ func _physics_process(delta: float) -> void:
 	position += velocity * delta
 
 
-# Public so movement_trail.gd or future feel/animation code can reuse the
-# same value instead of re-deriving it.
+# Top speed proportional to the camera's own view span at the current scale
+# (see the view_crossing_seconds comment above) -- public so movement_trail.gd
+# or future feel/animation code can reuse the same value instead of
+# re-deriving it.
 func current_move_speed() -> float:
-	return move_speed_constant
+	return CameraController.target_size_for_scale(scale_factor) / view_crossing_seconds
 
 
 func _record_position_history() -> void:
