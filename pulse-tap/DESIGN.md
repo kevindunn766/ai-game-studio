@@ -27,6 +27,11 @@ state. This one is a continuous, looping timing window.
    and respawns just that ring.
 5. 3 strikes ends the run. Score = number of successful hits.
 6. High score persisted via config file.
+7. Novel element: Reverse Ring. A rare pulse grows outward from the
+   center instead of shrinking inward from the edge — same
+   tolerance-window resolution, but the player has to read a ring
+   approaching from the opposite direction. Orthogonal to the
+   double-score twist (a ring can be both at once).
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

@@ -43,6 +43,13 @@ const GUARD_MOVE_INTERVAL := 0.9
 const GUARD_MIN_START_DISTANCE := 3
 const GUARD_COLOR := Color(0.95, 0.32, 0.12, 1.0)
 
+# Novel element: Second Guard. Once the maze grows past a size threshold
+# (later in a run), a second guard also roams independently — doubling
+# the real-time hazard pressure the roaming-guard structural change
+# introduced, rather than just making the existing one faster.
+const SECOND_GUARD_GRID_SIZE_THRESHOLD := 9
+const SECOND_GUARD_PHASE_OFFSET := 0.3
+
 @onready var maze_container: Node2D = $MazeContainer
 @onready var player_token: Polygon2D = $PlayerToken
 @onready var score_label: Label = $ScoreLabel
@@ -62,8 +69,7 @@ var torch_cell: Vector2i = Vector2i(-1, -1)
 var vision_bonus: int = 0
 var drag_start: Vector2 = Vector2.INF
 var miss_flash_timer: float = 0.0
-var guard_cell: Vector2i = Vector2i(-1, -1)
-var guard_move_timer: float = 0.0
+var guards: Array = []
 
 var score: int = 0
 var high_score: int = 0
@@ -102,7 +108,7 @@ func _generate_new_maze() -> void:
 		var candidate: Vector2i = Vector2i(randi() % grid_size, randi() % grid_size)
 		if candidate != Vector2i.ZERO and candidate != exit_cell:
 			torch_cell = candidate
-	_spawn_guard()
+	_spawn_guards()
 	revealed.clear()
 	_reveal_around(player_cell)
 
@@ -166,26 +172,40 @@ func _reveal_around(cell: Vector2i) -> void:
 				revealed[c] = true
 
 
-func _spawn_guard() -> void:
-	guard_move_timer = GUARD_MOVE_INTERVAL
+func _num_guards_for(size: int) -> int:
+	return 2 if size >= SECOND_GUARD_GRID_SIZE_THRESHOLD else 1
+
+
+func _pick_guard_cell(avoid: Array) -> Vector2i:
 	var candidates: Array = []
 	for y in range(grid_size):
 		for x in range(grid_size):
 			var c := Vector2i(x, y)
-			if c == player_cell or c == exit_cell or c == torch_cell:
+			if avoid.has(c):
 				continue
 			if abs(c.x - player_cell.x) + abs(c.y - player_cell.y) < GUARD_MIN_START_DISTANCE:
 				continue
 			candidates.append(c)
 	if candidates.is_empty():
-		guard_cell = Vector2i(-1, -1)
-		return
-	guard_cell = candidates[randi() % candidates.size()]
+		return Vector2i(-1, -1)
+	return candidates[randi() % candidates.size()]
 
 
-func _move_guard() -> void:
-	if guard_cell == Vector2i(-1, -1):
-		return
+func _spawn_guards() -> void:
+	guards.clear()
+	var count: int = _num_guards_for(grid_size)
+	var avoid: Array = [player_cell, exit_cell, torch_cell]
+	for i in range(count):
+		var cell: Vector2i = _pick_guard_cell(avoid)
+		if cell != Vector2i(-1, -1):
+			avoid.append(cell)
+		var phase: float = GUARD_MOVE_INTERVAL * (1.0 - float(i) * SECOND_GUARD_PHASE_OFFSET)
+		guards.append({"cell": cell, "move_timer": phase})
+
+
+func _compute_guard_move(cell: Vector2i) -> Vector2i:
+	if cell == Vector2i(-1, -1):
+		return cell
 	var dirs := [
 		{"name": "N", "dx": 0, "dy": -1},
 		{"name": "E", "dx": 1, "dy": 0},
@@ -193,14 +213,21 @@ func _move_guard() -> void:
 		{"name": "W", "dx": -1, "dy": 0},
 	]
 	var open_dirs: Array = []
-	var walls: Dictionary = walls_open[guard_cell]
+	var walls: Dictionary = walls_open[cell]
 	for d in dirs:
 		if walls[d["name"]]:
 			open_dirs.append(d)
 	if open_dirs.is_empty():
-		return
+		return cell
 	var pick: Dictionary = open_dirs[randi() % open_dirs.size()]
-	guard_cell += Vector2i(pick["dx"], pick["dy"])
+	return cell + Vector2i(pick["dx"], pick["dy"])
+
+
+func _any_guard_at(cell: Vector2i) -> bool:
+	for g in guards:
+		if g["cell"] == cell:
+			return true
+	return false
 
 
 func _circle_points(radius: float, segments: int) -> PackedVector2Array:
@@ -249,7 +276,7 @@ func _redraw() -> void:
 				torch.color = TORCH_COLOR
 				maze_container.add_child(torch)
 
-			if cell == guard_cell:
+			if _any_guard_at(cell):
 				var guard := Polygon2D.new()
 				var gcx: float = px + CELL_SIZE / 2.0
 				var gcy: float = py + CELL_SIZE / 2.0
@@ -300,13 +327,20 @@ func _process(delta: float) -> void:
 		_on_timeout()
 		return
 
-	guard_move_timer -= delta
-	if guard_move_timer <= 0.0:
-		guard_move_timer = GUARD_MOVE_INTERVAL
-		_move_guard()
+	var caught := false
+	var any_moved := false
+	for g in guards:
+		g["move_timer"] -= delta
+		if g["move_timer"] <= 0.0:
+			g["move_timer"] = GUARD_MOVE_INTERVAL
+			g["cell"] = _compute_guard_move(g["cell"])
+			any_moved = true
+			if g["cell"] == player_cell:
+				caught = true
+	if any_moved:
 		_redraw()
-		if guard_cell == player_cell:
-			_on_caught()
+	if caught:
+		_on_caught()
 
 
 func _dir_for(dx: int, dy: int) -> String:
@@ -333,7 +367,7 @@ func _try_move(dx: int, dy: int) -> void:
 		vision_bonus += TORCH_VISION_BOOST
 		torch_cell = Vector2i(-1, -1)
 	_reveal_around(player_cell)
-	if player_cell == guard_cell:
+	if _any_guard_at(player_cell):
 		_redraw()
 		_on_caught()
 		return

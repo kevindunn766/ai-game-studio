@@ -26,6 +26,9 @@ continuous-drag path tracing as its core input.
 4. Letting the timer reach zero costs a strike; 3 strikes ends the run.
 5. Grid grows (3x3 up to 6x6) as score climbs; timer scales with dot count.
 6. High score persisted via config file.
+7. Novel element: Bonus Dot finale. Some rounds mark one dot gold —
+   finishing the stroke there (visiting it LAST) scores a bonus. Pure
+   order constraint, no penalty for ignoring it.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

@@ -44,6 +44,18 @@ const RISK_GAP_WIDTH := 1
 const RISK_GAP_SCORE := 2
 const RISK_MARKER_COLOR := Color(0.95, 0.55, 0.12, 1.0)
 
+# Novel element: Mirror Gate. A rare violet gate that, once passed
+# cleanly, inverts the rotation controls (A/D and drag) for a few
+# seconds — a disorientation twist distinct from the dual-gap lane
+# choice (a spatial decision) and the golden gate (a score multiplier).
+# Mutually exclusive with both so every gate still reads as one thing.
+const MIRROR_GATE_CHANCE := 0.1
+const MIRROR_GATE_COLOR := Color(0.55, 0.25, 0.78, 1.0)
+const MIRROR_DURATION := 4.0
+var mirror_active: bool = false
+var mirror_timer: float = 0.0
+var score_label_default_color: Color = Color(1, 1, 1, 1)
+
 @onready var tower_root: Node3D = $TowerRoot
 @onready var ball: MeshInstance3D = $Ball
 @onready var camera: Camera3D = $Camera3D
@@ -65,6 +77,7 @@ var camera_focus_y: float = 0.0
 
 func _ready() -> void:
 	_setup_ball()
+	score_label_default_color = score_label.modulate
 	_load_high_score()
 	_start_game()
 
@@ -97,6 +110,9 @@ func _start_game() -> void:
 	game_over = false
 	camera_focus_y = ball_y
 	score_label.text = "0"
+	mirror_active = false
+	mirror_timer = 0.0
+	score_label.modulate = score_label_default_color
 	game_over_overlay.visible = false
 
 	_generate_gates(GENERATE_AHEAD)
@@ -115,7 +131,8 @@ func _generate_gates(count: int) -> void:
 		var gap_start: int = randi() % NUM_TEETH
 		var is_dual: bool = randf() < DUAL_GAP_CHANCE
 		var is_golden: bool = (not is_dual) and randf() < GOLDEN_GATE_CHANCE
-		var color: Color = GOLDEN_GATE_COLOR if is_golden else _gate_color(idx)
+		var is_mirror: bool = (not is_dual) and (not is_golden) and randf() < MIRROR_GATE_CHANCE
+		var color: Color = MIRROR_GATE_COLOR if is_mirror else (GOLDEN_GATE_COLOR if is_golden else _gate_color(idx))
 
 		var risk_gap_start: int = (gap_start + NUM_TEETH / 2) % NUM_TEETH
 
@@ -165,6 +182,7 @@ func _generate_gates(count: int) -> void:
 			"golden": is_golden,
 			"dual": is_dual,
 			"risk_gap_start": risk_gap_start,
+			"mirror": is_mirror,
 		})
 
 
@@ -191,6 +209,10 @@ func _add_risk_marker(gate_node: Node3D, risk_gap_start: int) -> void:
 
 func _process(delta: float) -> void:
 	if not game_over:
+		if mirror_active:
+			mirror_timer -= delta
+			if mirror_timer <= 0.0:
+				_end_mirror_effect()
 		_handle_rotation_input(delta)
 		ball_y -= fall_speed * delta
 
@@ -214,7 +236,20 @@ func _handle_rotation_input(delta: float) -> void:
 		dir -= 1.0
 	if Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT):
 		dir += 1.0
+	if mirror_active:
+		dir = -dir
 	tower_rotation += dir * ROTATE_SPEED * delta
+
+
+func _start_mirror_effect() -> void:
+	mirror_active = true
+	mirror_timer = MIRROR_DURATION
+	score_label.modulate = MIRROR_GATE_COLOR
+
+
+func _end_mirror_effect() -> void:
+	mirror_active = false
+	score_label.modulate = score_label_default_color
 
 
 func _update_camera(delta: float) -> void:
@@ -259,10 +294,14 @@ func _resolve_gate(index: int) -> void:
 		score += RISK_GAP_SCORE
 		score_label.text = str(score)
 		fall_speed = min(2.2 + score * 0.03, 6.0)
+		if gate["mirror"]:
+			_start_mirror_effect()
 	elif in_safe_gap:
 		score += GOLDEN_GATE_SCORE if gate["golden"] else 1
 		score_label.text = str(score)
 		fall_speed = min(2.2 + score * 0.03, 6.0)
+		if gate["mirror"]:
+			_start_mirror_effect()
 	else:
 		_trigger_game_over()
 
@@ -280,10 +319,11 @@ func _input(event: InputEvent) -> void:
 			_start_game()
 		return
 
+	var drag_sign: float = -1.0 if mirror_active else 1.0
 	if event is InputEventMouseMotion and (event.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
-		tower_rotation += event.relative.x * DRAG_SENSITIVITY
+		tower_rotation += event.relative.x * DRAG_SENSITIVITY * drag_sign
 	elif event is InputEventScreenDrag:
-		tower_rotation += event.relative.x * DRAG_SENSITIVITY
+		tower_rotation += event.relative.x * DRAG_SENSITIVITY * drag_sign
 
 
 func _trigger_game_over() -> void:

@@ -24,6 +24,9 @@ Timing, not alignment, is the skill.
 5. Every 6 successful throws advances a round: knives clear, rotation
    speeds up.
 6. Score = total knives successfully stuck. High score persisted via config.
+7. Novel element: Combo Multiplier. Consecutive sticks within the same
+   round build a score multiplier (every 2 hits, up to x3); advancing to
+   a new round resets it back to x1.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

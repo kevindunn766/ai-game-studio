@@ -49,6 +49,17 @@ const WILDCARD := -1
 const WILDCARD_CHANCE_PER_PUZZLE := 0.35
 const WILDCARD_COLOR := Color(0.92, 0.92, 0.95, 1.0)
 
+# Novel element: Locked Tube. A rare tube starts sealed — no pouring into
+# or out of it — for the puzzle's first few moves (counted across the
+# whole puzzle, not just moves touching that tube), then unlocks for the
+# rest of the puzzle. Adds tempo pressure: plan around one tube being
+# temporarily off-limits.
+const LOCKED_TUBE_CHANCE_PER_PUZZLE := 0.3
+const LOCK_DURATION_MOVES := 4
+const LOCKED_TUBE_COLOR := Color(0.55, 0.45, 0.15, 1.0)
+var locked_tube_index: int = -1
+var locked_moves_remaining: int = 0
+
 @onready var tubes_container: Node2D = $TubesContainer
 @onready var score_label: Label = $ScoreLabel
 @onready var moves_label: Label = $MovesLabel
@@ -110,6 +121,13 @@ func _generate_puzzle() -> void:
 		tubes.append([])
 		tube_capacities.append(randi_range(MIN_CAPACITY, MAX_CAPACITY))
 
+	if randf() < LOCKED_TUBE_CHANCE_PER_PUZZLE:
+		locked_tube_index = randi() % tubes.size()
+		locked_moves_remaining = LOCK_DURATION_MOVES
+	else:
+		locked_tube_index = -1
+		locked_moves_remaining = 0
+
 	selected_tube = -1
 	_redraw_tubes()
 
@@ -127,7 +145,13 @@ func _top_run_count(tube: Array) -> int:
 	return count
 
 
+func _is_locked(idx: int) -> bool:
+	return locked_moves_remaining > 0 and idx == locked_tube_index
+
+
 func _can_pour(src: int, dst: int) -> bool:
+	if _is_locked(src) or _is_locked(dst):
+		return false
 	if tubes[src].is_empty():
 		return false
 	if tubes[dst].size() >= tube_capacities[dst]:
@@ -197,7 +221,12 @@ func _redraw_tubes() -> void:
 		var bg := ColorRect.new()
 		bg.size = Vector2(TUBE_WIDTH, tube_height)
 		bg.position = Vector2(tube_x, tube_top)
-		bg.color = TUBE_SELECTED_COLOR if i == selected_tube else TUBE_COLOR
+		if i == selected_tube:
+			bg.color = TUBE_SELECTED_COLOR
+		elif _is_locked(i):
+			bg.color = LOCKED_TUBE_COLOR
+		else:
+			bg.color = TUBE_COLOR
 		tubes_container.add_child(bg)
 
 		var t: Array = tubes[i]
@@ -264,6 +293,9 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_tube_tapped(idx: int) -> void:
+	if _is_locked(idx):
+		return
+
 	if selected_tube == -1:
 		if not tubes[idx].is_empty():
 			selected_tube = idx
@@ -280,6 +312,10 @@ func _on_tube_tapped(idx: int) -> void:
 		selected_tube = -1
 		moves -= 1
 		moves_label.text = "Moves: %d" % moves
+		if locked_moves_remaining > 0:
+			locked_moves_remaining -= 1
+			if locked_moves_remaining <= 0:
+				locked_tube_index = -1
 		if _is_solved():
 			_on_puzzle_solved()
 		elif moves <= 0:

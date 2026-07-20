@@ -22,9 +22,13 @@ stacking behavior is scripted. Tilt the platform to keep them on.
    physically reposition the platform under a falling block instead of
    only ever rotating to slide things toward center.
 4. A block falling past the bottom of the screen costs a strike.
-4. 3 strikes and the run ends.
+4b. 3 strikes and the run ends.
 5. Score is seconds survived.
 6. High score persisted via config file.
+7. Novel element: Heavy Blocks. A rare falling block is bigger, denser
+   (real `RigidBody2D` mass, not just a bigger sprite), and tinted dark
+   slate — real emergent physics variety fitting this game's identity as
+   the studio's real-physics sandbox.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

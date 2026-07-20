@@ -20,6 +20,10 @@ speed or planning-under-a-timer.
 4. A wrong tap costs a strike and replays the SAME sequence (it doesn't
    reset to length 1) — 3 strikes ends the run.
 5. Score = longest sequence successfully repeated. High score via config.
+6. Novel element: Reverse Round. Once a sequence is long enough to
+   matter, some rounds require tapping it back in REVERSE order instead
+   of forward — telegraphed during the watch phase so it's a real
+   cognitive twist, not a gotcha.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

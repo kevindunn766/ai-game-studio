@@ -32,6 +32,15 @@ const DOUBLE_CYCLE_COLOR := Color(0.9, 0.25, 0.75, 1.0)
 const NUM_PULSES := 2
 const BASE_PULSE_COLORS := [Color(0.2, 0.75, 0.95, 1.0), Color(0.55, 0.8, 0.3, 1.0)]
 
+# Novel element: Reverse Ring. A rare pulse grows outward from the center
+# instead of shrinking inward from the edge — same tolerance-window
+# resolution (just compares current radius to the target), but the
+# player now has to read a ring approaching from the opposite direction.
+# Orthogonal to the double-score twist (a ring can be both at once).
+const REVERSE_CHANCE := 0.2
+const REVERSE_TINT_COLOR := Color(0.95, 0.95, 0.9, 1.0)
+const REVERSE_TINT_MIX := 0.35
+
 @onready var target_ring: Line2D = $TargetRing
 @onready var pulse_ring_nodes: Array = [$PulseRing, $PulseRingB]
 @onready var score_label: Label = $ScoreLabel
@@ -82,12 +91,13 @@ func _start_game() -> void:
 	for i in range(NUM_PULSES):
 		# Stagger each ring's starting radius so they don't launch in lockstep.
 		var start_radius: float = PULSE_START_RADIUS * (1.0 - float(i) / float(NUM_PULSES) * 0.5)
-		pulses.append({"radius": start_radius, "resolved": false, "is_double": randf() < DOUBLE_CYCLE_CHANCE})
+		pulses.append({"radius": start_radius, "resolved": false, "is_double": randf() < DOUBLE_CYCLE_CHANCE, "reversed": false})
 	_redraw_pulses()
 
 
 func _respawn_pulse(i: int) -> void:
-	pulses[i]["radius"] = PULSE_START_RADIUS
+	pulses[i]["reversed"] = randf() < REVERSE_CHANCE
+	pulses[i]["radius"] = 0.0 if pulses[i]["reversed"] else PULSE_START_RADIUS
 	pulses[i]["resolved"] = false
 	pulses[i]["is_double"] = randf() < DOUBLE_CYCLE_CHANCE
 
@@ -97,6 +107,8 @@ func _redraw_pulses() -> void:
 		var color: Color = BASE_PULSE_COLORS[i]
 		if pulses[i]["is_double"]:
 			color = color.lerp(DOUBLE_CYCLE_COLOR, 0.7)
+		if pulses[i]["reversed"]:
+			color = color.lerp(REVERSE_TINT_COLOR, REVERSE_TINT_MIX)
 		pulse_ring_nodes[i].default_color = color
 		pulse_ring_nodes[i].points = _circle_points(max(pulses[i]["radius"], 0.0))
 
@@ -113,12 +125,20 @@ func _process(delta: float) -> void:
 	for i in range(NUM_PULSES):
 		if pulses[i]["resolved"]:
 			continue
-		pulses[i]["radius"] -= shrink_speed * delta
-		if pulses[i]["radius"] <= 0.0:
-			_register_miss("MISS!")
-			_respawn_pulse(i)
-			if game_over:
-				return
+		if pulses[i]["reversed"]:
+			pulses[i]["radius"] += shrink_speed * delta
+			if pulses[i]["radius"] >= PULSE_START_RADIUS:
+				_register_miss("MISS!")
+				_respawn_pulse(i)
+				if game_over:
+					return
+		else:
+			pulses[i]["radius"] -= shrink_speed * delta
+			if pulses[i]["radius"] <= 0.0:
+				_register_miss("MISS!")
+				_respawn_pulse(i)
+				if game_over:
+					return
 
 	_redraw_pulses()
 

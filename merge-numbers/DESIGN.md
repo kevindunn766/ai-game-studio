@@ -17,8 +17,12 @@
 5. Game over when the board is full and no adjacent equal tiles remain
    (frozen cells never count as a valid merge with anything, including
    each other).
-5. Score = running total of all merge values.
+5b. Score = running total of all merge values.
 6. High score persisted via config file.
+7. Novel element: Power Tile. Reaching 256 flags a tile with a lightning
+   glyph; merging two of them clears every other tile left in that line
+   (awarding their face values as bonus score) instead of just making 512
+   like a normal merge.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

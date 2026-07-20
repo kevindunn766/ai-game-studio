@@ -45,6 +45,16 @@ const CRACK_COLOR := Color(0.95, 0.95, 0.9, 1.0)
 const TIMER_BAR_MAX_WIDTH := 500.0
 const SAVE_PATH := "user://chopchain_highscore.cfg"
 
+# Novel element: Combo Multiplier. Chaining full clears in a row builds a
+# score multiplier; stumbling on a reinforced segment's first hit (the
+# chop that "held" instead of clearing) breaks the streak. This gives the
+# reinforced-segment mechanic added stakes — a near-miss now costs your
+# building momentum, not just a beat of the timer.
+const COMBO_STEP := 3
+const COMBO_MAX_MULT := 4
+var combo_clears: int = 0
+var combo_multiplier: int = 1
+
 # Studio Palette v1 (see COLOR_SYSTEM.md). Trunk stays a low-chroma neutral
 # earth tone (it's not a signal, it's scenery). The branch is the hazard, so
 # it gets the danger family (warm red-orange) instead of green — green
@@ -90,7 +100,9 @@ func _start_game() -> void:
 	time_left = time_limit
 	game_over = false
 	game_started = false
-	score_label.text = "0"
+	combo_clears = 0
+	combo_multiplier = 1
+	_update_score_label()
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
 	_redraw()
@@ -212,23 +224,35 @@ func _chop(side: int) -> void:
 		segments[0] = bottom
 		if bottom["hits_taken"] < 2:
 			# Partial chop: the reinforced segment held — timer refreshed,
-			# but it stays put for one more clean hit.
+			# but it stays put for one more clean hit. Breaks the combo.
+			combo_clears = 0
+			combo_multiplier = 1
 			_redraw()
 			return
 
 	segments.pop_front()
-	score += 1
+	combo_clears += 1
+	if combo_clears % COMBO_STEP == 0:
+		combo_multiplier = min(COMBO_MAX_MULT, combo_multiplier + 1)
+	score += 1 * combo_multiplier
 
 	if bottom["golden"]:
 		score += GOLD_BONUS_SCORE
 		time_left = min(time_left + GOLD_BONUS_TIME, BASE_TIME_LIMIT)
 
-	score_label.text = str(score)
+	_update_score_label()
 
 	if segments.size() < NUM_VISIBLE + LOW_WATER:
 		_generate_segments(GENERATE_BATCH)
 
 	_redraw()
+
+
+func _update_score_label() -> void:
+	if combo_multiplier > 1:
+		score_label.text = "%d  x%d" % [score, combo_multiplier]
+	else:
+		score_label.text = str(score)
 
 
 func _trigger_game_over() -> void:

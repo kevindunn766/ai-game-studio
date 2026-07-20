@@ -40,6 +40,17 @@ const INNER_BASE_ROTATION_SPEED := -1.4
 const INNER_ROTATION_SPEED_GROWTH := -0.08
 const INNER_TOOTH_COLOR := Color(0.55, 0.58, 0.65, 1.0)
 
+# Novel element: Combo Multiplier. Consecutive sticks within the SAME
+# round build a score multiplier (every 2 hits, up to x3); advancing to a
+# new round resets it. Since a miss here is instant game over (not a
+# strike to survive), the combo's natural reset point is round advance
+# rather than a mid-run stumble — a within-round momentum mechanic that
+# refreshes every 6 throws.
+const COMBO_STEP := 2
+const COMBO_MAX_MULT := 3
+var combo_hits: int = 0
+var combo_multiplier: int = 1
+
 @onready var target: Node2D = $Target
 @onready var target_circle: Polygon2D = $Target/TargetCircle
 @onready var inner_ring: Node2D = $InnerRing
@@ -103,6 +114,8 @@ func _start_game() -> void:
 	knives.clear()
 	knives_this_round = 0
 	round_number = 0
+	combo_hits = 0
+	combo_multiplier = 1
 	rotation_speed = BASE_ROTATION_SPEED
 	inner_rotation_speed = INNER_BASE_ROTATION_SPEED
 	target.rotation = 0.0
@@ -180,7 +193,10 @@ func _throw_knife() -> void:
 	target.add_child(knife)
 	knives.append(knife)
 
-	score += 1
+	combo_hits += 1
+	if combo_hits % COMBO_STEP == 0:
+		combo_multiplier = min(COMBO_MAX_MULT, combo_multiplier + 1)
+	score += 1 * combo_multiplier
 
 	if gem_angle > -5.0:
 		var gem_diff: float = wrapf(new_angle - gem_angle, -PI, PI)
@@ -191,10 +207,17 @@ func _throw_knife() -> void:
 			gem_node = null
 			gem_angle = -10.0
 
-	score_label.text = str(score)
+	_update_score_label()
 	knives_this_round += 1
 	if knives_this_round >= KNIVES_PER_ROUND:
 		_advance_round()
+
+
+func _update_score_label() -> void:
+	if combo_multiplier > 1:
+		score_label.text = "%d  x%d" % [score, combo_multiplier]
+	else:
+		score_label.text = str(score)
 
 
 func _inner_ring_clear(contact_world: Vector2) -> bool:
@@ -221,6 +244,8 @@ func _advance_round() -> void:
 		k.queue_free()
 	knives.clear()
 	knives_this_round = 0
+	combo_hits = 0
+	combo_multiplier = 1
 	round_number += 1
 	rotation_speed = BASE_ROTATION_SPEED + round_number * ROTATION_SPEED_GROWTH
 	inner_rotation_speed = INNER_BASE_ROTATION_SPEED + round_number * INNER_ROTATION_SPEED_GROWTH

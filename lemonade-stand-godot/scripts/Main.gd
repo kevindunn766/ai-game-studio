@@ -25,6 +25,7 @@ var per_sec: float = 0.0:
 @onready var rush_hour_label: Label = $RushHourLabel
 @onready var prestige_label: Label = $PrestigeLabel
 @onready var prestige_button: Button = $PrestigeButton
+@onready var golden_order_label: Label = $GoldenOrderLabel
 
 const SAVE_PATH = "user://lemonade_stand.json"
 const AUTOSAVE_INTERVAL = 5.0
@@ -54,6 +55,23 @@ var prestige_points: int = 0:
         prestige_points = value
         update_ui()
 
+# Novel element: Golden Order, an active timed-click challenge distinct
+# from Rush Hour's passive multiplier. A short window opens asking for a
+# burst of clicks; hitting the target before time runs out pays a lump
+# sum scaled to current income, missing it costs nothing. Rewards active
+# engagement rather than just letting idle income tick.
+const GOLDEN_ORDER_MIN_INTERVAL = 40.0
+const GOLDEN_ORDER_MAX_INTERVAL = 70.0
+const GOLDEN_ORDER_DURATION = 8.0
+const GOLDEN_ORDER_TARGET_CLICKS = 15
+const GOLDEN_ORDER_REWARD_PER_CLICK_VALUE = 12.0
+const GOLDEN_ORDER_REWARD_PER_SEC_VALUE = 20.0
+const GOLDEN_ORDER_REWARD_FLAT = 30.0
+var golden_order_active = false
+var golden_order_timer = 0.0
+var golden_order_clicks = 0
+var next_golden_order_timer = 0.0
+
 var upgrades = {
     "lemons": { "name": "Better Lemons", "cost": 10, "click": 1, "owned": 0 },
     "sugar": { "name": "Sugar Rush", "cost": 25, "click": 2, "owned": 0 },
@@ -71,6 +89,8 @@ func _ready():
     process_mode = Node.PROCESS_MODE_ALWAYS
     rush_hour_label.visible = false
     next_rush_hour_timer = randf_range(RUSH_HOUR_MIN_INTERVAL, RUSH_HOUR_MAX_INTERVAL)
+    golden_order_label.visible = false
+    next_golden_order_timer = randf_range(GOLDEN_ORDER_MIN_INTERVAL, GOLDEN_ORDER_MAX_INTERVAL)
 
 func _prestige_multiplier() -> float:
     return 1.0 + prestige_points * PRESTIGE_MULT_PER_POINT
@@ -100,6 +120,18 @@ func _process(delta):
         if next_rush_hour_timer <= 0.0:
             _start_rush_hour()
 
+    if golden_order_active:
+        golden_order_timer -= delta
+        if golden_order_timer <= 0.0:
+            _end_golden_order(false)
+        else:
+            var remaining = GOLDEN_ORDER_TARGET_CLICKS - golden_order_clicks
+            golden_order_label.text = "GOLDEN ORDER! Tap %d more (%ds)" % [remaining, ceil(golden_order_timer)]
+    else:
+        next_golden_order_timer -= delta
+        if next_golden_order_timer <= 0.0:
+            _start_golden_order()
+
     # Idle income and click income were never persisted on their own before
     # this fix - only buying an upgrade triggered a save, so closing the
     # game after just clicking/idling lost all of that progress. Autosave
@@ -119,6 +151,23 @@ func _end_rush_hour():
     rush_hour_label.visible = false
     next_rush_hour_timer = randf_range(RUSH_HOUR_MIN_INTERVAL, RUSH_HOUR_MAX_INTERVAL)
 
+func _start_golden_order():
+    golden_order_active = true
+    golden_order_timer = GOLDEN_ORDER_DURATION
+    golden_order_clicks = 0
+    golden_order_label.visible = true
+
+func _golden_order_reward() -> float:
+    return GOLDEN_ORDER_REWARD_FLAT + per_click * GOLDEN_ORDER_REWARD_PER_CLICK_VALUE + per_sec * GOLDEN_ORDER_REWARD_PER_SEC_VALUE
+
+func _end_golden_order(success: bool):
+    golden_order_active = false
+    golden_order_label.visible = false
+    next_golden_order_timer = randf_range(GOLDEN_ORDER_MIN_INTERVAL, GOLDEN_ORDER_MAX_INTERVAL)
+    if success:
+        _add_coins(_golden_order_reward())
+        update_ui()
+
 func _notification(what):
     if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_APPLICATION_PAUSED:
         save_game()
@@ -127,6 +176,10 @@ func _on_sell_pressed():
     var effective_per_click = per_click * RUSH_HOUR_MULTIPLIER if rush_hour_active else per_click
     effective_per_click *= _prestige_multiplier()
     _add_coins(effective_per_click)
+    if golden_order_active:
+        golden_order_clicks += 1
+        if golden_order_clicks >= GOLDEN_ORDER_TARGET_CLICKS:
+            _end_golden_order(true)
     update_ui()
 
 func _on_prestige_pressed():

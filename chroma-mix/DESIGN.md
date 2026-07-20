@@ -23,6 +23,11 @@ an invented rule.
    the three primaries as possible targets; secondaries unlock at a score
    milestone, and brown (the hardest read) unlocks after that. The pool
    of things you're asked to mix actually grows over a run.
+4b. Novel element: Fading Target. A rare round hides the target's name
+    and starts its swatch washed out, sharpening to full clarity over
+    just over a second — reacting instantly means guessing at a muddy
+    hue, waiting costs round time. Mutually exclusive with the wildcard
+    round.
 5. Wrong match or letting the timer run out = lose a strike.
 5. 3 strikes and the run ends.
 6. Round timer shortens slightly as score climbs.

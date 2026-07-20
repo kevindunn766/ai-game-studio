@@ -26,6 +26,16 @@ const REBUILD_GROWTH := 0.6
 const Z_FREQ_RATIO := 1.37
 const Z_PHASE_OFFSET := PI / 2.0
 
+# Novel element: Anchor Block. A rare block locks the Z sweep flat for a
+# few drops in a row (pure X-axis timing again, like the old single-axis
+# game), then hands control back to the full 2-axis drift. A timed
+# breather layered on top of the structural 2-axis change, not a
+# permanent rule change and not a score pickup.
+const ANCHOR_BLOCK_CHANCE := 0.15
+const ANCHOR_DURATION_LAYERS := 3
+const ANCHOR_COLOR := Color(0.75, 0.85, 0.95, 1.0)
+var anchor_layers_remaining: int = 0
+
 # Studio Palette v1 (see COLOR_SYSTEM.md): layer color rotates fully around
 # the hue wheel, holding chroma/value fixed so every layer reads at the same
 # brightness instead of a hand-picked, unevenly saturated rainbow.
@@ -75,6 +85,7 @@ func _start_game() -> void:
 	camera_focus_y = 0.0
 	combo_streak = 0
 	combo_flash_timer = 0.0
+	anchor_layers_remaining = 0
 	game_over_overlay.visible = false
 	combo_label.visible = false
 	score_label.text = "0"
@@ -121,7 +132,10 @@ func _spawn_next_moving_block() -> void:
 	# Bias the starting side so the sweep begins clearly off to one edge.
 	t = -PI / 2.0
 
-	var color: Color = _layer_color(layer_index)
+	if anchor_layers_remaining <= 0 and randf() < ANCHOR_BLOCK_CHANCE:
+		anchor_layers_remaining = ANCHOR_DURATION_LAYERS
+
+	var color: Color = ANCHOR_COLOR if anchor_layers_remaining > 0 else _layer_color(layer_index)
 	moving_node = _make_block(moving_size, start_center, color)
 	moving_node.name = "BlockMoving"
 
@@ -132,8 +146,9 @@ func _process(delta: float) -> void:
 		if moving_node:
 			var last: Dictionary = blocks.back()
 			var pos: Vector3 = moving_node.position
+			var z_amplitude: float = 0.0 if anchor_layers_remaining > 0 else move_amplitude
 			pos.x = last["center"].x + sin(t * move_speed) * move_amplitude
-			pos.z = last["center"].z + sin(t * move_speed * Z_FREQ_RATIO + Z_PHASE_OFFSET) * move_amplitude
+			pos.z = last["center"].z + sin(t * move_speed * Z_FREQ_RATIO + Z_PHASE_OFFSET) * z_amplitude
 			moving_node.position = pos
 
 	_update_falling_pieces(delta)
@@ -252,6 +267,9 @@ func _try_drop() -> void:
 	score += 1
 	score_label.text = str(score)
 	move_speed = 1.6 + score * 0.045
+
+	if anchor_layers_remaining > 0:
+		anchor_layers_remaining -= 1
 
 	_spawn_next_moving_block()
 

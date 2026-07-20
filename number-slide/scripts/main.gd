@@ -28,6 +28,18 @@ const SAVE_PATH := "user://numberslide_highscore.cfg"
 const TILE_COLOR := Color(0.3, 0.42, 0.62, 1.0)
 const EMPTY_COLOR := Color(0.16, 0.17, 0.21, 1.0)
 
+# Novel element: Locked Tile. A rare numbered tile is fixed in place for
+# the puzzle's first few moves (counted across the whole puzzle, not just
+# moves touching it) — it can't be the target of a slide even when
+# adjacent to the blank, forcing the player to route around wherever it
+# currently sits. Reuses the studio's locked/frozen motif (Merge Numbers'
+# frozen cells, Color Sort's locked tube) in a new genre.
+const LOCKED_TILE_CHANCE_PER_PUZZLE := 0.3
+const LOCK_DURATION_MOVES := 5
+const LOCKED_TILE_COLOR := Color(0.55, 0.45, 0.15, 1.0)
+var locked_tile_value: int = -1
+var locked_moves_remaining: int = 0
+
 @onready var tiles_container: Node2D = $TilesContainer
 @onready var score_label: Label = $ScoreLabel
 @onready var moves_label: Label = $MovesLabel
@@ -124,6 +136,14 @@ func _generate_puzzle() -> void:
 		board[pick] = 0
 		last_swapped = blank_index
 		blank_index = pick
+
+	if randf() < LOCKED_TILE_CHANCE_PER_PUZZLE:
+		locked_tile_value = 1 + randi() % (NUM_TILES - 1)
+		locked_moves_remaining = LOCK_DURATION_MOVES
+	else:
+		locked_tile_value = -1
+		locked_moves_remaining = 0
+
 	_redraw_board()
 
 
@@ -134,7 +154,7 @@ func _redraw_board() -> void:
 			tile_rects[i].color = EMPTY_COLOR
 			tile_labels[i].text = ""
 		else:
-			tile_rects[i].color = TILE_COLOR
+			tile_rects[i].color = LOCKED_TILE_COLOR if (locked_moves_remaining > 0 and value == locked_tile_value) else TILE_COLOR
 			tile_labels[i].text = str(value)
 
 
@@ -180,12 +200,20 @@ func _on_tile_tapped(idx: int) -> void:
 		return
 	if not _neighbors(blank_index).has(idx):
 		return
+	if locked_moves_remaining > 0 and board[idx] == locked_tile_value:
+		return
 
 	board[blank_index] = board[idx]
 	board[idx] = 0
 	blank_index = idx
 	moves -= 1
 	moves_label.text = "Moves: %d" % moves
+
+	if locked_moves_remaining > 0:
+		locked_moves_remaining -= 1
+		if locked_moves_remaining <= 0:
+			locked_tile_value = -1
+
 	_redraw_board()
 
 	if _is_solved():

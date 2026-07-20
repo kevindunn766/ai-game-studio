@@ -21,6 +21,10 @@ and drops the weight straight down from wherever it was left hanging.
 4. Landing in the green zone scores a point and starts a new round.
    Landing in a red zone costs a strike. 3 strikes ends the run.
 5. Score = rounds survived. High score via config.
+6. Novel element: Reinforced Rope. A rare thicker, amber-tinted rope
+   takes two cuts instead of one — the first cut just cracks it (visible
+   tint change) without severing, so it still counts as "remaining" for
+   the weight's repositioning average.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

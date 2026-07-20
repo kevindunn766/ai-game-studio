@@ -22,6 +22,16 @@ const SAVE_PATH := "user://flashtap_highscore.cfg"
 const DARK_COLOR := Color(0.28, 0.29, 0.34, 1.0)
 const LIT_COLOR := Color(0.95, 0.76, 0.15, 1.0)
 
+# Novel element: Decoy Panel. Sometimes a second panel lights up (a dim
+# violet, clearly distinct from the bright gold true target) at the same
+# time — tapping it is a mistake, same as tapping any other dark panel.
+# No new scoring/strike logic needed: the existing "tapped panel isn't
+# lit_index" branch already treats it as a wrong tap. Purely a
+# discrimination challenge layered on the existing reflex mechanic.
+const DECOY_CHANCE := 0.2
+const DECOY_COLOR := Color(0.75, 0.35, 0.85, 1.0)
+var decoy_index: int = -1
+
 @onready var panels_container: Node2D = $PanelsContainer
 @onready var score_label: Label = $ScoreLabel
 @onready var strikes_label: Label = $StrikesLabel
@@ -72,6 +82,7 @@ func _start_game() -> void:
 	for p in panels:
 		p.color = DARK_COLOR
 	lit_index = -1
+	decoy_index = -1
 	state = "gap"
 	state_timer = GAP_DURATION
 
@@ -94,11 +105,23 @@ func _light_random_panel() -> void:
 	state = "lit"
 	state_timer = _light_duration()
 
+	decoy_index = -1
+	if NUM_PANELS > 1 and randf() < DECOY_CHANCE:
+		var candidates: Array = []
+		for i in range(NUM_PANELS):
+			if i != lit_index:
+				candidates.append(i)
+		decoy_index = candidates[randi() % candidates.size()]
+		panels[decoy_index].color = DECOY_COLOR
+
 
 func _clear_lit_panel() -> void:
 	if lit_index >= 0:
 		panels[lit_index].color = DARK_COLOR
+	if decoy_index >= 0:
+		panels[decoy_index].color = DARK_COLOR
 	lit_index = -1
+	decoy_index = -1
 	state = "gap"
 	state_timer = GAP_DURATION
 

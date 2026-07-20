@@ -13,6 +13,14 @@ const FLASH_GAP := 0.25
 const MAX_STRIKES := 3
 const SAVE_PATH := "user://patternecho_highscore.cfg"
 
+# Novel element: Reverse Round. Some rounds (once the sequence is long
+# enough to matter) require tapping it back in REVERSE order instead of
+# forward. Telegraphed during the watch phase so it's a real cognitive
+# twist, not a gotcha — the player knows going in which direction they'll
+# need to recall.
+const REVERSE_ROUND_CHANCE := 0.25
+var is_reverse_round: bool = false
+
 const BASE_COLORS := [
 	Color(0.5, 0.12, 0.12, 1.0),
 	Color(0.12, 0.3, 0.55, 1.0),
@@ -64,6 +72,7 @@ func _start_game() -> void:
 	score_label.text = "0"
 	_update_strikes_label()
 	status_label.text = "WATCH"
+	is_reverse_round = false
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
 	for i in range(NUM_PANELS):
@@ -73,6 +82,7 @@ func _start_game() -> void:
 func _next_round() -> void:
 	sequence.append(randi() % NUM_PANELS)
 	player_progress = 0
+	is_reverse_round = sequence.size() >= 2 and randf() < REVERSE_ROUND_CHANCE
 	_begin_showing_sequence()
 
 
@@ -81,7 +91,7 @@ func _begin_showing_sequence() -> void:
 	flashing = false
 	show_index = 0
 	show_timer = FLASH_GAP
-	status_label.text = "WATCH"
+	status_label.text = "WATCH (REVERSE!)" if is_reverse_round else "WATCH"
 	for i in range(NUM_PANELS):
 		panels[i].color = BASE_COLORS[i]
 
@@ -99,7 +109,7 @@ func _process(delta: float) -> void:
 				show_index += 1
 				if show_index >= sequence.size():
 					showing_sequence = false
-					status_label.text = "YOUR TURN"
+					status_label.text = "YOUR TURN (REVERSE!)" if is_reverse_round else "YOUR TURN"
 				else:
 					show_timer = FLASH_GAP
 			else:
@@ -139,8 +149,14 @@ func _input(event: InputEvent) -> void:
 			return
 
 
+func _expected_index() -> int:
+	if is_reverse_round:
+		return sequence[sequence.size() - 1 - player_progress]
+	return sequence[player_progress]
+
+
 func _on_panel_tapped(i: int) -> void:
-	if i == sequence[player_progress]:
+	if i == _expected_index():
 		player_progress += 1
 		if player_progress >= sequence.size():
 			score = sequence.size()

@@ -25,8 +25,13 @@ other new prototypes.
    on where the rotating axis currently has the player sitting in X, not
    just their Y position in the corridor.
 5. One hit ends the run (the genre's defining fail state).
-5. Scroll speed ramps up and obstacle spacing tightens as score climbs.
+5b. Scroll speed ramps up and obstacle spacing tightens as score climbs.
 6. Score = obstacles successfully passed. High score persisted via config.
+7. Novel element: Speed Boost pickup. A rare electric-blue pickup
+   (rarer than coins) temporarily speeds up the scroll — genuinely
+   raising difficulty — but doubles score per obstacle cleared while
+   active. A real risk/reward modifier, unlike the coin twist's passive
+   bonus score.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

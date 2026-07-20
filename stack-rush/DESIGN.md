@@ -19,6 +19,10 @@
    between the X and Z sweep frequencies — the two axes drift further out
    of sync as a run goes on.
 7. High score persisted via config file.
+8. Novel element: Anchor Block. A rare block (pale blue) locks the Z
+   sweep flat for the next few drops — pure X-axis timing again, like
+   the old single-axis game — before handing control back to the full
+   2-axis drift. A timed breather, not a permanent rule change.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

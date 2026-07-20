@@ -42,6 +42,19 @@ const SAVE_PATH := "user://chromamix_highscore.cfg"
 # "bonus points" pickups.
 const WILDCARD_CHANCE := 0.15
 
+# Novel element: Fading Target. A rare round hides the target's name and
+# starts its swatch washed out, sharpening to full color/clarity over
+# just over a second. Reacting instantly means guessing at a muddy hue;
+# waiting for it to settle costs precious round time — a perception/
+# patience trade-off distinct from the wildcard's free-pass mechanism.
+# Mutually exclusive with the wildcard round so each round reads as one
+# clear thing.
+const FADING_ROUND_CHANCE := 0.18
+const FADE_DURATION := 1.4
+const FADE_START_ALPHA := 0.2
+var is_fading_round: bool = false
+var round_elapsed: float = 0.0
+
 @onready var source_nodes: Array = [$Source0, $Source1, $Source2]
 @onready var source_borders: Array = [$Source0Border, $Source1Border, $Source2Border]
 @onready var mix_button: ColorRect = $MixButton
@@ -88,6 +101,9 @@ func _start_game() -> void:
 	_update_strikes_label()
 	wildcard_available = false
 	wildcard_label.visible = false
+	is_fading_round = false
+	round_elapsed = 0.0
+	target_swatch.modulate.a = 1.0
 	game_over_overlay.visible = false
 	ready_overlay.visible = true
 	_new_round()
@@ -123,9 +139,16 @@ func _new_round() -> void:
 	target_key = keys[randi() % keys.size()]
 	var result: Dictionary = _mix_result(target_key)
 	target_swatch.color = result["color"]
-	target_label.text = "Match: %s" % result["name"]
 	wildcard_available = randf() < WILDCARD_CHANCE
 	wildcard_label.visible = wildcard_available
+	is_fading_round = (not wildcard_available) and randf() < FADING_ROUND_CHANCE
+	round_elapsed = 0.0
+	if is_fading_round:
+		target_label.text = "Match: ???"
+		target_swatch.modulate.a = FADE_START_ALPHA
+	else:
+		target_label.text = "Match: %s" % result["name"]
+		target_swatch.modulate.a = 1.0
 	selected = [false, false, false]
 	_update_source_borders()
 	mix_well.color = EMPTY_MIX
@@ -174,6 +197,14 @@ func _process(delta: float) -> void:
 	timer_bar_fill.size.x = TIMER_BAR_MAX_WIDTH * ratio
 	if time_left <= 0.0:
 		_on_miss("TOO SLOW!")
+		return
+
+	if is_fading_round:
+		round_elapsed += delta
+		var t: float = clamp(round_elapsed / FADE_DURATION, 0.0, 1.0)
+		target_swatch.modulate.a = lerp(FADE_START_ALPHA, 1.0, t)
+		if t >= 1.0 and target_label.text != "Match: %s" % _mix_result(target_key)["name"]:
+			target_label.text = "Match: %s" % _mix_result(target_key)["name"]
 
 
 func _input(event: InputEvent) -> void:

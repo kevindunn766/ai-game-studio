@@ -22,6 +22,11 @@ little harder, so efficient solving is what keeps a run alive.
    move budget and generates a new, more scrambled puzzle.
 4. Running out of moves before solving ends the run. Score = puzzles
    solved. High score via config.
+5. Novel element: Locked Tile. A rare numbered tile is fixed in place for
+   the puzzle's first few moves (counted across the whole puzzle, not
+   just moves that touch it) — it can't be the target of a slide even
+   when adjacent to the empty slot, forcing a route around wherever it
+   currently sits, tinted amber until it unlocks.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

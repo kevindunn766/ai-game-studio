@@ -41,6 +41,23 @@ var portal_b: Vector3 = Vector3.ZERO
 var portal_a_node: Node3D
 var portal_b_node: Node3D
 
+# Novel element: Hazard Storm. A telegraphed window where obstacle
+# density in newly-explored terrain spikes well above normal, then drops
+# back — a periodic pacing swing distinct from the portal gates (which
+# are a navigation shortcut, not a difficulty spike) and from the bonus
+# food twist (which is a scoring pickup, not a hazard).
+const HAZARD_STORM_MIN_INTERVAL := 18.0
+const HAZARD_STORM_MAX_INTERVAL := 32.0
+const HAZARD_STORM_DURATION := 6.0
+const HAZARD_STORM_DENSITY_MULT := 1.8
+const HAZARD_STORM_COLOR := Color(0.95, 0.32, 0.12, 1.0)
+var storm_active: bool = false
+var storm_timer: float = 0.0
+var next_storm_timer: float = 0.0
+var base_obstacle_density: float = 0.0
+var score_label_node: Label3D
+var score_label_default_color: Color = Color(1, 1, 1, 1)
+
 
 func _ready() -> void:
 	_ensure_action("move_up", [KEY_W, KEY_UP])
@@ -58,9 +75,13 @@ func _ready() -> void:
 	portals_container.name = "Portals"
 	add_child(portals_container)
 
-	var score_label: Label3D = get_node_or_null("ScoreLabel")
-	if score_label:
-		score_label.text = "0"
+	score_label_node = get_node_or_null("ScoreLabel")
+	if score_label_node:
+		score_label_node.text = "0"
+		score_label_default_color = score_label_node.modulate
+
+	base_obstacle_density = floor_manager.obstacle_density if floor_manager else 0.0
+	next_storm_timer = rng.randf_range(HAZARD_STORM_MIN_INTERVAL, HAZARD_STORM_MAX_INTERVAL)
 
 	var game_over_overlay: Node3D = get_node_or_null("GameOverOverlay")
 	if game_over_overlay:
@@ -103,6 +124,15 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if is_game_over:
 		return
+
+	if storm_active:
+		storm_timer -= delta
+		if storm_timer <= 0.0:
+			_end_hazard_storm()
+	else:
+		next_storm_timer -= delta
+		if next_storm_timer <= 0.0:
+			_start_hazard_storm()
 
 	current_speed -= delta
 	if current_speed > 0.0:
@@ -248,6 +278,24 @@ func _remove_portal_pair() -> void:
 func _teleport_snake(offset: Vector3) -> void:
 	snake.teleport(offset)
 	_remove_portal_pair()
+
+
+func _start_hazard_storm() -> void:
+	storm_active = true
+	storm_timer = HAZARD_STORM_DURATION
+	if floor_manager:
+		floor_manager.obstacle_density = base_obstacle_density * HAZARD_STORM_DENSITY_MULT
+	if score_label_node:
+		score_label_node.modulate = HAZARD_STORM_COLOR
+
+
+func _end_hazard_storm() -> void:
+	storm_active = false
+	if floor_manager:
+		floor_manager.obstacle_density = base_obstacle_density
+	if score_label_node:
+		score_label_node.modulate = score_label_default_color
+	next_storm_timer = rng.randf_range(HAZARD_STORM_MIN_INTERVAL, HAZARD_STORM_MAX_INTERVAL)
 
 
 func _get_current_speed() -> float:

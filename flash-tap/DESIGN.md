@@ -22,6 +22,10 @@ around raw single-target reflex speed rather than timing-a-moving-element
    lit) are ignored.
 4. 3 strikes ends the run. Score = panels correctly tapped. High score
    via config.
+5. Novel element: Decoy Panel. Sometimes a second panel lights up (a dim
+   violet, clearly distinct from the bright gold true target) — tapping
+   it is a mistake, same as any other dark panel. A discrimination
+   challenge layered on the reflex mechanic.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

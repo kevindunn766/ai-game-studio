@@ -28,6 +28,14 @@ const FROZEN_COLOR := Color(0.4, 0.48, 0.55, 1.0)
 const MAX_FROZEN := 3
 const FREEZE_SCORE_INTERVAL := 300
 
+# Novel element: Power Tile. Reaching 256 makes a tile a "power tile"
+# (flagged with a lightning glyph); merging two of them doesn't just make
+# 512 like a normal merge — it clears every other tile left in that line
+# (row or column, or frozen-delimited segment of one), awarding their
+# face values as bonus score. A real payoff for building toward a
+# specific value, on top of the frozen-cell topology change.
+const POWER_TILE_THRESHOLD := 256
+
 # Studio Palette v1 (see COLOR_SYSTEM.md). The old palette was a hand-copied
 # 2048 ramp that jumped between color families partway through (128 reset
 # back to a lighter gold after 64's deep red). Rebuilt as one continuous
@@ -159,6 +167,8 @@ func _redraw() -> void:
 				label.text = "❄"
 			elif value == WILDCARD:
 				label.text = "★"
+			elif value == POWER_TILE_THRESHOLD:
+				label.text = "%d⚡" % value
 			else:
 				label.text = str(value)
 			label.size = Vector2(CELL_SIZE, CELL_SIZE)
@@ -243,16 +253,32 @@ func _process_line(line: Array) -> Dictionary:
 
 	var merged := []
 	var gained := 0
+	var power_clear_triggered := false
 	var i := 0
 	while i < vals.size():
 		if i + 1 < vals.size() and _can_merge(vals[i], vals[i + 1]):
 			var new_val: int = _merge_result(vals[i], vals[i + 1])
+			if vals[i] == POWER_TILE_THRESHOLD and vals[i + 1] == POWER_TILE_THRESHOLD:
+				power_clear_triggered = true
 			merged.append(new_val)
 			gained += new_val
 			i += 2
 		else:
 			merged.append(vals[i])
 			i += 1
+
+	if power_clear_triggered:
+		var power_value: int = POWER_TILE_THRESHOLD * 2
+		var kept: Array = []
+		var kept_power := false
+		for v in merged:
+			if v == power_value and not kept_power:
+				kept.append(v)
+				kept_power = true
+			else:
+				gained += v
+		merged = kept
+
 	while merged.size() < line.size():
 		merged.append(0)
 

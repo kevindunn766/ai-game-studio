@@ -186,3 +186,42 @@ All 18 games (14 redesigned + 4 new) were headless-verified clean, both
 per-change and in a final full-repo sweep, matching the studio's
 established verification discipline.
 
+---
+
+## 2026-07-18 — Round 6: 4 more new concepts + a second novel element on all 18
+
+User's brief: "Add novel elements to the previously made games and make 4
+more." Two parts — a fifth batch of new games, and a second layered
+mechanic on every existing game (distinct from both its round-2-era
+novelty twist and its round-5 structural redesign). Full detail on both
+is in `DESIGN_BRIEF.md`'s 2026-07-18 update section.
+
+**4 new concepts**, chosen to cover input paradigms the studio's other 18
+games (14 hyper-casual + Pattern Echo/Anchor Drop/Flash Tap/Number Slide
++ shiftlight) still didn't have:
+
+| Game | Genre | Why it's not a reskin |
+|---|---|---|
+| **Slice Rush** | Drag-slice reflex (Fruit Ninja style) | Continuous-stroke collision against gravity-arc'd shapes — the fruit-slice candidate deferred back in round 1's research is finally built, and it's the only game where the input is a drawn path checked against a segment, not a single tap/drag-direction. |
+| **Paddle Bounce** | Breakout-style brick breaker | Deterministic kinematic ball reflection off a controllable paddle — a different control-and-response shape than every other game in the studio (you steer a mediator, not the moving object itself). |
+| **Orb Burst** | Bubble-shooter match (hex grid) | First hex-style grid + BFS match/fall logic in the studio; aim-and-launch-into-a-grid is distinct from Gem Swap's tap-swap-adjacent grid interaction below despite both being "match" games. |
+| **Gem Swap** | Tap-swap-adjacent match-3 | Select-then-select-neighbor input, matches resolve from a swap rather than from a shot landing — deliberately built alongside Orb Burst specifically to prove two match-3-family games can still feel structurally distinct via input grammar alone. |
+
+Two match games shipped in the same batch was a deliberate test: Orb
+Burst's match trigger is "where did the shot land," Gem Swap's is "did
+this swap create a line" — different enough in feel and code path that
+building both didn't feel redundant.
+
+**On the second-novel-element pass**: this is the first round where a
+game got THREE distinct additive changes over its lifetime (original
+twist, structural redesign, this round's novel element) without any of
+them being removed or replaced — confirms the studio's additive-layering
+approach scales past one revision per game without the mechanics
+crowding each other out, as long as each new element is scoped tightly
+(a rare event, a rare object variant, a rare round modifier) rather than
+touching the core loop each game was designed around.
+
+All 22 games headless-verified clean, both per-change and in a final
+full-repo sweep, matching the studio's established verification
+discipline.
+

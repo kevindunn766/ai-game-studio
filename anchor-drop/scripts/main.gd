@@ -24,6 +24,17 @@ const HAZARD_COLOR := Color(0.85, 0.2, 0.2, 1.0)
 const ROPE_COLOR := Color(0.75, 0.7, 0.6, 1.0)
 const BUTTON_COLOR := Color(0.35, 0.37, 0.42, 1.0)
 
+# Novel element: Reinforced Rope. A rare rope (thicker, tinted amber)
+# takes two cuts instead of one — the first cut just cracks it (a visible
+# tint change) without severing, so it still counts as "remaining" for
+# the weight's repositioning average. Reuses the studio's established
+# double-hit motif (Chop Chain's reinforced segments) in a new genre: a
+# planning puzzle instead of a reflex-timing one.
+const REINFORCED_CHANCE := 0.2
+const REINFORCED_HITS_NEEDED := 2
+const REINFORCED_ROPE_COLOR := Color(0.7, 0.45, 0.2, 1.0)
+const REINFORCED_CRACKED_COLOR := Color(0.85, 0.65, 0.35, 1.0)
+
 @onready var weight: RigidBody2D = $Weight
 @onready var ropes_container: Node2D = $RopesContainer
 @onready var buttons_container: Node2D = $ButtonsContainer
@@ -38,6 +49,8 @@ var anchors: Array = []
 var rope_cut: Array = []
 var rope_lines: Array = []
 var cut_buttons: Array = []
+var rope_reinforced: Array = []
+var rope_hits: Array = []
 var target_index: int = 0
 var held: bool = true
 var resolved: bool = false
@@ -86,8 +99,12 @@ func _new_round() -> void:
 	for i in range(count):
 		anchors.append(MARGIN + slot_width * (i + 0.5))
 	rope_cut = []
+	rope_reinforced = []
+	rope_hits = []
 	for _i in range(count):
 		rope_cut.append(false)
+		rope_reinforced.append(randf() < REINFORCED_CHANCE)
+		rope_hits.append(0)
 
 	target_index = randi() % count
 
@@ -99,8 +116,8 @@ func _new_round() -> void:
 		ground_container.add_child(zone)
 
 		var line := Line2D.new()
-		line.width = 4.0
-		line.default_color = ROPE_COLOR
+		line.width = 6.0 if rope_reinforced[i] else 4.0
+		line.default_color = REINFORCED_ROPE_COLOR if rope_reinforced[i] else ROPE_COLOR
 		ropes_container.add_child(line)
 		rope_lines.append(line)
 
@@ -225,6 +242,13 @@ func _input(event: InputEvent) -> void:
 func _cut_rope(i: int) -> void:
 	if rope_cut[i] or not held:
 		return
+
+	if rope_reinforced[i]:
+		rope_hits[i] += 1
+		if rope_hits[i] < REINFORCED_HITS_NEEDED:
+			rope_lines[i].default_color = REINFORCED_CRACKED_COLOR
+			return
+
 	rope_cut[i] = true
 	rope_lines[i].visible = false
 	cut_buttons[i].color = Color(0.2, 0.2, 0.22, 1.0)

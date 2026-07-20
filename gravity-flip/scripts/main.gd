@@ -51,6 +51,19 @@ const GRAVITY_TILT_MAX := deg_to_rad(20)
 const GRAVITY_TILT_PERIOD := 6.0
 const LATERAL_MAX := 30.0
 
+# Novel element: Speed Boost pickup. A rare electric-blue pickup (rarer
+# than coins) temporarily speeds up the scroll — genuinely raising
+# difficulty, not just decoration — but doubles the score earned per
+# obstacle cleared while it's active. A real risk/reward modifier, unlike
+# the coin twist's purely passive bonus score.
+const BOOST_RADIUS := 16.0
+const BOOST_SPACING := 500.0
+const BOOST_SPAWN_CHANCE := 0.35
+const BOOST_DURATION := 5.0
+const BOOST_SPEED_MULT := 1.6
+const BOOST_SCORE_MULT := 2
+const BOOST_COLOR := Color(0.25, 0.85, 0.95, 1.0)
+
 @onready var player: ColorRect = $Player
 @onready var gravity_arrow: Polygon2D = $Player/GravityArrow
 @onready var obstacles_container: Node2D = $ObstaclesContainer
@@ -74,6 +87,11 @@ var next_coin_world_x: float = 850.0
 var obstacles: Array = []
 var coins: Array = []
 var coin_score: int = 0
+var boosts: Array = []
+var next_boost_world_x: float = 1100.0
+var boost_active: bool = false
+var boost_timer: float = 0.0
+var player_default_color: Color = Color(1, 1, 1, 1)
 
 var score: int = 0
 var high_score: int = 0
@@ -82,6 +100,7 @@ var game_started: bool = false
 
 
 func _ready() -> void:
+	player_default_color = player.color
 	_load_high_score()
 	_start_game()
 
@@ -95,6 +114,14 @@ func _start_game() -> void:
 		if is_instance_valid(c["node"]):
 			c["node"].queue_free()
 	coins.clear()
+	for b in boosts:
+		if is_instance_valid(b["node"]):
+			b["node"].queue_free()
+	boosts.clear()
+	next_boost_world_x = 1100.0
+	boost_active = false
+	boost_timer = 0.0
+	player.color = player_default_color
 
 	player_y = CORRIDOR_MID
 	vel_y = 0.0
@@ -125,7 +152,15 @@ func _process(delta: float) -> void:
 	if game_over or not game_started:
 		return
 
+	if boost_active:
+		boost_timer -= delta
+		if boost_timer <= 0.0:
+			boost_active = false
+			player.color = player_default_color
+
 	var scroll_speed: float = min(MAX_SCROLL_SPEED, BASE_SCROLL_SPEED + score * SCROLL_SPEED_GROWTH)
+	if boost_active:
+		scroll_speed *= BOOST_SPEED_MULT
 	world_offset += scroll_speed * delta
 
 	gravity_tilt_time += delta
@@ -147,6 +182,8 @@ func _process(delta: float) -> void:
 	_update_obstacles()
 	_update_coin_spawning()
 	_update_coins()
+	_update_boost_spawning()
+	_update_boosts()
 
 
 func _update_spawning() -> void:
@@ -200,6 +237,46 @@ func _update_coins() -> void:
 	coins = still
 
 
+func _update_boost_spawning() -> void:
+	while next_boost_world_x - world_offset < SPAWN_LOOKAHEAD:
+		if randf() < BOOST_SPAWN_CHANCE:
+			_spawn_boost(next_boost_world_x)
+		next_boost_world_x += BOOST_SPACING
+
+
+func _spawn_boost(world_x: float) -> void:
+	var y: float = randf_range(CEILING_Y + 40.0, FLOOR_Y - 40.0)
+	var node := Polygon2D.new()
+	node.polygon = PackedVector2Array([
+		Vector2(-4, -BOOST_RADIUS), Vector2(6, -3), Vector2(0, -3),
+		Vector2(4, BOOST_RADIUS), Vector2(-6, 3), Vector2(0, 3),
+	])
+	node.color = BOOST_COLOR
+	coins_container.add_child(node)
+	boosts.append({"world_x": world_x, "y": y, "node": node, "collected": false})
+
+
+func _update_boosts() -> void:
+	var still: Array = []
+	for b in boosts:
+		var screen_x: float = b["world_x"] - world_offset
+		b["node"].position = Vector2(screen_x, b["y"])
+
+		if not b["collected"]:
+			var dist: float = Vector2(screen_x - effective_player_x, b["y"] - player_y).length()
+			if dist < BOOST_RADIUS + PLAYER_SIZE / 2.0:
+				b["collected"] = true
+				boost_active = true
+				boost_timer = BOOST_DURATION
+				player.color = BOOST_COLOR
+
+		if b["collected"] or screen_x < -50.0:
+			b["node"].queue_free()
+		else:
+			still.append(b)
+	boosts = still
+
+
 func _spawn_obstacle(world_x: float) -> void:
 	var side: String = "TOP" if randf() < 0.5 else "BOTTOM"
 	var node := ColorRect.new()
@@ -218,7 +295,7 @@ func _update_obstacles() -> void:
 
 		if not o["passed"] and screen_x + OBSTACLE_WIDTH < effective_player_x - PLAYER_SIZE / 2.0:
 			o["passed"] = true
-			score += 1
+			score += BOOST_SCORE_MULT if boost_active else 1
 			score_label.text = str(_total_score())
 
 		if _check_collision(o, screen_x):

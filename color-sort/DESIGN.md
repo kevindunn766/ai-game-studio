@@ -25,10 +25,13 @@ solving refills moves, so efficient play is what keeps the run going.
    tube re-targets the selection instead of failing silently.
 5. A tube is solved once it's either empty or monochrome — it no longer
    has to be filled to its own capacity.
-5. Solving every tube completes the puzzle: +1 to the solved counter, a
+5b. Solving every tube completes the puzzle: +1 to the solved counter, a
    move-budget refill, and a new (slightly harder) puzzle generates.
 6. Each successful pour costs 1 move from the shared budget; illegal taps
    cost nothing. Hitting 0 moves without solving ends the run.
+7. Novel element: Locked Tube. A rare tube starts sealed — no pouring
+   into or out of it — for the puzzle's first few moves (counted across
+   the whole puzzle, not just moves touching that tube), then unlocks.
 7. High score (puzzles solved) persisted via config file.
 
 ## Non-negotiable constraints

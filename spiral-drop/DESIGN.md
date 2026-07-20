@@ -12,6 +12,10 @@
    ring apart — a normal-width safe gap and a narrower amber-marked risk
    gap worth more points. The player has to commit to a lane before the
    gate arrives. Mutually exclusive with the golden-gate twist.
+3b. Novel element: Mirror Gate. A rare violet gate that, once passed
+    cleanly, inverts rotation controls (A/D and drag) for a few seconds —
+    a disorientation twist, mutually exclusive with both the golden and
+    dual-gap twists so every gate still reads as one clear thing.
 4. Player rotates the whole tower (A/D, arrow keys, or click-drag / touch-drag)
    so a gap lines up with the ball before it reaches that ring's height.
 5. Missing every gap on a gate = game over.

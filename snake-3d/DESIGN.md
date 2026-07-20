@@ -19,6 +19,11 @@
    spawns near the snake; stepping onto either one instantly teleports
    the whole snake (every segment, rigidly) to the other, letting a run
    cut across the map or escape a tight obstacle pocket.
+9. Novel element: Hazard Storm. A telegraphed window (score label tints
+   red) where obstacle density in newly-explored terrain spikes well
+   above normal, then drops back — a periodic pacing swing distinct from
+   the portal gates (a navigation shortcut) and bonus food (a scoring
+   pickup).
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

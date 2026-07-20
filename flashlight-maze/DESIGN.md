@@ -25,10 +25,13 @@ remembering the maze's layout under time pressure, not reacting fast.
    of time remaining.
 5. Reach the exit cell before the timer runs out to solve the maze: score
    +1, a new (occasionally larger) maze generates.
-6. Running out of time, or getting caught by the guard, costs a strike;
+6. Running out of time, or getting caught by a guard, costs a strike;
    3 strikes ends the run.
-6. Grid size grows every 2 solves (7x7 up to 11x11); timer scales with cell
+6b. Grid size grows every 2 solves (7x7 up to 11x11); timer scales with cell
    count. High score persisted via config file.
+7. Novel element: Second Guard. Once the maze grows past 9x9 (later in a
+   run), a second guard also roams independently — doubling the
+   real-time hazard pressure instead of just making the one guard faster.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

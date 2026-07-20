@@ -41,6 +41,16 @@ const MIN_PLAYABLE_DOTS := 4
 const WALL_COLOR := Color(0.75, 0.35, 0.25, 1.0)
 const WALL_SIZE := 32.0
 
+# Novel element: Bonus Dot finale. Some rounds mark one dot gold — finish
+# your stroke there (visit it LAST) for bonus score. It's a pure order
+# constraint layered on top of the existing "visit every dot" rule: no
+# penalty for ignoring it, just an extra incentive to plan the route so
+# the gold dot is the very last stop.
+const FINALE_CHANCE := 0.35
+const FINALE_BONUS_SCORE := 2
+const FINALE_DOT_COLOR := Color(0.93, 0.76, 0.15, 1.0)
+var finale_cell: Vector2i = Vector2i(-1, -1)
+
 @onready var score_label: Label = $ScoreLabel
 @onready var strikes_label: Label = $StrikesLabel
 @onready var timer_bar_fill: ColorRect = $TimerBarFill
@@ -122,6 +132,12 @@ func _new_round() -> void:
 		blocked_cells[order[i]] = true
 
 	_build_dots(blocked_cells)
+
+	finale_cell = Vector2i(-1, -1)
+	if dot_nodes.size() >= MIN_PLAYABLE_DOTS and randf() < FINALE_CHANCE:
+		var keys: Array = dot_nodes.keys()
+		finale_cell = keys[randi() % keys.size()]
+		dot_nodes[finale_cell].color = FINALE_DOT_COLOR
 
 	var num_dots: int = dot_nodes.size()
 	var per_dot_time: float = max(MIN_TIME_PER_DOT, BASE_TIME_PER_DOT - score * TIME_DECAY_PER_SCORE)
@@ -297,9 +313,15 @@ func _redraw_path() -> void:
 
 func _on_round_won() -> void:
 	score += 1
+	var bonus_texts: Array = []
 	if time_left >= time_limit * SPEED_BONUS_TIME_FRACTION:
 		score += SPEED_BONUS_SCORE
-		bonus_flash_label.text = "SPEED BONUS! +%d" % SPEED_BONUS_SCORE
+		bonus_texts.append("SPEED +%d" % SPEED_BONUS_SCORE)
+	if finale_cell != Vector2i(-1, -1) and not path.is_empty() and path.back() == finale_cell:
+		score += FINALE_BONUS_SCORE
+		bonus_texts.append("FINALE +%d" % FINALE_BONUS_SCORE)
+	if not bonus_texts.is_empty():
+		bonus_flash_label.text = " / ".join(bonus_texts)
 		bonus_flash_label.visible = true
 		bonus_flash_timer = 0.9
 	score_label.text = str(score)

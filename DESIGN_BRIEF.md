@@ -466,6 +466,150 @@ binary is nested one level in).
   solve (score +1, moves refilled), a non-neighbor tap being ignored,
   running out of moves ending the run, and restart — all passed.
 
+### 21. Slice Rush (slice-rush/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-17/18
+- A drag-slice reflex game. Shapes launch in gravity-affected arcs from
+  the bottom of the screen; drag through one to slice it before it falls
+  back off-screen. Bombs end the run instantly on a slice; missing a
+  normal shape (letting it fall off-screen unsliced) costs a strike.
+  `Geometry2D.get_closest_point_to_segment()` resolves slice-vs-shape
+  collision along the whole drag stroke, not just the current frame's
+  point, so fast flicks can't skip past a shape between two input events.
+- High score via `user://slicerush_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering a stroke
+  slicing a shape, a bomb slice ending the run instantly, a missed shape
+  costing a strike, draining strikes to game over, and restart — all
+  passed.
+
+### 22. Paddle Bounce (paddle-bounce/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-18
+- A Breakout-style brick breaker. Drag/arrow-key the paddle to keep a
+  ball alive; clear every brick to advance to a fresh, denser layout. The
+  ball is a deterministic kinematic mover (not `RigidBody2D`) so its
+  reflection off the paddle is precisely testable
+  (`_reflect_off_paddle(hit_offset)` maps where on the paddle the ball
+  landed to an exit angle) rather than left to physics-engine bounce
+  variance.
+- High score via `user://paddlebounce_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering paddle
+  reflection angles across the paddle's width, brick-hit detection,
+  brick destruction, round advance on the last brick, a lost ball costing
+  a strike, and restart — all passed.
+
+### 23. Orb Burst (orb-burst/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-18
+- An aim-and-launch bubble-shooter match game. Aim and fire a colored orb
+  up into a staggered hex-like grid; landing next to 2+ same-color orbs
+  pops the whole group, and any orbs left floating with no path back to
+  the ceiling fall too. Grid math (`_cell_to_pixel()`, `_neighbors()`,
+  `_grid_cell_for_pixel()`) and match/fall resolution (BFS-based
+  `_find_match_group()`/`_find_floating_cells()`) are the first hex-style
+  grid logic in the studio.
+- High score via `user://orbburst_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering a 3-match
+  pop, a floating-group fall after its support pops, the periodic
+  row-shift-down pressure mechanic, a shot that misses every group, and
+  restart — all passed.
+
+### 24. Gem Swap (gem-swap/) ✅ PROTOTYPE COMPLETE — NEW 2026-07-18
+- A tap-swap-adjacent match-3. Tap a gem, then tap an orthogonal neighbor
+  to swap them; a swap that creates a 3-in-a-row (or longer) clears those
+  gems, drops the ones above, and refills the top from new random colors.
+  A swap that doesn't create a match reverts. The board is generated
+  match-free at the start (`_build_diagonal_safe_grid()`-style diagonal
+  color pattern) so no group ever pops before the player makes a move.
+- High score via `user://gemswap_highscore.cfg`.
+- Headless-verified: clean load + scripted self-test covering match
+  detection (`_find_all_matches`), a swap that creates a match clearing
+  correctly, a swap that doesn't revert, gravity (`_apply_gravity`) and
+  refill (`_refill_empties`) after a clear, and restart — all passed.
+
+---
+
+## 2026-07-18 Update: 4 more new games + novel element pass on all 18
+
+User request: "Add novel elements to the previously made games and make 4
+more" — a follow-up to round 5's structural redesign, this round layers
+an ADDITIONAL new mechanic onto every one of the 18 existing games (on
+top of both its original novelty twist and its structural redesign), and
+adds 4 more brand-new games (entries 21-24 above), bringing the studio to
+22 total.
+
+**4 new games**: Slice Rush (drag-slice reflex), Paddle Bounce
+(Breakout-style brick breaker), Orb Burst (bubble-shooter match), Gem
+Swap (tap-swap match-3) — see entries 21-24 above. Chosen to fill genre
+gaps none of the other 18 covered: continuous-arc slicing, deterministic
+physics-adjacent bouncing, hex-grid matching, and grid-swap matching.
+
+**Novel element added to every one of the 18 existing games** (distinct
+from each game's original novelty twist AND its round-5 structural
+redesign):
+- **lemonade-stand-godot**: **Golden Order** — a timed click-rush
+  challenge (15 clicks in 8s) pays a lump-sum reward scaled to current
+  income rate, no penalty on failure.
+- **snake-3d**: **Hazard Storm** — a periodic timed window that spikes
+  obstacle density, telegraphed by a score-label color tint.
+- **stack-rush**: **Anchor Block** — a rare block locks the Z-axis sweep
+  flat for a few drops, tinted to signal the temporary control change.
+- **spiral-drop**: **Mirror Gate** — a rare gate inverts rotation
+  controls for a few seconds after being passed cleanly.
+- **chop-chain**: **Combo Multiplier** — 3 clean clears in a row raises a
+  score multiplier, reset by a reinforced segment's first hit.
+- **merge-numbers**: **Power Tile** — reaching value 256 flags a tile;
+  merging two flagged tiles sweeps every other surviving tile in that
+  line into bonus score too.
+- **chroma-mix**: **Fading Target** — rare rounds hide the target name
+  and start the swatch nearly transparent, sharpening to full opacity
+  and revealing the name as time runs down.
+- **tilt-tower**: **Heavy Blocks** — rare blocks spawn with real extra
+  mass and a larger footprint, tinted to signal the harder catch.
+- **loop-it**: **Bonus Dot finale** — one dot per round is marked gold;
+  finishing the path with it as the LAST tap awards extra score,
+  stackable with the existing speed bonus.
+- **gravity-flip**: **Speed Boost pickup** — a rare pickup raises scroll
+  speed and doubles score-per-obstacle for a few seconds.
+- **target-throw**: **Combo Multiplier** — consecutive sticks within the
+  same round raise a score multiplier, reset on round advance (the only
+  safe reset point, since a miss is instant-death here).
+- **pulse-tap**: **Reverse Ring** — some respawns grow the ring outward
+  from the center instead of shrinking inward toward the target.
+- **color-sort**: **Locked Tube** — a rare tube locks for several moves
+  counted across the whole puzzle, blocking both pours and taps on it.
+- **flashlight-maze**: **Second Guard** — past a grid-size threshold, a
+  second independently-wandering guard spawns (required refactoring the
+  single guard's state into an array of guards).
+- **pattern-echo**: **Reverse Round** — some rounds require tapping the
+  memorized sequence back-to-front instead of in order.
+- **anchor-drop**: **Reinforced Rope** — a rare thicker rope needs two
+  cuts instead of one; the first cut only cracks it without severing.
+- **flash-tap**: **Decoy Panel** — a second, dimmer panel sometimes lights
+  up alongside the true target as a discrimination trap; needed zero
+  scoring-logic changes since the existing wrong-tap branch already
+  covered it.
+- **number-slide**: **Locked Tile** — a rare numbered tile is fixed in
+  place for the puzzle's first few moves, blocking it as a slide target
+  even when adjacent to the empty slot.
+
+**Recurring motifs across this pass**: the locked/frozen motif now spans
+three genres (Merge Numbers' frozen cells, Color Sort's locked tube, this
+round's Number Slide locked tile); the combo-multiplier motif appears
+twice with genre-appropriate reset conditions (Chop Chain resets on a
+reinforced hit, Target Throw resets on round-advance since it has no
+strikes); and Flashlight Maze's Second Guard is the second time this
+studio has refactored a singular-hazard field into an array to support a
+second concurrent instance (after Pulse Tap's two-ring redesign in round
+5).
+
+All 22 games headless-verified clean (zero stderr) both after each
+individual change and in a final full-repo sweep. Every new mechanic got
+a temporary `--selftest`-gated self-test before the test code was removed
+for the final commit. Two real bugs were found and fixed during this
+pass: Gem Swap's `_random_color_avoiding_match()` had a `while true` loop
+whose only `return` was inside the loop, which Godot's static analyzer
+correctly flagged as not provably returning on every path (fixed with a
+trailing dead-code `return`); everything else flagged during self-testing
+turned out to be a bug in the *test* code (stale pre-mutation state reads,
+an off-by-default counter accidentally triggering an unrelated periodic
+effect) rather than the game code, caught each time by re-deriving
+expected values independently before "fixing" anything.
+
 ---
 
 ## Game Production Rules (non-negotiable)

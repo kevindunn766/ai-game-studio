@@ -17,8 +17,12 @@
    branch side still kills instantly, but the safe side has to be tapped
    TWICE — a clean hit only cracks it — before it actually falls away.
 7. A shrinking timer forces a tap each round; running out = game over.
-7. Timer duration shortens slightly as score increases (difficulty ramp).
+7b. Timer duration shortens slightly as score increases (difficulty ramp).
 8. High score persisted via config file.
+9. Novel element: Combo Multiplier. Chaining full clears in a row builds
+   a score multiplier (every 3 clears, up to x4); stumbling on a
+   reinforced segment's first hit breaks the streak back to x1 — added
+   stakes on top of the reinforced-segment mechanic.
 
 ## Non-negotiable constraints
 - ONE scene only: `res://scenes/Main.tscn`

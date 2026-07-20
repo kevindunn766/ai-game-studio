@@ -39,6 +39,17 @@ const PLATFORM_MOVE_SPEED := 220.0
 const PLATFORM_DRAG_SENSITIVITY := 0.5
 const PLATFORM_X_RANGE := 160.0
 
+# Novel element: Heavy Blocks. A rare falling block is bigger, denser
+# (real RigidBody2D mass, not just a bigger sprite), and tinted dark slate
+# — real emergent physics variety fitting this game's identity as the
+# studio's real-physics sandbox, rather than a scripted rule change.
+const HEAVY_CHANCE := 0.15
+const HEAVY_SIZE_MIN := 60.0
+const HEAVY_SIZE_MAX := 85.0
+const HEAVY_MASS := 4.0
+const HEAVY_TINT := Color(0.25, 0.25, 0.28, 1.0)
+const HEAVY_TINT_MIX := 0.55
+
 const SHAPE_PALETTE := [
 	Color(0.95, 0.6, 0.25, 1.0),
 	Color(0.35, 0.75, 0.55, 1.0),
@@ -164,12 +175,8 @@ func _physics_process(delta: float) -> void:
 	shapes = still_tracked
 
 
-func _spawn_shape() -> void:
-	var size := Vector2(randf_range(SHAPE_MIN_SIZE, SHAPE_MAX_SIZE), randf_range(SHAPE_MIN_SIZE, SHAPE_MAX_SIZE))
-	var x: float = platform.position.x + randf_range(-SPAWN_X_RANGE, SPAWN_X_RANGE)
-
+func _make_shape_body(size: Vector2, is_heavy: bool, base_color: Color) -> RigidBody2D:
 	var body := RigidBody2D.new()
-	body.position = Vector2(x, 60.0)
 
 	var collision := CollisionShape2D.new()
 	var shape := RectangleShape2D.new()
@@ -178,14 +185,32 @@ func _spawn_shape() -> void:
 	body.add_child(collision)
 	# Reduces tunneling through the thin platform at higher fall speeds.
 	body.continuous_cd = RigidBody2D.CCD_MODE_CAST_SHAPE
+	body.mass = HEAVY_MASS if is_heavy else 1.0
+	body.set_meta("is_heavy", is_heavy)
 
 	var visual := Polygon2D.new()
 	var hw: float = size.x / 2.0
 	var hh: float = size.y / 2.0
 	visual.polygon = PackedVector2Array([Vector2(-hw, -hh), Vector2(hw, -hh), Vector2(hw, hh), Vector2(-hw, hh)])
-	visual.color = SHAPE_PALETTE[color_cycle % SHAPE_PALETTE.size()]
-	color_cycle += 1
+	visual.color = base_color.lerp(HEAVY_TINT, HEAVY_TINT_MIX) if is_heavy else base_color
 	body.add_child(visual)
+
+	return body
+
+
+func _spawn_shape() -> void:
+	var is_heavy: bool = randf() < HEAVY_CHANCE
+	var size: Vector2
+	if is_heavy:
+		size = Vector2(randf_range(HEAVY_SIZE_MIN, HEAVY_SIZE_MAX), randf_range(HEAVY_SIZE_MIN, HEAVY_SIZE_MAX))
+	else:
+		size = Vector2(randf_range(SHAPE_MIN_SIZE, SHAPE_MAX_SIZE), randf_range(SHAPE_MIN_SIZE, SHAPE_MAX_SIZE))
+	var x: float = platform.position.x + randf_range(-SPAWN_X_RANGE, SPAWN_X_RANGE)
+
+	var base_color: Color = SHAPE_PALETTE[color_cycle % SHAPE_PALETTE.size()]
+	color_cycle += 1
+	var body: RigidBody2D = _make_shape_body(size, is_heavy, base_color)
+	body.position = Vector2(x, 60.0)
 
 	shapes_container.add_child(body)
 	shapes.append(body)
