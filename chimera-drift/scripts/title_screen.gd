@@ -17,7 +17,9 @@ const ShipHullGeneratorS := preload("res://scripts/ship_hull_generator.gd")
 const Dresser := preload("res://scripts/beauty_ship_dresser.gd")
 const CameraDirectorS := preload("res://scripts/beauty_camera_director.gd")
 const StreakShader := preload("res://shaders/speed_streak.gdshader")
+const StarShader := preload("res://shaders/star_point.gdshader")
 const GlitchShader := preload("res://shaders/title_glitch.gdshader")
+const LensFlareS := preload("res://scripts/lens_flare.gd")
 
 const SHAPE_WORDS := ["Nebula", "Ring System", "Ion Storm", "Deep Space", "Comet Field", "Solar Flare", "Asteroid Belt", "Wormhole"]
 const MODIFIERS := ["Storm-Wracked", "Haunted", "Crystalline", "Irradiated", "Molten", "Frozen", "Pristine", "Bioluminescent"]
@@ -36,7 +38,7 @@ func _ready() -> void:
 	var r := RandomNumberGenerator.new()
 	r.randomize()
 	_build_environment(r.randi())   # fixed backdrop
-	_build_streaks()
+	_build_stars()
 	_hull_seed = r.randi()
 	_rebuild_ship()                 # the part reroll re-rolls
 	_build_ui()
@@ -160,7 +162,7 @@ func _rebuild_ship() -> void:
 	hull.scale = Vector3.ONE * k
 	hull.position = -(aabb.position + aabb.size * 0.5) * k
 	_ship_root.add_child(hull)
-	Dresser.dress(hull, result.colors, _accent, rng)
+	Dresser.dress(hull, result.colors, _accent, rng, result.spec.get("symmetric", true))
 	# Show any parts already kept this run (empty on a fresh run -> base hull).
 	Dresser.attach_loadout(_ship_root, RunManager.permanent_pieces, aabb, k, _accent, rng)
 
@@ -245,8 +247,9 @@ func _build_environment(sky_seed: int) -> void:
 		env.background_mode = Environment.BG_COLOR
 		env.background_color = Color(0.01, 0.01, 0.02)
 	env.ambient_light_color = cfg.get("ambient_color", Color(0.1, 0.12, 0.2))
-	env.ambient_light_energy = maxf(float(cfg.get("ambient_energy", 0.5)), 0.9)
+	env.ambient_light_energy = maxf(float(cfg.get("ambient_energy", 0.5)), 0.55)
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_exposure = 0.85
 
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -257,7 +260,7 @@ func _build_environment(sky_seed: int) -> void:
 	sun_toward = sun_toward.normalized()
 	var sun := DirectionalLight3D.new()
 	sun.light_color = cfg.get("sun_color", Color(1, 0.97, 0.92))
-	sun.light_energy = maxf(float(cfg.get("sun_energy", 1.0)), 1.1)
+	sun.light_energy = maxf(float(cfg.get("sun_energy", 1.0)), 0.72)
 	sun.shadow_enabled = true
 	add_child(sun)
 	var up: Vector3 = Vector3.UP if absf(sun_toward.dot(Vector3.UP)) < 0.95 else Vector3.FORWARD
@@ -265,9 +268,16 @@ func _build_environment(sky_seed: int) -> void:
 
 	var fill := DirectionalLight3D.new()
 	fill.light_color = _accent.lerp(Color.WHITE, 0.3)
-	fill.light_energy = 0.35
+	fill.light_energy = 0.22
 	add_child(fill)
 	fill.look_at_from_position(Vector3.ZERO, sun_toward + Vector3(0.2, -0.4, 0.1), Vector3.UP)
+
+	# Lens flare that tracks the sun across the screen.
+	var lf := LensFlareS.new()
+	lf.sun_direction = sun_toward
+	lf.flare_color = sun.light_color.lerp(Color.WHITE, 0.3)
+	lf.base_intensity = 0.7
+	add_child(lf)
 
 func _roll_theme(rng: RandomNumberGenerator) -> Dictionary:
 	var rolled := {
@@ -298,39 +308,39 @@ func _floor_param(sm: ShaderMaterial, name: String, floor_v: float) -> float:
 	var cur: Variant = sm.get_shader_parameter(name)
 	return maxf(float(cur), floor_v) if cur != null else floor_v
 
-# --- speed streaks ----------------------------------------------------------
-func _build_streaks() -> void:
+# --- stars ------------------------------------------------------------------
+func _build_stars() -> void:
 	var scale: float = maxf(float(PerfProfile.particle_scale), 0.4)
 	var p := CPUParticles3D.new()
-	p.name = "SpeedStreaks"
+	p.name = "Stars"
 	p.local_coords = false
-	p.amount = maxi(24, int(150.0 * scale))
-	p.lifetime = 1.6
-	p.preprocess = 1.6
+	p.amount = maxi(30, int(80.0 * scale))
+	p.lifetime = 5.0
+	p.preprocess = 5.0
 	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	p.emission_box_extents = Vector3(16.0, 10.0, 22.0)
-	p.direction = Vector3(0.0, 0.0, 1.0)
-	p.spread = 0.0
-	p.initial_velocity_min = 55.0
-	p.initial_velocity_max = 85.0
+	p.emission_box_extents = Vector3(22.0, 13.0, 20.0)
+	p.direction = Vector3(0.0, -1.0, 0.0)          # gentle downward drift (for the trail)
+	p.spread = 25.0
+	p.initial_velocity_min = 1.2
+	p.initial_velocity_max = 3.5
 	p.gravity = Vector3.ZERO
-	p.scale_amount_min = 0.7
-	p.scale_amount_max = 1.4
+	p.scale_amount_min = 0.45
+	p.scale_amount_max = 1.25
 
 	var q := QuadMesh.new()
-	q.size = Vector2(0.16, 3.0)
+	q.size = Vector2(1.0, 1.0)
 	var mat := ShaderMaterial.new()
-	mat.shader = StreakShader
-	mat.set_shader_parameter("streak_color", _accent.lerp(Color.WHITE, 0.5))
-	mat.set_shader_parameter("intensity", 1.7)
+	mat.shader = StarShader
+	mat.set_shader_parameter("star_color", _accent.lerp(Color.WHITE, 0.75))
+	mat.set_shader_parameter("intensity", 1.9)
 	q.material = mat
 	p.mesh = q
 
 	var g := Gradient.new()
 	g.set_offset(0, 0.0)
 	g.set_color(0, Color(1, 1, 1, 0.0))
-	g.add_point(0.15, Color(1, 1, 1, 1.0))
-	g.add_point(0.85, Color(1, 1, 1, 1.0))
+	g.add_point(0.12, Color(1, 1, 1, 1.0))
+	g.add_point(0.88, Color(1, 1, 1, 1.0))
 	g.set_offset(g.get_point_count() - 1, 1.0)
 	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0.0))
 	p.color_ramp = g

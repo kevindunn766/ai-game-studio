@@ -25,6 +25,7 @@ var health: float = 3.0
 # What this enemy drops on death (an effect string understood by power_up.gd).
 var drop_effect: String = ""
 var drop_kind: String = "cosmetic"       # greeble silhouette if the drop grows the ship
+var drop_value: float = 0.0              # scaled stat magnitude for stat drops
 var drop_grows_ship: bool = false        # true -> the drop also fills a ship mount (permanent piece)
 
 # Enemy weapon tuning (subclasses that shoot read these).
@@ -105,6 +106,7 @@ func _spawn_drop() -> void:
 	var p: Area3D = PowerUp.new()
 	p.effect = drop_effect
 	p.kind = drop_kind
+	p.value = drop_value
 	p.grows_ship = drop_grows_ship
 	p.attach_color = accent
 	p.ship = ship

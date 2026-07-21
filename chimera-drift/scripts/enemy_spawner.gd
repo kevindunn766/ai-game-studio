@@ -22,10 +22,14 @@ const ENEMY_SCALE_MULT: float = 0.5
 # Permanent pieces a smart enemy can drop, with the greeble silhouette each adds
 # to the hull when collected (so the upgrade is visually legible on the ship).
 const SMART_DROPS := [
-	{"effect": "shield", "kind": "plate"},      # armor plating
-	{"effect": "fire_rate", "kind": "vent"},    # cooling vents
-	{"effect": "afterburner", "kind": "barrel"},# thruster nozzle
+	{"effect": "shield", "kind": "plate"},        # shield plating
+	{"effect": "fire_rate", "kind": "vent"},      # cooling vents
+	{"effect": "armor", "kind": "plate"},         # hull armor
+	{"effect": "shot_damage", "kind": "spike"},   # heavier rounds
+	{"effect": "afterburner", "kind": "barrel"},  # thruster nozzle
 ]
+const Combat := preload("res://scripts/combat.gd")
+const StatUtil := preload("res://scripts/stat_util.gd")
 
 static func create(kind: String, ship: Node3D, theme: Dictionary, feature_words: Dictionary, enemy_scale: float, rng: RandomNumberGenerator) -> Area3D:
 	var accent: Color = theme.get("accent", Color(0.9, 0.4, 0.3, 1.0))
@@ -37,6 +41,7 @@ static func create(kind: String, ship: Node3D, theme: Dictionary, feature_words:
 		var pick: Dictionary = SMART_DROPS[rng.randi_range(0, SMART_DROPS.size() - 1)]
 		e.drop_effect = pick.effect
 		e.drop_kind = pick.kind
+		e.drop_value = StatUtil.roll_value(pick.effect, Combat.sector, rng)   # scales with progress
 		e.drop_grows_ship = true                # a permanent piece bolts onto the ship
 	else:
 		e = DUMB.new()

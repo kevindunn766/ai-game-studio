@@ -19,7 +19,10 @@ const ShipHullGeneratorS := preload("res://scripts/ship_hull_generator.gd")
 const Dresser := preload("res://scripts/beauty_ship_dresser.gd")
 const CameraDirectorS := preload("res://scripts/beauty_camera_director.gd")
 const PieceUtil := preload("res://scripts/piece_util.gd")
+const StatUtil := preload("res://scripts/stat_util.gd")
 const StreakShader := preload("res://shaders/speed_streak.gdshader")
+const StarShader := preload("res://shaders/star_point.gdshader")
+const LensFlareS := preload("res://scripts/lens_flare.gd")
 
 # Space-flavoured words so the rolled skybox reads as an open starfield/nebula.
 const SHAPE_WORDS := ["Nebula", "Ring System", "Ion Storm", "Deep Space", "Comet Field", "Solar Flare", "Asteroid Belt", "Wormhole"]
@@ -37,12 +40,18 @@ var _accent: Color = Color(0.6, 0.8, 1.0)
 
 var _ship_root: Node3D = null
 var _time: float = 0.0
+var _ship_aabb: AABB = AABB()     # for placing the live preview part at the next mount
+var _ship_k: float = 1.0
 
 # --- draft menu state ---
 var _sel: int = 0
 var _cards: Array = []            # the card Control per piece (for restyle)
 var _prompt: Label = null
 var _chosen: bool = false         # true once committed (locks input)
+var _preview: Node3D = null       # the currently-hovered part, mounted on the shown ship
+var _preview_t: float = 0.0
+var _loadout_atts: Array = []     # the mounted kept-part nodes (to hide one when swapping)
+var _swapped_att: Node3D = null   # the kept part temporarily hidden by a full-mount preview
 
 # ---------------------------------------------------------------------------
 # Wire-in point: set the ship seed (the player's run seed), the stats to show,
@@ -79,6 +88,9 @@ func _rebuild() -> void:
 	_prompt = null
 	_chosen = false
 	_sel = 0
+	_preview = null   # was a child of the (now freed) ship root
+	_loadout_atts.clear()
+	_swapped_att = null
 
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _seed
@@ -87,7 +99,7 @@ func _rebuild() -> void:
 	_accent = theme.get("accent", Color(0.6, 0.8, 1.0))
 	_build_environment(rng, theme)
 	_build_ship(rng, theme)
-	_build_streaks(theme)
+	_build_stars(theme)
 	_build_camera()
 	_build_ui()
 
@@ -121,9 +133,9 @@ func _build_environment(_rng: RandomNumberGenerator, theme: Dictionary) -> void:
 		env.background_mode = Environment.BG_COLOR
 		env.background_color = Color(0.01, 0.01, 0.02)
 	env.ambient_light_color = cfg.get("ambient_color", Color(0.1, 0.12, 0.2))
-	env.ambient_light_energy = maxf(float(cfg.get("ambient_energy", 0.5)), 0.9)
+	env.ambient_light_energy = maxf(float(cfg.get("ambient_energy", 0.5)), 0.55)
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.0
+	env.tonemap_exposure = 0.85
 
 	var we := WorldEnvironment.new()
 	we.name = "WorldEnvironment"
@@ -137,7 +149,7 @@ func _build_environment(_rng: RandomNumberGenerator, theme: Dictionary) -> void:
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.light_color = cfg.get("sun_color", Color(1, 0.97, 0.92))
-	sun.light_energy = maxf(float(cfg.get("sun_energy", 1.0)), 1.1)
+	sun.light_energy = maxf(float(cfg.get("sun_energy", 1.0)), 0.72)
 	sun.shadow_enabled = true
 	add_child(sun)
 	var up: Vector3 = Vector3.UP if absf(sun_toward.dot(Vector3.UP)) < 0.95 else Vector3.FORWARD
@@ -147,10 +159,17 @@ func _build_environment(_rng: RandomNumberGenerator, theme: Dictionary) -> void:
 	var fill := DirectionalLight3D.new()
 	fill.name = "Fill"
 	fill.light_color = _accent.lerp(Color.WHITE, 0.3)
-	fill.light_energy = 0.35
+	fill.light_energy = 0.22
 	fill.shadow_enabled = false
 	add_child(fill)
 	fill.look_at_from_position(Vector3.ZERO, sun_toward + Vector3(0.2, -0.4, 0.1), Vector3.UP)
+
+	# Lens flare tracking the sun as the cinematic camera orbits.
+	var lf := LensFlareS.new()
+	lf.sun_direction = sun_toward
+	lf.flare_color = sun.light_color.lerp(Color.WHITE, 0.3)
+	lf.base_intensity = 0.65
+	add_child(lf)
 
 # Push the rolled deep-space sky toward a rich, bright "beauty backdrop": floor
 # the star/nebula/galaxy strength and lift exposure so there's always something
@@ -184,14 +203,23 @@ func _build_ship(rng: RandomNumberGenerator, theme: Dictionary) -> void:
 	var aabb: AABB = result.aabb
 	var longest: float = maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))
 	var k: float = (ShipHullGeneratorS.TARGET_LONGEST / longest) if longest > 0.0 else 1.0
+	_ship_aabb = aabb
+	_ship_k = k
 	hull.scale = Vector3.ONE * k
 	# Re-centre the hull's geometric centre on the ship-root origin.
 	var centre: Vector3 = (aabb.position + aabb.size * 0.5) * k
 	hull.position = -centre
 	_ship_root.add_child(hull)
 
-	Dresser.dress(hull, result.colors, _accent, rng)
-	Dresser.attach_loadout(_ship_root, _loadout, aabb, k, _accent, rng)   # show the kept parts
+	Dresser.dress(hull, result.colors, _accent, rng, result.spec.get("symmetric", true))
+	# Kept parts, tracked so a full-mount preview can hide the one it'd replace.
+	_loadout_atts.clear()
+	for i in range(_loadout.size()):
+		var la: Node3D = Dresser.build_attachment(_loadout[i], i, aabb, k, _accent, rng)
+		if la == null:
+			break   # ran out of mounts
+		_ship_root.add_child(la)
+		_loadout_atts.append(la)
 
 	# Framing radius = half the bounding-sphere diagonal so nothing clips.
 	var radius: float = 0.5 * aabb.size.length() * k
@@ -204,31 +232,31 @@ func _build_camera() -> void:
 	var radius: float = float(_ship_root.get_meta("radius", 1.2))
 	d.set_target(_ship_root.global_position, radius)
 
-# --- speed streaks ---------------------------------------------------------
-func _build_streaks(_theme: Dictionary) -> void:
+# --- stars -----------------------------------------------------------------
+func _build_stars(_theme: Dictionary) -> void:
 	var scale: float = maxf(float(PerfProfile.particle_scale), 0.4)
 	var p := CPUParticles3D.new()
-	p.name = "SpeedStreaks"
+	p.name = "Stars"
 	p.local_coords = false
-	p.amount = maxi(24, int(150.0 * scale))
-	p.lifetime = 1.6
-	p.preprocess = 1.6
+	p.amount = maxi(30, int(80.0 * scale))
+	p.lifetime = 5.0
+	p.preprocess = 5.0
 	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-	p.emission_box_extents = Vector3(16.0, 10.0, 22.0)
-	p.direction = Vector3(0.0, 0.0, 1.0)          # rush PAST the ship (it flies -Z)
-	p.spread = 0.0
-	p.initial_velocity_min = 55.0
-	p.initial_velocity_max = 85.0
+	p.emission_box_extents = Vector3(22.0, 13.0, 20.0)
+	p.direction = Vector3(0.0, -1.0, 0.0)          # gentle downward drift (for the trail)
+	p.spread = 25.0
+	p.initial_velocity_min = 1.2
+	p.initial_velocity_max = 3.5
 	p.gravity = Vector3.ZERO
-	p.scale_amount_min = 0.7
-	p.scale_amount_max = 1.4
+	p.scale_amount_min = 0.45
+	p.scale_amount_max = 1.25
 
 	var q := QuadMesh.new()
-	q.size = Vector2(0.16, 3.0)                    # thin + long → a warp line
+	q.size = Vector2(1.0, 1.0)
 	var mat := ShaderMaterial.new()
-	mat.shader = StreakShader
-	mat.set_shader_parameter("streak_color", _accent.lerp(Color.WHITE, 0.5))
-	mat.set_shader_parameter("intensity", 1.7)
+	mat.shader = StarShader
+	mat.set_shader_parameter("star_color", _accent.lerp(Color.WHITE, 0.75))
+	mat.set_shader_parameter("intensity", 1.9)
 	q.material = mat
 	p.mesh = q
 
@@ -236,8 +264,8 @@ func _build_streaks(_theme: Dictionary) -> void:
 	var g := Gradient.new()
 	g.set_offset(0, 0.0)
 	g.set_color(0, Color(1, 1, 1, 0.0))
-	g.add_point(0.15, Color(1, 1, 1, 1.0))
-	g.add_point(0.85, Color(1, 1, 1, 1.0))
+	g.add_point(0.12, Color(1, 1, 1, 1.0))
+	g.add_point(0.88, Color(1, 1, 1, 1.0))
 	g.set_offset(g.get_point_count() - 1, 1.0)
 	g.set_color(g.get_point_count() - 1, Color(1, 1, 1, 0.0))
 	p.color_ramp = g
@@ -252,6 +280,11 @@ func _process(delta: float) -> void:
 			deg_to_rad(2.5) * sin(_time * 0.45 + 1.0),
 			deg_to_rad(4.0) * sin(_time * 0.16),
 			deg_to_rad(5.0) * sin(_time * 0.33))
+	# Pulse the hovered preview part so it reads as a candidate (steady once kept).
+	if _preview != null and is_instance_valid(_preview):
+		_preview_t += delta
+		var s: float = (1.0 + 0.14 * sin(_preview_t * 6.5)) if not _chosen else 1.0
+		_preview.scale = Vector3.ONE * s
 	_process_menu()
 
 # --- stats / score UI ------------------------------------------------------
@@ -380,9 +413,10 @@ func _make_card(piece: Dictionary, card_w: int, index: int) -> Control:
 	var kind: String = piece.get("kind", "")
 	var effect: String = piece.get("effect", "")
 	var color: Color = piece.get("color", Color(0.7, 0.75, 0.85))
+	var value: float = float(piece.get("value", 0.0))
 
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(card_w, 118)
+	panel.custom_minimum_size = Vector2(card_w, 138 if StatUtil.has_value(effect) else 118)
 	panel.set_meta("piece_color", color)
 
 	var vb := VBoxContainer.new()
@@ -413,6 +447,13 @@ func _make_card(piece: Dictionary, card_w: int, index: int) -> Control:
 	blurb.add_theme_color_override("font_color", UITheme.DIM)
 	vb.add_child(blurb)
 
+	# Stat parts show their rolled value + whether it beats what you already own.
+	if StatUtil.has_value(effect):
+		var stat := UITheme.label("%s %s" % [StatUtil.label(effect), StatUtil.format(effect, value)], 11, _stat_color(effect))
+		vb.add_child(stat)
+		var cmp := UITheme.label(_compare_text(effect, value), 9, _compare_color(effect, value))
+		vb.add_child(cmp)
+
 	# Transparent tap target over the card (mobile): tap = select + keep.
 	var tap := Button.new()
 	tap.flat = true
@@ -421,6 +462,43 @@ func _make_card(piece: Dictionary, card_w: int, index: int) -> Control:
 	panel.add_child(tap)
 
 	return panel
+
+func _stat_color(effect: String) -> Color:
+	match effect:
+		"fire_rate":
+			return UITheme.CYAN
+		"shot_damage":
+			return UITheme.GOLD
+		"armor":
+			return UITheme.GREEN
+		"shield":
+			return Color(0.6, 0.82, 1.0)
+		_:
+			return UITheme.TEXT
+
+# Best value the player already owns for this stat (0 = none) -- so a card can say
+# whether its roll is a fresh stat, an upgrade, or weaker than what's on the ship.
+func _best_stat_value(effect: String) -> float:
+	var best: float = 0.0
+	for p_v in _loadout:
+		var p: Dictionary = p_v
+		if p.get("effect", "") == effect:
+			best = maxf(best, float(p.get("value", 0.0)))
+	return best
+
+func _compare_text(effect: String, value: float) -> String:
+	var best: float = _best_stat_value(effect)
+	if best <= 0.0:
+		return "* NEW STAT"
+	if value > best + 0.0001:
+		return "^ BETTER"
+	return "have %s" % StatUtil.format(effect, best)
+
+func _compare_color(effect: String, value: float) -> Color:
+	var best: float = _best_stat_value(effect)
+	if best <= 0.0:
+		return UITheme.GOLD
+	return UITheme.GREEN if value > best else UITheme.DIM
 
 func _on_card_tapped(index: int) -> void:
 	if _chosen:
@@ -445,6 +523,38 @@ func _refresh_cards() -> void:
 			sb.shadow_color = Color(color.r, color.g, color.b, 0.5)
 			sb.shadow_size = 12
 		card.add_theme_stylebox_override("panel", sb)
+	_update_preview()
+
+# Mount the currently-selected part on the shown ship (at the next free mount) so the
+# player SEES what they'd keep; it swaps as they move between cards, and pulses to read
+# as a candidate rather than an already-kept part. If all mounts are full, it SWAPS the
+# last slot (hides the kept part there) to match the commit's replace-last behaviour.
+func _update_preview() -> void:
+	if _preview != null and is_instance_valid(_preview):
+		_preview.queue_free()
+	_preview = null
+	if _swapped_att != null and is_instance_valid(_swapped_att):
+		_swapped_att.visible = true
+	_swapped_att = null
+	if _chosen or _pieces.is_empty() or _ship_root == null or not is_instance_valid(_ship_root):
+		return
+	if _sel < 0 or _sel >= _pieces.size():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(_seed) ^ ((_sel + 1) * 7919)
+	var idx: int = _loadout_atts.size()
+	var att: Node3D = Dresser.build_attachment(_pieces[_sel], idx, _ship_aabb, _ship_k, _accent, rng)
+	if att == null and _loadout_atts.size() > 0:
+		idx = _loadout_atts.size() - 1
+		_swapped_att = _loadout_atts[idx]
+		if is_instance_valid(_swapped_att):
+			_swapped_att.visible = false
+		att = Dresser.build_attachment(_pieces[_sel], idx, _ship_aabb, _ship_k, _accent, rng)
+	if att != null:
+		att.name = "PreviewPart"
+		_ship_root.add_child(att)
+		_preview = att
+	_preview_t = 0.0
 
 # Poll the draft input each frame (global Input, so viewport routing is a non-issue).
 func _process_menu() -> void:
@@ -549,18 +659,19 @@ func _demo_stats() -> Dictionary:
 
 func _demo_pieces() -> Array:
 	return [
-		{"kind": "fin", "color": Color(0.4, 0.8, 1.0), "effect": ""},
-		{"kind": "pod", "color": Color(0.9, 0.5, 0.9), "effect": ""},
-		{"kind": "plate", "color": Color(0.5, 0.9, 0.6), "effect": "shield"},
-		{"kind": "spar", "color": Color(1.0, 0.7, 0.3), "effect": "fire_rate"},
+		{"kind": "vent", "color": Color(0.4, 0.8, 1.0), "effect": "fire_rate", "value": 0.18},
+		{"kind": "spike", "color": Color(1.0, 0.82, 0.34), "effect": "shot_damage", "value": 0.22},
+		{"kind": "plate", "color": Color(0.5, 0.9, 0.6), "effect": "armor", "value": 12.0},
+		{"kind": "fin", "color": Color(0.9, 0.5, 0.9), "effect": ""},
 	]
 
 func _demo_loadout() -> Array:
 	# Muted, level-themed-looking colours (real loadout parts are tinted to the
-	# level they were collected on, then matured by the dresser).
+	# level they were collected on, then matured by the dresser). Includes a weaker
+	# fire_rate so the demo shows the "^ BETTER" comparison.
 	return [
 		{"kind": "fin", "color": Color(0.42, 0.52, 0.62), "effect": ""},
-		{"kind": "pod", "color": Color(0.62, 0.42, 0.38), "effect": ""},
+		{"kind": "vent", "color": Color(0.5, 0.6, 0.68), "effect": "fire_rate", "value": 0.10},
 		{"kind": "spar", "color": Color(0.5, 0.56, 0.44), "effect": ""},
 	]
 

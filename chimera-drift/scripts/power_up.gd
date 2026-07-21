@@ -21,6 +21,7 @@ const MeshUtil := preload("res://scripts/mesh_util.gd")
 
 var kind: String = "cosmetic"
 var effect: String = ""
+var value: float = 0.0            # scaled stat magnitude for stat parts (fire_rate/shot_damage/armor/shield)
 var grows_ship: bool = true
 var attach_color: Color = Color(0.7, 0.8, 1.0, 1.0)
 var pickup_radius: float = 1.1
@@ -74,10 +75,17 @@ func _build_visual() -> void:
 			c.bottom_radius = 0.42
 			c.height = 0.85
 			mesh = c
-		"shield":
+		"shield", "armor":
 			var b := BoxMesh.new()
 			b.size = Vector3(0.7, 0.7, 0.2)             # plating slab
 			mesh = b
+		"shot_damage":
+			# A heavy chevron round -> reads as "harder-hitting".
+			var c := CylinderMesh.new()
+			c.top_radius = 0.0
+			c.bottom_radius = 0.5
+			c.height = 0.7
+			mesh = c
 		"fire_rate":
 			var b := BoxMesh.new()
 			b.size = Vector3(0.6, 0.6, 0.6)
@@ -133,12 +141,16 @@ func _on_area_entered(area: Area3D) -> void:
 		"weapon_up":
 			collecting_ship.add_weapon_tier()
 		"shield":
-			collecting_ship.add_shield()
+			collecting_ship.add_shield(value if value > 0.0 else 40.0)
 		"fire_rate":
-			collecting_ship.upgrade_fire_rate()
+			collecting_ship.upgrade_fire_rate(value if value > 0.0 else 0.35)
+		"armor":
+			collecting_ship.add_armor(value)
+		"shot_damage":
+			collecting_ship.add_shot_damage(value)
 		"afterburner":
 			collecting_ship.unlock_afterburner()
 	# Log this pickup as a draft candidate for the between-levels menu (the ship
 	# filters out transient buffs; only hull parts + permanent upgrades qualify).
-	collecting_ship.note_collected_piece(kind, attach_color, effect, grows_ship)
+	collecting_ship.note_collected_piece(kind, attach_color, effect, grows_ship, value)
 	queue_free()

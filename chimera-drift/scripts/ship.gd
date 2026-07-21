@@ -131,7 +131,13 @@ var shield_capacity: float = 0.0           # max shield collected this life
 var weapon_tier: int = 1                   # 1..WEAPON_TIER_MAX (temporary, decays)
 var weapon_tier_time: float = 0.0          # countdown until tier decays a step
 var fire_rate_mult: float = 1.0            # permanent rate-of-fire (from smart drops)
+var shot_damage_bonus: float = 0.0         # + per-bullet damage (from HEAVY ROUNDS parts)
+var armor: float = 0.0                      # + max hull HP (from HULL ARMOR parts)
 var owns_afterburner: bool = false         # unlocked by a smart drop
+
+# Effective maximum hull, base + collected armor. Drives the HUD bar's max.
+func max_hp() -> float:
+	return MAX_HEALTH + armor
 var _fire_cd: float = 0.0
 var _hurt_cd: float = 0.0
 var _ab_cd: float = 0.0
@@ -448,7 +454,7 @@ func _fire_shot() -> void:
 		var dir: Vector3 = forward.rotated(Vector3.UP, a)
 		var pr: Area3D = PROJECTILE.new()
 		pr.team = Combat.TEAM_PLAYER
-		pr.damage = SHOT_DAMAGE
+		pr.damage = SHOT_DAMAGE + shot_damage_bonus
 		pr.velocity = dir * SHOT_SPEED
 		pr.color = SHOT_COLOR
 		world.add_child(pr)
@@ -481,7 +487,7 @@ func take_damage(amount: float) -> void:
 	if remaining > 0.0:
 		health -= remaining
 	_hurt_cd = HURT_IFRAME
-	health_changed.emit(health, MAX_HEALTH, shield, shield_capacity)
+	health_changed.emit(health, max_hp(), shield, shield_capacity)
 	if health <= 0.0:
 		health = 0.0
 		crash()
@@ -504,7 +510,7 @@ func take_dot(amount: float) -> void:
 		remaining -= absorbed
 	if remaining > 0.0:
 		health -= remaining
-	health_changed.emit(health, MAX_HEALTH, shield, shield_capacity)
+	health_changed.emit(health, max_hp(), shield, shield_capacity)
 	if health <= 0.0:
 		health = 0.0
 		crash()
@@ -541,14 +547,24 @@ func add_weapon_tier() -> void:
 	weapon_tier_time = WEAPON_TIER_DURATION
 
 # Permanent (this life): a shield plate raises capacity and tops the shield up.
-func add_shield() -> void:
-	shield_capacity += SHIELD_PER_PIECE
+func add_shield(v: float = SHIELD_PER_PIECE) -> void:
+	shield_capacity += v
 	shield = shield_capacity
-	health_changed.emit(health, MAX_HEALTH, shield, shield_capacity)
+	health_changed.emit(health, max_hp(), shield, shield_capacity)
 
 # Permanent (this life): faster fire.
-func upgrade_fire_rate() -> void:
-	fire_rate_mult = minf(FIRE_RATE_MAX, fire_rate_mult + FIRE_RATE_STEP)
+func upgrade_fire_rate(v: float = FIRE_RATE_STEP) -> void:
+	fire_rate_mult = minf(FIRE_RATE_MAX, fire_rate_mult + v)
+
+# Permanent (this life): more max hull (and heal the added amount).
+func add_armor(v: float) -> void:
+	armor += v
+	health += v
+	health_changed.emit(health, max_hp(), shield, shield_capacity)
+
+# Permanent (this life): heavier bullets.
+func add_shot_damage(v: float) -> void:
+	shot_damage_bonus += v
 
 # Permanent (this life): unlock the player-triggered afterburner boost.
 func unlock_afterburner() -> void:
@@ -694,9 +710,9 @@ func grow_ship(kind: String = "cosmetic", color: Color = Color(0.7, 0.7, 0.75, 1
 # if it's eligible (a cosmetic hull part or a permanent upgrade -- not a transient
 # buff). Called by power_up on collect. The greeble/effect are applied elsewhere;
 # this only logs the piece so the beauty-shot menu can offer it.
-func note_collected_piece(kind: String, color: Color, effect: String, grows: bool) -> void:
+func note_collected_piece(kind: String, color: Color, effect: String, grows: bool, value: float = 0.0) -> void:
 	if PieceUtil.is_eligible(effect, grows):
-		collected_pieces.append({"kind": kind, "color": color, "effect": effect})
+		collected_pieces.append({"kind": kind, "color": color, "effect": effect, "value": value})
 
 # Re-establish the run's permanent loadout on the fresh ship (called each level
 # after reset()): bolt on every kept piece and re-apply its permanent effect. This
@@ -707,11 +723,16 @@ func apply_permanent_loadout(pieces: Array) -> void:
 	for p_v in pieces:
 		var p: Dictionary = p_v
 		grow_ship(p.get("kind", "cosmetic"), p.get("color", Color(0.7, 0.7, 0.75)))
+		var val: float = float(p.get("value", 0.0))
 		match p.get("effect", ""):
 			"shield":
-				add_shield()
+				add_shield(val if val > 0.0 else SHIELD_PER_PIECE)
 			"fire_rate":
-				upgrade_fire_rate()
+				upgrade_fire_rate(val if val > 0.0 else FIRE_RATE_STEP)
+			"armor":
+				add_armor(val)
+			"shot_damage":
+				add_shot_damage(val)
 			"afterburner":
 				unlock_afterburner()
 
@@ -741,17 +762,19 @@ func reset() -> void:
 
 	# Combat state resets with the ship on a retry (consistent with attachments
 	# being cleared -- upgrades are "permanent" only within a single life).
-	health = MAX_HEALTH
 	shield = 0.0
 	shield_capacity = 0.0
 	weapon_tier = 1
 	weapon_tier_time = 0.0
 	fire_rate_mult = 1.0
+	shot_damage_bonus = 0.0
+	armor = 0.0
 	owns_afterburner = false
+	health = max_hp()               # after armor reset -> base MAX_HEALTH
 	_fire_cd = 0.0
 	_hurt_cd = 0.0
 	_ab_cd = 0.0
-	health_changed.emit(health, MAX_HEALTH, shield, shield_capacity)
+	health_changed.emit(health, max_hp(), shield, shield_capacity)
 
 	# Level the hull out (a retry starts flat, not mid-bank).
 	if hull_instance != null and is_instance_valid(hull_instance):

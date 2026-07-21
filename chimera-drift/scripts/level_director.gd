@@ -28,9 +28,12 @@ const Combat := preload("res://scripts/combat.gd")
 const BEAUTY_SHOT_SCENE := preload("res://scenes/BeautyShot.tscn")
 const GiantObstacleSpawner := preload("res://scripts/giant_obstacle_spawner.gd")
 const BossScript := preload("res://scripts/boss.gd")
+const LensFlareS := preload("res://scripts/lens_flare.gd")
+const MountUtil := preload("res://scripts/mount_util.gd")
 
 var _giant_spawner: Node3D = null
 var _boss: Node3D = null          # the end-of-level boss (spawned at target distance)
+var _lens_flare: CanvasLayer = null   # sun lens flare (retargeted per level)
 var _theme: Dictionary = {}       # this level's resolved theme (for boss colours)
 
 # SUBMERGED biomes get the full underwater treatment: a murky blue background instead of the
@@ -91,6 +94,10 @@ func _ready() -> void:
 		_default_light_basis = sun_light.transform.basis
 		_default_light_color = sun_light.light_color
 		_default_light_energy = sun_light.light_energy
+	# Lens flare tracking the biome's sun (subtle in gameplay so it never hides threats).
+	_lens_flare = LensFlareS.new()
+	_lens_flare.base_intensity = 0.32
+	add_child(_lens_flare)
 	ship.crashed.connect(_on_ship_crashed)
 	print("[preview] hotkeys -> 1: Ocean Surface (top-down water)  2: Underwater  3: Kelp underwater  0: random")
 	_start_new_level()
@@ -108,6 +115,7 @@ func retry_level() -> void:
 
 func _start_new_level() -> void:
 	_sector += 1
+	Combat.sector = _sector          # drives dropped-part stat scaling
 	Profile.record_sector(_sector)   # deepest level reached (best "game")
 	rolled_level = LevelSeed.roll_new_level(null, _force_biome, _force_view)
 	print("Level seed rolled: ", rolled_level)
@@ -387,6 +395,8 @@ func _orient_sun(cfg: Dictionary) -> void:
 	sun_light.light_color = cfg.get("sun_color", Color.WHITE)
 	sun_light.light_energy = cfg.get("sun_energy", 1.0)
 	sun_light.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_AND_SKY
+	if _lens_flare != null:
+		_lens_flare.set_sun(toward, sun_light.light_color.lerp(Color.WHITE, 0.3))
 
 func _restore_sun() -> void:
 	if sun_light == null:
@@ -493,7 +503,13 @@ func _run_beauty_shot(distance: float) -> void:
 	# none), keep that piece permanently, then advance to the next stage.
 	var idx: int = await shot.choice_made
 	if idx >= 0 and idx < pieces.size():
-		RunManager.permanent_pieces.append(pieces[idx])
+		# When every mount is full, the pick SWAPS the last slot (matches the draft's
+		# full-mount preview); otherwise it's added to a fresh mount.
+		var mount_cap: int = MountUtil.DIRECTIONS.size()
+		if RunManager.permanent_pieces.size() >= mount_cap:
+			RunManager.permanent_pieces[mount_cap - 1] = pieces[idx]
+		else:
+			RunManager.permanent_pieces.append(pieces[idx])
 	overlay.queue_free()
 
 # Build the stat dict the beauty shot lays over the ship for the level just won.

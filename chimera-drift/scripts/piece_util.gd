@@ -8,7 +8,7 @@ extends RefCounted
 # cosmetic hull part (no effect) or a PERMANENT upgrade. Transient buffs
 # (speed_boost / magnet / weapon_up) are deliberately NOT offered as permanent.
 
-const PERMANENT_EFFECTS := ["shield", "fire_rate", "afterburner"]
+const PERMANENT_EFFECTS := ["shield", "fire_rate", "afterburner", "armor", "shot_damage"]
 
 static func is_eligible(effect: String, grows_ship: bool) -> bool:
 	if not grows_ship:
@@ -24,6 +24,10 @@ static func label_for(kind: String, effect: String) -> String:
 			return "RAPID FIRE"
 		"afterburner":
 			return "AFTERBURNER"
+		"armor":
+			return "HULL ARMOR"
+		"shot_damage":
+			return "HEAVY ROUNDS"
 		_:
 			return kind.to_upper() if kind != "" else "HULL PART"
 
@@ -36,5 +40,9 @@ static func blurb_for(effect: String) -> String:
 			return "faster fire, every stage"
 		"afterburner":
 			return "unlocks the afterburner boost"
+		"armor":
+			return "+ max hull, every stage"
+		"shot_damage":
+			return "+ bullet damage, every stage"
 		_:
 			return "a permanent hull part"

@@ -33,7 +33,7 @@ const ATTACH_SCALE := 0.4      # matches Ship.attachment_scale
 #   accent  : sky/theme accent colour (drives the fresnel rim + lamp tint)
 #   rng     : deterministic per-shot rng (lamp phases, detail seeds)
 # ---------------------------------------------------------------------------
-static func dress(hull: Node3D, colors: Array, accent: Color, rng: RandomNumberGenerator) -> void:
+static func dress(hull: Node3D, colors: Array, accent: Color, rng: RandomNumberGenerator, symmetric: bool = true) -> void:
 	# Per-ship rust chance: ~28% of showcased ships are oxidised on their edges.
 	var rust: float = rng.randf_range(0.5, 0.95) if rng.randf() < 0.28 else 0.0
 
@@ -57,14 +57,14 @@ static func dress(hull: Node3D, colors: Array, accent: Color, rng: RandomNumberG
 
 	# Mechanical greeble detail (dishes / trusses / antennas) on the body.
 	if body != null:
-		_scatter_greebles(body, _part_color(body), rng)
+		_scatter_greebles(body, _part_color(body), rng, symmetric)
 
 	var verts: Array = _gather_verts(parts)
 	# Every showcased ship gets glinting glass: if this roll had no cockpit part,
 	# add a small canopy bubble at the front-top so the hero glass always shows.
 	if not has_cockpit and not verts.is_empty():
 		_add_canopy(hull, verts, accent)
-	_scatter_lamps(hull, verts, accent, rng)
+	_scatter_lamps(hull, verts, accent, rng, symmetric)
 
 # Render the run's ACCUMULATED loadout on the showcase ship: bolt each kept piece
 # on as a glossy attachment greeble at the matching gameplay mount, so the shown
@@ -75,23 +75,32 @@ static func attach_loadout(ship_root: Node3D, pieces: Array, aabb: AABB, scale: 
 	var mounts: Array = MountUtil.positions_centered(aabb, scale)   # hull is centred on ship_root
 	var n: int = mini(pieces.size(), mounts.size())
 	for i in range(n):
-		var p: Dictionary = pieces[i]
-		var color: Color = p.get("color", Color(0.7, 0.75, 0.85))
-		var outward: Vector3 = MountUtil.DIRECTIONS[i]
-		var att: Node3D = AttachmentBuilder.build(p.get("kind", "cosmetic"), color, ATTACH_SCALE, outward)
-		att.position = mounts[i]
-		var mis: Array = []
-		_collect_mesh_instances(att, mis)
-		for mi_v in mis:
-			var mi: MeshInstance3D = mi_v
-			_apply_glossy(mi, color, accent, rng)
-		ship_root.add_child(att)
+		var att: Node3D = build_attachment(pieces[i], i, aabb, scale, accent, rng)
+		if att != null:
+			ship_root.add_child(att)
+
+# Build ONE glossy attachment for a piece at mount `index` (positioned relative to a
+# ship_root centred on the hull). Returns null if the index has no mount. Used by
+# attach_loadout and by the beauty shot's live draft PREVIEW.
+static func build_attachment(piece: Dictionary, index: int, aabb: AABB, scale: float, accent: Color, rng: RandomNumberGenerator) -> Node3D:
+	var mounts: Array = MountUtil.positions_centered(aabb, scale)
+	if index < 0 or index >= mounts.size():
+		return null
+	var color: Color = piece.get("color", Color(0.7, 0.75, 0.85))
+	var outward: Vector3 = MountUtil.DIRECTIONS[index]
+	var att: Node3D = AttachmentBuilder.build(piece.get("kind", "cosmetic"), color, ATTACH_SCALE, outward)
+	att.position = mounts[index]
+	var mis: Array = []
+	_collect_mesh_instances(att, mis)
+	for mi_v in mis:
+		_apply_glossy(mi_v, color, accent, rng)
+	return att
 
 # --- greeble detail --------------------------------------------------------
 # Scatter mechanical greebles (satellite dishes / scaffolding / antennas) over the
 # body, sampled onto its vertices and oriented to the surface normal so they stand
 # off the hull. Skips near-underside faces (detail reads better on top / flanks).
-static func _scatter_greebles(body: MeshInstance3D, color: Color, rng: RandomNumberGenerator) -> void:
+static func _scatter_greebles(body: MeshInstance3D, color: Color, rng: RandomNumberGenerator, symmetric: bool = true) -> void:
 	var arrays: Array = body.mesh.surface_get_arrays(0)
 	if arrays.is_empty():
 		return
@@ -107,7 +116,9 @@ static func _scatter_greebles(body: MeshInstance3D, color: Color, rng: RandomNum
 	var mid_thresh: float = maxf(0.05, half_w * 0.22)
 
 	# Split candidates: near-midline TOP vertices (for antennas, which line the
-	# ship's spine) vs. general top/flank vertices (for dishes + scaffolding).
+	# ship's spine) vs. general top/flank vertices (for dishes + scaffolding). On a
+	# SYMMETRIC ship the flank set is restricted to ONE side so each greeble can be
+	# placed as a mirrored pair (keeping the ship symmetric).
 	var mid_idx: Array = []
 	var gen_idx: Array = []
 	for vi in range(verts.size()):
@@ -118,21 +129,52 @@ static func _scatter_greebles(body: MeshInstance3D, color: Color, rng: RandomNum
 			continue                              # skip undersides
 		if absf(verts[vi].x) < mid_thresh and n.normalized().y > 0.1:
 			mid_idx.append(vi)
-		else:
+		elif not symmetric or verts[vi].x >= 0.0:
 			gen_idx.append(vi)
 
-	# Antennas along the midline.
+	# Antennas along the midline (snapped dead-centre when symmetric).
 	var ant_n: int = mini(rng.randi_range(1, 3), mid_idx.size())
 	for i in range(ant_n):
 		var vi: int = mid_idx[rng.randi() % mid_idx.size()]
-		_place_greeble(body, GreebleBuilder.ANTENNA, verts[vi], _norm_at(norms, has_norms, vi), rng, mat)
+		var pos: Vector3 = verts[vi]
+		var nrm: Vector3 = _norm_at(norms, has_norms, vi)
+		if symmetric:
+			pos.x = 0.0
+			nrm = Vector3(0.0, nrm.y, nrm.z)
+			if nrm.length() < 0.01:
+				nrm = Vector3.UP
+			nrm = nrm.normalized()
+		_place_greeble(body, GreebleBuilder.ANTENNA, pos, nrm, rng, mat)
 
-	# Dishes + scaffolding scattered over the rest.
+	# Dishes + scaffolding: mirrored pairs on symmetric ships, free scatter otherwise.
 	var other_n: int = mini(clampi(int(verts.size() / 70), 3, 7), gen_idx.size())
 	for i in range(other_n):
 		var vi2: int = gen_idx[rng.randi() % gen_idx.size()]
 		var kind: int = GreebleBuilder.DISH if rng.randf() < 0.5 else GreebleBuilder.TRUSS
-		_place_greeble(body, kind, verts[vi2], _norm_at(norms, has_norms, vi2), rng, mat)
+		if symmetric:
+			_place_greeble_symmetric(body, kind, verts[vi2], _norm_at(norms, has_norms, vi2), rng, mat)
+		else:
+			_place_greeble(body, kind, verts[vi2], _norm_at(norms, has_norms, vi2), rng, mat)
+
+# Place a greeble AND its mirror twin across the ship's centre plane (x=0). A vertex
+# on the centreline gets a single centred greeble; anything off-centre gets a matched
+# pair (the twin is a duplicate, so no reflected/inside-out mesh).
+static func _place_greeble_symmetric(body: MeshInstance3D, kind: int, pos: Vector3, n: Vector3, rng: RandomNumberGenerator, mat: StandardMaterial3D) -> void:
+	var ax: float = absf(pos.x)
+	if ax < 0.05:
+		var nc: Vector3 = Vector3(0.0, n.y, n.z)
+		nc = nc.normalized() if nc.length() > 0.01 else Vector3.UP
+		_place_greeble(body, kind, Vector3(0.0, pos.y, pos.z), nc, rng, mat)
+		return
+	var s: float = rng.randf_range(0.28, 0.5)
+	var nx: float = absf(n.x)
+	var n_right: Vector3 = Vector3(nx, n.y, n.z).normalized()
+	var g: Node3D = GreebleBuilder.build(kind, rng, s, mat)
+	g.transform = Transform3D(_basis_from_normal(n_right), Vector3(ax, pos.y, pos.z))
+	body.add_child(g)
+	var g2: Node3D = g.duplicate()
+	g2.transform = Transform3D(_basis_from_normal(Vector3(-nx, n.y, n.z).normalized()), Vector3(-ax, pos.y, pos.z))
+	body.add_child(g2)
 
 static func _norm_at(norms: PackedVector3Array, has_norms: bool, vi: int) -> Vector3:
 	var n: Vector3 = norms[vi] if has_norms else Vector3.UP
@@ -228,8 +270,8 @@ static func _add_canopy(hull: Node3D, verts: Array, accent: Color) -> void:
 # Scatter twinkling nav-lamps at silhouette extremes + a few random surface
 # points as one MultiMesh (one draw call), and add a few OmniLight3Ds so the
 # brightest lamps actually cast light on the glossy hull.
-static func _scatter_lamps(hull: Node3D, verts: Array, accent: Color, rng: RandomNumberGenerator) -> void:
-	var pts: Array = _lamp_points(verts, rng)
+static func _scatter_lamps(hull: Node3D, verts: Array, accent: Color, rng: RandomNumberGenerator, symmetric: bool = true) -> void:
+	var pts: Array = _lamp_points(verts, rng, symmetric)
 	if pts.is_empty():
 		return
 
@@ -257,13 +299,18 @@ static func _scatter_lamps(hull: Node3D, verts: Array, accent: Color, rng: Rando
 	mmi.material_override = lamp_mat
 	hull.add_child(mmi)
 
-	# A few real point lights at the first (extreme) lamp points.
-	var light_n: int = mini(3, pts.size())
-	for i in range(light_n):
+	# A few real point lights. On a symmetric ship, keep them symmetric too: the nose
+	# (centre) + the mirrored wingtip pair, so the lit hotspots stay balanced.
+	var light_pts: Array
+	if symmetric and pts.size() >= 5:
+		light_pts = [pts[0], pts[3], pts[4]]
+	else:
+		light_pts = pts.slice(0, mini(3, pts.size()))
+	for lp in light_pts:
 		var om := OmniLight3D.new()
-		om.position = pts[i]
+		om.position = lp
 		om.light_color = lamp_color
-		om.light_energy = 1.6
+		om.light_energy = 1.05
 		om.omni_range = 2.2
 		om.shadow_enabled = false
 		hull.add_child(om)
@@ -285,19 +332,37 @@ static func _gather_verts(parts: Array) -> Array:
 
 # Pick lamp anchor points: silhouette extremes first (nose, tail, wingtips, top)
 # then a few random surface vertices.
-static func _lamp_points(verts: Array, rng: RandomNumberGenerator) -> Array:
+static func _lamp_points(verts: Array, rng: RandomNumberGenerator, symmetric: bool = true) -> Array:
 	if verts.is_empty():
 		return []
 
-	var pts: Array = []
-	pts.append(_extreme(verts, Vector3(0, 0, -1)))   # nose
-	pts.append(_extreme(verts, Vector3(0, 0, 1)))    # tail
-	pts.append(_extreme(verts, Vector3(1, 0, 0)))    # right
-	pts.append(_extreme(verts, Vector3(-1, 0, 0)))   # left
-	pts.append(_extreme(verts, Vector3(0, 1, 0)))    # top
-	for _i in range(3):
-		pts.append(verts[rng.randi_range(0, verts.size() - 1)])
-	return pts
+	if not symmetric:
+		var pts: Array = []
+		pts.append(_extreme(verts, Vector3(0, 0, -1)))   # nose
+		pts.append(_extreme(verts, Vector3(0, 0, 1)))    # tail
+		pts.append(_extreme(verts, Vector3(1, 0, 0)))    # right
+		pts.append(_extreme(verts, Vector3(-1, 0, 0)))   # left
+		pts.append(_extreme(verts, Vector3(0, 1, 0)))    # top
+		for _i in range(3):
+			pts.append(verts[rng.randi_range(0, verts.size() - 1)])
+		return pts
+
+	# Symmetric ship: centreline extremes on x=0, wingtips as a mirrored pair, plus a
+	# couple of mirrored surface pairs -> every lamp is balanced left/right. ORDER
+	# MATTERS: _scatter_lamps lights indices [0]=nose, [3]/[4]=wingtip pair.
+	var nose: Vector3 = _extreme(verts, Vector3(0, 0, -1)); nose.x = 0.0
+	var tail: Vector3 = _extreme(verts, Vector3(0, 0, 1)); tail.x = 0.0
+	var top: Vector3 = _extreme(verts, Vector3(0, 1, 0)); top.x = 0.0
+	var wing: Vector3 = _extreme(verts, Vector3(1, 0, 0))
+	var sym: Array = [nose, tail, top, Vector3(absf(wing.x), wing.y, wing.z), Vector3(-absf(wing.x), wing.y, wing.z)]
+	for _i in range(2):
+		var v: Vector3 = verts[rng.randi_range(0, verts.size() - 1)]
+		if absf(v.x) > 0.05:
+			sym.append(Vector3(absf(v.x), v.y, v.z))
+			sym.append(Vector3(-absf(v.x), v.y, v.z))
+		else:
+			sym.append(Vector3(0.0, v.y, v.z))
+	return sym
 
 static func _extent(verts: Array) -> Vector3:
 	var lo: Vector3 = verts[0]

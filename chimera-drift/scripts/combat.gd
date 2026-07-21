@@ -30,3 +30,6 @@ const TEAM_ENEMY: int = 1
 # beauty shot can show a real "ENEMIES DOWNED" stat. Static so enemy_base can
 # bump it without a reference to the director.
 static var player_kills: int = 0
+# Current sector (1-based), set by LevelDirector each level. Drives progression
+# scaling of dropped part stat values (see stat_util / enemy_spawner).
+static var sector: int = 1

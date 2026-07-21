@@ -107,7 +107,7 @@ func _build_ship(rng: RandomNumberGenerator) -> void:
 	hull.scale = Vector3.ONE * k
 	hull.position = -(aabb.position + aabb.size * 0.5) * k
 	_ship_root.add_child(hull)
-	Dresser.dress(hull, result.colors, _accent, rng)
+	Dresser.dress(hull, result.colors, _accent, rng, result.spec.get("symmetric", true))
 	_ship_root.scale = Vector3.ONE * SHIP_SCALE
 
 func _animate_ship() -> void:
@@ -181,20 +181,21 @@ func _build_environment() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 1.35
+	env.ambient_light_energy = 0.9
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_exposure = 0.9
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
 
 	var key := DirectionalLight3D.new()
-	key.light_energy = 1.3
+	key.light_energy = 0.9
 	key.light_color = Color(1, 0.98, 0.94)
 	add_child(key)
 	key.look_at_from_position(Vector3.ZERO, Vector3(-0.4, -0.6, -0.7), Vector3.UP)
 
 	var fill := DirectionalLight3D.new()
-	fill.light_energy = 0.4
+	fill.light_energy = 0.28
 	fill.light_color = _accent.lerp(Color.WHITE, 0.3)
 	add_child(fill)
 	fill.look_at_from_position(Vector3.ZERO, Vector3(0.5, 0.3, -0.6), Vector3.UP)
