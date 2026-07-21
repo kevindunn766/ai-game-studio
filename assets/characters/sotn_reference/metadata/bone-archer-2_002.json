@@ -1,0 +1,28 @@
+{
+  "filename": "bone-archer-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 98,
+  "height": 175,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 98,
+    "h": 175
+  },
+  "palette_hex_list": [
+    "#FF78DF",
+    "#9F50BF",
+    "#BFB8BF",
+    "#000000",
+    "#50007F",
+    "#505050",
+    "#2F509F",
+    "#000050",
+    "#502800",
+    "#7F787F",
+    "#2F282F",
+    "#BF7850",
+    "#FFF8FF",
+    "#7F5000"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "filename": "fleaman-fleaarmor-2_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/fleaman-fleaarmor-2.png",
+  "width": 45,
+  "height": 92,
+  "bbox": {
+    "x": 182,
+    "y": 11,
+    "w": 45,
+    "h": 92
+  },
+  "palette_hex_list": [
+    "#101020",
+    "#10D030",
+    "#281860",
+    "#383830",
+    "#585830",
+    "#588828",
+    "#606060",
+    "#6838A0",
+    "#803818",
+    "#8060A8",
+    "#A0A0A0",
+    "#A87800",
+    "#D8D8D8",
+    "#E00808",
+    "#F8C000"
+  ]
+}

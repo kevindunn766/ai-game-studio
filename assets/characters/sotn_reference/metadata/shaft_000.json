@@ -1,0 +1,29 @@
+{
+  "filename": "shaft_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 62,
+  "height": 62,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 62,
+    "h": 62
+  },
+  "palette_hex_list": [
+    "#580018",
+    "#400010",
+    "#700020",
+    "#280008",
+    "#880028",
+    "#A00030",
+    "#B80038",
+    "#C02050",
+    "#C83868",
+    "#D05880",
+    "#D87898",
+    "#E098B0",
+    "#E8B8C8",
+    "#F0D8E0",
+    "#F8F8F8"
+  ]
+}

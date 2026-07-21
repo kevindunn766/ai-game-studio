@@ -1,0 +1,28 @@
+{
+  "filename": "bone-scimitar-2_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/bone-scimitar-2.gif",
+  "width": 11,
+  "height": 24,
+  "bbox": {
+    "x": 98,
+    "y": 19,
+    "w": 11,
+    "h": 24
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#101860",
+    "#1038D8",
+    "#202020",
+    "#484030",
+    "#585070",
+    "#686858",
+    "#905000",
+    "#909088",
+    "#B09020",
+    "#B8B8B0",
+    "#E0E0E0",
+    "#E8B860"
+  ]
+}

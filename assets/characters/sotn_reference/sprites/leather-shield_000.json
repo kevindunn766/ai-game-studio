@@ -1,0 +1,31 @@
+{
+  "filename": "leather-shield_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/leather-shield.png",
+  "width": 124,
+  "height": 75,
+  "bbox": {
+    "x": 4,
+    "y": 9,
+    "w": 124,
+    "h": 75
+  },
+  "palette_hex_list": [
+    "#030303",
+    "#181820",
+    "#303038",
+    "#404048",
+    "#585860",
+    "#685838",
+    "#707070",
+    "#785858",
+    "#808080",
+    "#905830",
+    "#989898",
+    "#A8A8A8",
+    "#C0A050",
+    "#C0C0C0",
+    "#D8D8D8",
+    "#E8C0A8"
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "filename": "stone-skull_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/stone-skull.png",
+  "width": 514,
+  "height": 140,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 514,
+    "h": 140
+  },
+  "palette_hex_list": [
+    "#081000",
+    "#101018",
+    "#182100",
+    "#242C2C",
+    "#2C4848",
+    "#312900",
+    "#34CCA0",
+    "#406464",
+    "#423900",
+    "#546D8E",
+    "#548484",
+    "#5A4200",
+    "#606054",
+    "#607474",
+    "#635200",
+    "#7C9494",
+    "#8C6300",
+    "#90A8A4",
+    "#AD8400",
+    "#B0F4E8",
+    "#B8C4C4",
+    "#CCD4D4",
+    "#DCE4E4",
+    "#E4E4E4",
+    "#F8FFFF",
+    "#FFFFFF"
+  ]
+}

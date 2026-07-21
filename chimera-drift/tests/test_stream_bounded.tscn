@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://f6streambound01"]
+
+[ext_resource type="Script" path="res://tests/test_stream_bounded.gd" id="1_test"]
+
+[node name="TestStreamBounded" type="Node"]
+script = ExtResource("1_test")

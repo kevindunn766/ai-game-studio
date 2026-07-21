@@ -1,0 +1,15 @@
+{
+  "filename": "granfaloon_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 22,
+  "height": 43,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 22,
+    "h": 43
+  },
+  "palette_hex_list": [
+    "#301020"
+  ]
+}

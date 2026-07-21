@@ -1,6 +1,24 @@
 # Kindling — Design & Implementation Notes
 
-Source of truth for intent is `../kindling-design-brief.md`. This file tracks what's actually been *built*, mirroring snake-3d/DESIGN.md's "confirmed mechanics" convention — but unlike that file, most of the sections below were built autonomously in one long overnight session and are **pending your review**, not yet confirmed-by-use the way snake-3d's entries are. Treat "Built" here as "implemented and headlessly verified," not "locked."
+Source of truth for intent is `../kindling-design-brief.md` (Kevin's exact words, verbatim).
+
+## 2026-07-19 — Rebuilt from scratch (treadmill streaming foundation)
+
+**All previous code was deleted at Kevin's instruction.** Everything below the `---` divider is history from the deleted iteration, kept for reference; it does not describe the current codebase.
+
+Current codebase (fresh start), per the brief — the level-streaming foundation:
+- **Treadmill.** The player piece is fixed at the origin and never moves; the world scrolls past it. `scripts/main.gd` accumulates a scroll offset from WASD/arrows (camera-relative) and sets a `World` node to −scroll each frame. Player stays at (0,0,0).
+- **Level streaming — Chimera Drift approach.** `scripts/world_streamer.gd`: a 2D grid of cells keyed by (ix,iz), streamed in/out of a window around the scroll centre (build radius, per-frame build cap, nearest-first build, free-outside, deterministic per-cell scatter). Same method as Chimera's `level_surface` grid streamer, keyed off the scroll offset instead of a moving player. Placeholder ground tiles + scattered placeholder boxes for now.
+- **Isometric camera — Snake_3d.** `main.gd` builds Snake's rig: yaw pivot (45°) → `SpringArm3D` (pitch −35.264°, length 20) → orthographic `Camera3D`. `scripts/camera_controller.gd` eases the camera `size`, zooming out **subtly** with the size of objects near the player (Snake's size-based zoom, adapted).
+- **Tilt-shift — Snake_3d.** `shaders/tilt_shift.gdshader` full-screen overlay, kept subtle (wide focus band, gentle blur).
+
+Verified: `tests/test_world_streamer.gd` (cells stream in/out as the scroll centre moves; capped, nearest-first, deterministic re-entry); the real `Main.tscn` builds, fills ~112 cells, world scrolls to −scroll while the player stays at origin; a rendered frame (`_renders/treadmill.png`) shows the correct iso view + subtle tilt-shift. Placeholder art only — real player/objects are next.
+
+---
+
+_(History — previous, deleted iteration:)_
+
+This file tracks what's actually been *built*, mirroring snake-3d/DESIGN.md's "confirmed mechanics" convention — but unlike that file, most of the sections below were built autonomously in one long overnight session and are **pending your review**, not yet confirmed-by-use the way snake-3d's entries are. Treat "Built" here as "implemented and headlessly verified," not "locked."
 
 ## Start here for a clean restart
 
@@ -198,7 +216,119 @@ Three phase-1 foliage types, each with built-in variety so a scattered field rea
 - **Clover** (`build_clover`) — domed clump of thin petioles topped with rounded (obovate) trefoil leaflets; **3 species tints**, rare **four-leaf**, occasional **white→faint-pink globular flower heads**.
 - **Dandelion** (`build_dandelion`, `flower_kind` -1/0/1/2) — basal leaf rosette + scape with **three forms**: wide/dense **yellow→orange flower** (short scape), white **seed puff** (tall scape), green **unopened bud**.
 
-These three are the **locked phase-1 foliage set** (per Kevin: "move forward with these three"). Verified by rendered screenshots (real GPU render via a non-headless `--script` scene, screenshots inspected — not just no-crash). **Not yet wired into world spawning/streaming** — that's the next step (a pool of clump variants MultiMesh-scattered, with `grass_lod` for the near ring), and the `.png` card LOD for the tiniest scum is still to come. Cards/billboards not built yet; the current `prop_manager.gd` grass (`dry_grass` one-node-per-blade) is still what runs in-game until placement swaps to this.
+These three are the **locked phase-1 foliage set** (per Kevin: "move forward with these three"). Verified by rendered screenshots (real GPU render via a non-headless `--script` scene, screenshots inspected — not just no-crash). The `.png` card LOD for the tiniest scum is still to come; cards/billboards not built yet.
+
+## Frond grass wired into spawning — Stage B (built, headless-verified only, needs in-editor look)
+
+The frond system is now actually spawning in-game: `prop_manager.gd`'s `dry_grass` tier renders a **pooled Frond grass clump** instead of the old one-`CylinderMesh`-cone-per-blade. Chosen approach (agreed with Kevin, out of three options): **Stage B — swap the visual + enlarge cells, keep the existing per-node `Fuel`/`Area3D` ignite-burn-points machinery entirely untouched**, and prove it in-editor *before* the larger MultiMesh + positional-burn rewrite (that's a deliberate later Stage A/C pass; DESIGN.md's stated end-state of "one MultiMesh per world-cell" is not yet done). Rejected doing full MultiMesh now because it couples a visual change with a fuel-path rewrite in one un-playtested leap.
+
+What changed in `prop_manager.gd`:
+- **Pooled meshes:** `GRASS_POOL_SIZE = 10` clump meshes (`Frond.build(0.2, seed, 0.0, 0.9)` — stem-zero grass rule, thickness 0.9 solid blades) built once lazily on first grass spawn, held as shared `Mesh` resources. A spawn is just `new MeshInstance3D` + assign a shared mesh + per-cell variant/yaw pick — no per-spawn `SurfaceTool` build. Material is one shared `StandardMaterial3D` with `vertex_color_use_as_albedo` (frond geometry carries albedo in vertex COLOR).
+- **Cell/economy retune:** `dry_grass` cell_size 0.07→0.3m (one multi-tuft *clump* per cell, not one blade), density kept 0.85, charge_value 0.08→1.5. The charge bump keeps per-m² charge roughly constant (~14 charge/m²) so the growth economy is unchanged while node count drops ~30× (the flagged Band-1 perf concern). **`GRASS_CLUMP_SCALE = 0.2m` → ~15cm blades, towering over the ~2cm match flame per the brief.**
+- `_build_prop_visual()` now takes the cell `key` (for the deterministic per-cell variant pick); `dry_grass` early-returns the frond visual, every other tier is unchanged.
+
+**Verified headless:** frond grass mesh builds valid geometry (5,148 verts, matching vertex COLOR + normals); pooled visual is deterministic per cell, shares pool resources, has the vertex-color material; non-grass tiers still build after the signature change; `test_prop_manager_lod` + `test_epoch_spawn_verification` still pass. **Caveat, same as everything past Band 1: headless proves it instantiates/pools/is wired correctly — it does NOT prove the on-screen look (clump density, blade height vs. flame, whether it reads as a lawn) or that ignite/burn still feels right. Needs an in-editor look before the Stage A/C MultiMesh pass.**
+
+## Grey-box → real models, category by category (Kevin's direction)
+
+The in-editor render above exposed that the *other* Band-1/2 Quick Fuel was worse than the grass ever was: **`leaf_litter` alone spawned 1282 flat brown boxes** (cell 0.08) that carpeted the ground into ugly tiled steps — the same per-node perf bomb, and now the dominant eyesore. Kevin's call: **remove the grey-box placeholders and replace them with real game-ready models, incrementally, one category at a time** (plants → structures → hazards → threats), keeping the game runnable and Registry-logging each step. Tracked as a 5-task program.
+
+### Category 1 — Band-1/2 plants → real frond models (built, render-verified)
+
+Wired all six existing frond flowers into world spawning alongside the grass, and retired every Band-1/2 grey-box Quick Fuel:
+- **Generalized the grass pool infra** (`prop_manager.gd`) from grass-only to any frond plant: `FROND_PLANT_SCALE` is now both the per-tier real-world scale table *and* the registry of which tier ids render as frond geometry; `_build_frond_mesh()` switches to the right `Frond.build_*` fn; `_ensure_frond_pool()`/`_frond_visual()` build & serve 8 shared-mesh variants per tier off one `vertex_color_use_as_albedo` material. `_build_prop_visual()` early-returns the frond path for any `FROND_PLANT_SCALE` tier.
+- **Added tiers** (Quick Fuel, pooled): clover, daisy, dandelion (Band 1), plantain, lavender, queenannes (Band 1-2). Grass stays the dense workhorse fuel; the flowers are sparse point-accents. Real-world scales 0.09–0.45m.
+- **Removed tiers + their visual-builder cases:** leaf_litter (the carpet), twig, wrapper, small_plant, pine_needle, twig_nest. twig/wrapper/twig_nest are litter that can come back as procedural-mesh objects in the placeable-object library, not as plants.
+- **Table alignment:** `GrowthController.BAND_TABLE.fuel_tiers` for Bands 1-2 updated to the new foliage; flower `active_scale_range`/`active_while_scale_below` chosen so each is spawnable at the midpoint of every band it's listed for (B1 0.05, B2 0.165) — `test_epoch_spawn_verification` enforces that.
+- **Tests:** updated `test_prop_manager_lod` (its removed-`small_plant` range check repointed to `queenannes` [0.08,0.4]); full suite green (epoch, prop-LOD, growth, camera, locomotion, double-tap).
+- **Render-verified** in `Main.tscn` at match scale: leaf_litter carpet gone (clean green ground), grass reads as a lawn, clover/flowers spawning. Placeholder densities/charges (flowers) and a slightly-sparse feel are open tuning items; a thin dark bar at the top of frame predates this work (a distant landmark prop in the orthographic column).
+
+**Still to do (later categories / passes):** Band-3 plants (brush_pile/dry_shrub — needs a frond bush builder); Structure Fuel, hazards, dousing threats → real procedural models (tasks 3-5); `grass_lod` distance far-LOD (deferred — ortho `visibility_range` distances non-obvious); Stage A/C MultiMesh + positional-burn optimization; `.png` card LOD for sub-plant scum.
+
+### Category 1b — Band-1 dead litter → real frond models (built, headless-verified)
+
+Filled out the first burnable tier with **dead ground litter** (the grey-box twig/leaf_litter/twig_nest that Category 1 retired now return as real procedural mesh, per Kevin's "come back as procedural-mesh objects" note), reusing the frond primitives:
+- **New `frond.gd` builders** (a "DEAD LITTER" section) + shared helpers `_dry_leaf_colors()` (tan/rust/grey/straw/amber palette, darkening toward the curled tip), `_dead_stick()` (bent tapering tube-chain that sags to the ground), `_dead_leaf_at()`:
+  - `build_twig` — dead twig blown off a tree with a fork or two and dry curled leaves clinging on.
+  - `build_leaf_litter` — a per-cell *scatter clump* of ~9–16 near-flat fallen leaves in diverse browns/greys + a few twig bits (deliberately **not** the old one-flat-box-per-leaf carpet that triggered Category 1).
+  - `build_mossy_stick` — damp-dark fallen branch with cushions of short green moss on its upper surface.
+  - `build_moss_patch` — low mounded green cushion of many tiny blades + a few reddish sporophyte stalks (ground cover).
+  - `build_pine_cone` *(invented)* — ovoid of overlapping shingle scales spiralled up a short core.
+  - `build_twig_cluster` *(invented)* — nest-like pile of 4–7 crossed twigs (revives the twig_nest concept).
+- **Wiring** (`prop_manager.gd`): six entries added to `FROND_PLANT_SCALE` (0.06–0.16m), `PROP_TIERS`, and the `_build_frond_mesh()` switch — same pooled shared-mesh path as the plants, no new infra.
+- **Table alignment** (`GrowthController.BAND_TABLE`): Band 1 gets all six; Band 2 gets the woody four (twig/mossy_stick/pine_cone/twig_cluster). `active_scale_range` picked to cover exactly the band midpoints each is listed for (B1 0.05 → [0.02,0.12] or [0.02,0.3]; the woody four reach 0.3 to also cover B2 0.165) — `test_epoch_spawn_verification` enforces this.
+- **Verified headless** (scratch checks, deleted after use, per convention): all six commit valid geometry (verts + vertex COLOR + NORMAL, sane real-world AABB), and a real-frame `Main.tscn` run streamed all six in near the flame at match scale (leaf_litter 23 / moss_patch 10 / twig 9 / pine_cone 6 / mossy_stick 2 / twig_cluster 2, alongside grass 102). Full suite green. **Not yet looked at in-editor** — silhouettes/colours/does-it-read-as-litter still needs a render pass. Note: moss builders are vert-heavy (~9–11k per variant; many tiny blades) — pooled/shared so acceptable, but a MultiMesh candidate alongside the grass if it ever bites.
+
+### Category 1b continued — 3 more invented litter objects (built, render-verified)
+
+Added `bark_curl` (peeled curled bark strip, double-sided sheet), `acorn` (nut in a textured cupule + stalk, via a new `_build_ovoid` loft helper) and `seed_pod` (split open husk/canoe with seeds). Wired the same way (FROND_PLANT_SCALE 0.045–0.12m, PROP_TIERS, `_build_frond_mesh`, BAND_TABLE B1 + the woody two into B2). Render-verified in a detail grid + scale line-up. Open tweak: seed_pod's pale interior reads too white.
+
+### Litter physics — baked resting poses + runtime bump (built, render + test verified; feel needs in-editor)
+
+Two-part pass over the loose litter, per Kevin's direction ("run physics to get a natural position, then bake, then add the bump at runtime; also a little bump to the dry leaves"):
+
+- **Baked gravity-settled poses.** `tests/_bake_poses.gd` drops each of the 7 loose-object tiers × 8 pool variants as a `RigidBody3D` (convex collision) and records the settled rotation into `scripts/litter_rest_poses.gd` (a generated `const POSES` table). Each body **starts with its longest axis laid near-horizontal** (a first bake let thin twigs/sticks settle standing bolt-upright like fence posts — render-caught; the flat start fixes it while physics still finds the real resting facet + a natural tilt). At spawn, `prop_manager._frond_visual()` applies `Basis(yaw) * Basis(baked_quat)` and **re-grounds** the tilted mesh (`_rotated_aabb_min_y`, 8-corner) so its lowest point sits exactly on y=0 (kills the slight sinking the live sim showed). Rotation is scale-invariant, so the bake sims at 6× real size for stable physics and bakes orientation only. moss_patch (rooted ground cover) and leaf_litter (flat scatter) get **no tilt**.
+- **Runtime bump (not a RigidBody).** `scripts/bump_motion.gd` — a damped-spring `MeshInstance3D` (the pooled visual itself, no extra node), chosen over per-object dynamic bodies because hundreds stream on-screen. It's `set_process(false)` at rest (idle litter costs nothing); the flame's new **BumpArea** (`flame.gd`, a second Area3D ~2.2× the ignite radius) fires `Fuel.apply_bump()` → the spring, which leans/hops the object away from the flame and settles back. Impulse scales with flame size (consistent felt bump as the camera zooms) and flame speed (a near-stationary flame barely disturbs litter). The 7 loose objects **plus leaf_litter** are bumpable (per-tier profiles in `prop_manager.LITTER_BUMP_PROFILE`; leaves use a soft, hoppy profile so they **flutter**); moss_patch is not.
+
+Verified: `tests/test_litter_bump.gd` (spring displaces-then-returns-and-self-sleeps; bumpable tiers spawn tilted/grounded bump nodes; grass/moss stay plain; baked table complete), winding/normals re-verified against BoxMesh, full suite green, and a scattered-field render confirms natural resting poses (sticks lie flat, cones/pods on their sides). **The bump is a motion effect — a still render can't show it; it needs an in-editor look while moving.** `tests/_bake_poses.gd` is kept as the regeneration tool for the poses table.
+
+### Life-bar litter — acorn / pine_cone / mossy_stick (built, render + test verified)
+
+Per Kevin: these three **burn down over sustained contact** (a life bar) instead of catching instantly. Rather than a new mechanic, they route through the **existing StructureFuel** drain path (health depletes only while the flame holds contact, full points at zero — the flame's `_touching_structures` machinery is reused unchanged), moved out of `PROP_TIERS` into `STRUCTURE_FUEL_TIERS` with `"frond": true`. `StructureFuel` gained a **frond litter mode** so it keeps the frond vertex-colour mesh + baked pose + bump (not the dissolve box):
+- A per-instance material **copy** (`vertex_color_use_as_albedo` kept) so `drain()` can multiply albedo toward char-black + add ember emission on just this object without touching the shared pooled material.
+- A **floating billboarded life bar** (green→red fill, shown only while burning, shrinks with health), parented to self so the burn-shrink doesn't scale it; `cast_shadow` OFF (billboards otherwise throw giant rectangular shadows — render-caught).
+- **Char + shrink** on drain (`_visual_root` scales, not the frond node whose local transform the bump spring owns), and it **burns fully away** (no husk) at zero health.
+- `contact_radius` is now per-tier (0.035–0.06m for litter vs the box structures' 0.45m), and the shared **burn particles were scaled to the object** + given an additive orange material (they were metre-sized white blocks tuned for boxes — render-caught; this also fixes the box structures' particles).
+- `StructureFuel.apply_bump` forwards to the frond visual, so a burning cone/acorn can still be nudged until consumed.
+
+Verified: `tests/test_structure_litter.gd` (the 3 tiers are Structure Fuel not Quick Fuel; begin_contact spawns a life bar; drain chars the mesh; zero health emits `fully_burned` exactly once), full suite green, and a mid-burn render shows the life bar + embers + charring. Bar placement/size and char strength are first-pass; final feel wants an in-editor look under the real orthographic camera.
+
+## Scale-adaptive detailed ground (built, render-verified at two zooms)
+
+The flat green `PlaneMesh` ground read as a featureless void at match scale (a 0.7m camera over a uniform plane). Kevin's ask: a system so the ground is *"just as detailed when near as when we zoom out,"* using "tessellation." **Godot 4 has no hardware tessellation/geometry-shader stage** (Godot 3 did; removed in 4), so this is built as a zoom-driven detail system, not a tessellation shader — and Kevin chose to build both the geometry and material layers together.
+
+**`scripts/ground_manager.gd` + `shaders/ground.gdshader`:**
+- **Geometry:** ONE fixed 129×129-vertex subdivided `PlaneMesh` patch (built-in mesh → Godot-correct winding). GroundManager recentres it under the flame and **scales it by `camera.size`** each frame, so the same fixed grid covers a ~1.7m view at match scale and a ~1.2km view at inferno scale. Fixed vertex count + resizing patch ⇒ **constant on-screen triangle density at every zoom** — the "tessellation" behaviour (finer effective sampling up close) without a tessellation stage. Recentre is snapped to the vertex spacing so the displaced silhouette doesn't swim through the world-space height field. Keys off `camera.size` like `prop_manager.gd`, per the brief's zoom-tracking-streaming requirement.
+- **Material:** a world-space fBm value-noise field drives BOTH vertex displacement (real relief) AND fragment albedo/normal (soil dark/light mottle + grass-root green in the dips + fine pebble grain). World normal is computed from the height gradient and injected via a varying (patch is unrotated → view-space convert in fragment).
+- **The key fix (why v1 looked flat):** feature sizes + relief amplitude are **fractions of the camera view span, not fixed world metres.** A fixed wavelength (first attempt, 6m) was ~4× the match-scale patch → less than one noise cycle → flat; and would alias when zoomed far out. Making features view-relative (`relief_wl_frac`/`color_wl_frac`/`detail_wl_frac`/`relief_amp_frac`) is what actually delivers "equally detailed near and far," verified by rendering at camera.size 0.7 (match) and 4.97 (Band 5) — both show the same apparent soil-detail density.
+- **The existing 1200×1200 flat plane** stays as a dark-soil backdrop lowered to y=-0.3 (the detail patch covers the view; backdrop is insurance against edge peek).
+
+### Ground refinement — octave-crossfade + sculpted relief (built, render-verified at 3 zooms)
+
+Refined the v1 above per Kevin's direction:
+- **Octave-crossfade (`fbm_stable()`):** instead of a *continuously* view-relative wavelength (which made features "breathe"/morph as you zoom), the shader now samples the two power-of-two WORLD wavelengths bracketing the view-relative target and crossfades between them (`mix` by the fractional log2). Features are therefore pinned to the world *within* a zoom-octave and only crossfade smoothly across octave boundaries — the standard geoclipmap/mip detail-fade trick. Kills the boiling while keeping "equally detailed near and far".
+- **Sculpted/layered soil:** relief amplitude bumped (`relief_amp_frac` 0.05→0.09), and a `sculpt_strength` term darkens valleys / lightens ridges using the *same* relief height that drove the displacement, so lighting agrees with geometry and the ground reads as layered earth rather than flat mottling. Colour layers (soil dark/light, root-green, pebble grain) each decorrelated with world offsets.
+- `GroundManager.VIEW_MARGIN` 2.4→3.0 so the patch overreaches `camera.size` enough to cover the deeper visible trapezoid created by the camera's ~35° tilt (avoids a far-edge gap).
+
+Render-verified at camera.size 0.7 / 4.0 / 40.0: match scale is detailed sculpted soil; the 4m view is a full meadow (grass + clover + dandelion + daisies) on richly layered ground; 40m still fully covered and detailed. (The 4m shot is the representative gameplay view.) Grey quads seen in a forced-zoom test shot were the house-foundation/Structure landmarks viewed through an artificially tight camera — a test-only camera/flame mismatch, not a real bug; in-game `camera.size` always tracks flame scale.
+
+**Still not looked at while actively moving/zooming in a live editor session** — the crossfade should hold, but real-time zoom "breathing" and silhouette shimmer during movement still want an in-editor look, same caveat as everything headless/scripted. Further possible passes: more distinct soil strata, wetness near dousing water, integrating the scorch-trail decal into the ground shader.
+
+## "Suddenly grows huge + races + stutters" — diagnosed & fixed (headless-verified)
+
+Kevin's report: runs fine, then the fire pops big, races around, and stutters; he suspected the world-scales/player-stays-fixed camera would fix it. Instrumented a headless run (load Main.tscn, drive the flame, log scale/target/grow/cam/speed/pos/propNodes over thousands of frames). Findings:
+- The camera model would **not** fix it — the flame physically grows regardless of framing; the runaway is in the growth **economy** + the speed formula, not the camera.
+- Both the flame's ignite radius AND its move speed scale with size, so fuel intake grows ~scale² — in the dense-fuel bands (grass 0.85 density + all litter, Bands 1-3) growth accelerates as you grow.
+- The dramatic pop is a **cascade**: zooming into a dense band spawns a burst of heavy frond nodes → frame **stutter** → the large `delta` makes `position += velocity*delta` **teleport** the flame across a fuel patch → a whole batch ignites in one frame → scale **pops** → the lerping camera **races** to catch up. (A red herring along the way: an early version of the diagnostic froze the flame and its expanding ignite radius ate a disc, faking an even worse runaway — that was a harness bug, not the game.)
+
+Fixes (all in `flame.gd` + `prop_manager.gd`):
+- **Rate-capped scale ease.** `GrowthController`'s value is now a *target*; `flame.scale_factor` eases toward it at a capped RELATIVE rate (`scale_ease_rate`, fraction of its own size per second) in `_ease_scale()`. Camera, speed, mesh, and prop streaming all read `scale_factor`, so they ramp together — no pop, and no camera/speed desync (which was the "races around"). `move_toward` never overshoots, so a flame that stops eating just arrives and holds. `set_scale_factor(x, snap=true)` for instant seeds/tests.
+- **Clamped physics step.** `_physics_process` clamps `delta` to `MAX_PHYSICS_STEP` (0.05 = 20 fps floor) so a stutter frame can't teleport the flame (and thus can't batch-ignite / pop).
+- **Smaller spawn batches.** `MAX_SPAWNS_PER_TIER_PER_FRAME` 60→18 — the frond visuals are heavier now (baked-pose grounding, a bump node, moss ~11k verts) and several dense tiers stream at once on a band change, so the big per-frame batch was the main stutter source; smaller batches spread the cost.
+
+Verified headless: a moving flame now grows **smoothly and monotonically**, camera and speed climb together (constant perceived speed), no scale jumps; a stationary flame eats its local disc and safely stops. `tests/test_flame_locomotion.gd` gained a scale-ease unit test (a target jump ramps, never overshoots, converges). Full suite green. **Still flagged (separate, not this fix):** the underlying scale² economy still makes the dense bands pace briskly (tunable via grow_targets / densities / charge values), and dense grass/litter still wants **MultiMesh** batching for a real perf floor. Needs an in-editor feel check.
+
+## Stripped back on Kevin's call — bump + burn removed, growth hard-capped (2026-07-19)
+
+Kevin, playing it: "it still grows suddenly and rapidly when you get bigger; the bump mechanics suck, get rid of them; the burn mechanics suck, get rid of them; the tessellation sucks — the player doesn't even move along it; the click-to-follow sucks; everything feels awkward and weird." Honest root cause: mechanics got piled on a core loop (move / grow / camera / ground) that was never made to feel good. Response = strip, not add:
+- **Removed the litter bump entirely.** Deleted `bump_motion.gd`, the Flame `BumpArea` + handler + `_bump_strength`/`_update_bump_radius`, `Fuel.apply_bump`, `PropManager.LITTER_BUMP_PROFILE`, and the bump path in `_frond_visual`. Litter is a plain pooled MeshInstance again (baked natural pose kept — cheap and not complained about). Deleted `test_litter_bump.gd`.
+- **Removed the life-bar / burn-down litter.** `StructureFuel` reverted to the clean box-only version (no `frond_mode`, life bar, char/shrink, or per-tier contact radius; kept the one genuine improvement — the burn particles now use an additive orange material instead of white default quads). acorn/pine_cone/mossy_stick are back to instant-catch Quick Fuel in `PROP_TIERS`. Deleted `test_structure_litter.gd`.
+- **Growth hard-cap tightened.** `flame.scale_ease_rate` 0.6 → **0.25** (visible scale can grow at most 25 %/s of its own size, at any scale — kills the "grows faster the bigger you get" acceleration). It's a single dial; lower it further if still too fast. (The underlying scale² economy is the deeper lever if the cap isn't enough.)
+- Verified: full test suite green; the real `Main.tscn` loads and runs 90 frames clean (no dangling references).
+
+**Movement: WASD/arrows ONLY** (Kevin's pick). `kindling_manager.gd::_process` polls physical WASD/arrow keys and sets a camera-relative ground direction (W = "up the screen"). Everything else input-related was **deleted** on Kevin's call — the double-tap **jump** was making the fire hop around, so the jump machinery (`flame.gd::jump`/`_find_jump_target`/`_play_jump_arc`/`_apply_jump_frame`/`climb_arc_height`/`_is_jumping`), the **tap/double-tap detection**, and the **floating touch joystick** are all gone (`tap_detector.gd`, `touch_joystick.gd`, `test_double_tap_detection.gd` removed; climb-arc tests dropped). One input path now: keyboard steering. (Mass-follow body trail kept — it's cosmetic, not "movement".)
+
+**Still open / next (the actual feel problems, not more mechanics):** the uniform procedural ground (no landmarks, so moving doesn't read as motion — the "tessellation" complaint), and growth *pacing* (capped at 25%/s; dial down further if needed). A deliberate core-feel pass with Kevin, not more content.
 
 ## Known gaps / explicitly deferred
 - No menu, leaderboard, or persistent score — death just reloads the scene.

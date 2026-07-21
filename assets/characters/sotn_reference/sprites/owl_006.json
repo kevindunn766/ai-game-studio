@@ -1,0 +1,29 @@
+{
+  "filename": "owl_006.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/owl.gif",
+  "width": 37,
+  "height": 85,
+  "bbox": {
+    "x": 257,
+    "y": 24,
+    "w": 37,
+    "h": 85
+  },
+  "palette_hex_list": [
+    "#100000",
+    "#200000",
+    "#300000",
+    "#301000",
+    "#402000",
+    "#503000",
+    "#601000",
+    "#802008",
+    "#806020",
+    "#A04010",
+    "#C0A040",
+    "#E08020",
+    "#E0C060",
+    "#E0E000"
+  ]
+}

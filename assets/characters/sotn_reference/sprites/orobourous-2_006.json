@@ -1,0 +1,31 @@
+{
+  "filename": "orobourous-2_006.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/orobourous-2.png",
+  "width": 27,
+  "height": 87,
+  "bbox": {
+    "x": 296,
+    "y": 18,
+    "w": 27,
+    "h": 87
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#080808",
+    "#202028",
+    "#282828",
+    "#305060",
+    "#404040",
+    "#404838",
+    "#484838",
+    "#606060",
+    "#787048",
+    "#808080",
+    "#A89860",
+    "#A8A8A8",
+    "#D0C878",
+    "#E0E0E0",
+    "#F8F0A8"
+  ]
+}

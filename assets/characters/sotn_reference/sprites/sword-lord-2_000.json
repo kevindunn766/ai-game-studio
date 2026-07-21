@@ -1,0 +1,39 @@
+{
+  "filename": "sword-lord-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/sword-lord-2.png",
+  "width": 982,
+  "height": 536,
+  "bbox": {
+    "x": 1,
+    "y": 0,
+    "w": 982,
+    "h": 536
+  },
+  "palette_hex_list": [
+    "#002000",
+    "#002828",
+    "#005028",
+    "#009898",
+    "#040404",
+    "#080808",
+    "#080828",
+    "#202000",
+    "#202020",
+    "#285028",
+    "#500000",
+    "#505000",
+    "#505050",
+    "#787878",
+    "#980000",
+    "#989878",
+    "#B87800",
+    "#B8B8B8",
+    "#D8D8B8",
+    "#F87800",
+    "#F8B800",
+    "#F8F8B8",
+    "#F8F8D8",
+    "#F8F8F8"
+  ]
+}

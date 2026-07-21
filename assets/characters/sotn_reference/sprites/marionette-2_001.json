@@ -1,0 +1,25 @@
+{
+  "filename": "marionette-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/marionette-2.png",
+  "width": 178,
+  "height": 282,
+  "bbox": {
+    "x": 430,
+    "y": 0,
+    "w": 178,
+    "h": 282
+  },
+  "palette_hex_list": [
+    "#301010",
+    "#502000",
+    "#602020",
+    "#604000",
+    "#784040",
+    "#886810",
+    "#987068",
+    "#C0A028",
+    "#F0D0B0",
+    "#FB04E7"
+  ]
+}

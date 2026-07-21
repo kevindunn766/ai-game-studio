@@ -1,0 +1,41 @@
+{
+  "filename": "trevor-belmont-4_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/trevor-belmont-4.png",
+  "width": 408,
+  "height": 612,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 408,
+    "h": 612
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#001010",
+    "#00FB00",
+    "#202020",
+    "#384000",
+    "#405060",
+    "#440088",
+    "#583008",
+    "#686000",
+    "#708890",
+    "#84FF84",
+    "#908800",
+    "#908820",
+    "#985018",
+    "#B0B8C0",
+    "#B55229",
+    "#B8C020",
+    "#D08040",
+    "#D8B068",
+    "#D8D8D8",
+    "#D8E0A8",
+    "#E08040",
+    "#EF1821",
+    "#F80000",
+    "#FFF200",
+    "#FFFFFF"
+  ]
+}

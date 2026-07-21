@@ -1,0 +1,43 @@
+{
+  "filename": "blade-master-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 432,
+  "height": 457,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 432,
+    "h": 457
+  },
+  "palette_hex_list": [
+    "#BFB8BF",
+    "#7F787F",
+    "#A0783F",
+    "#000000",
+    "#4F484F",
+    "#2F282F",
+    "#FFF8FF",
+    "#905020",
+    "#7F2800",
+    "#2F782F",
+    "#004000",
+    "#4F2800",
+    "#BFB86F",
+    "#2FB800",
+    "#3F3F40",
+    "#908070",
+    "#807770",
+    "#5F5F60",
+    "#6F6F80",
+    "#5F6090",
+    "#30606F",
+    "#206F40",
+    "#2F7F60",
+    "#40687F",
+    "#2F50FF",
+    "#0098FF",
+    "#00D8FF",
+    "#9FF8FF",
+    "#FFB8FF"
+  ]
+}

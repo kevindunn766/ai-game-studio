@@ -1,0 +1,40 @@
+{
+  "filename": "gremlin-3_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/gremlin-3.png",
+  "width": 35,
+  "height": 102,
+  "bbox": {
+    "x": 222,
+    "y": 5,
+    "w": 35,
+    "h": 102
+  },
+  "palette_hex_list": [
+    "#003800",
+    "#186800",
+    "#189018",
+    "#200820",
+    "#50C858",
+    "#586060",
+    "#680000",
+    "#903808",
+    "#909898",
+    "#A80800",
+    "#C0C0C8",
+    "#C85070",
+    "#C85828",
+    "#E83000",
+    "#E88800",
+    "#E8D008",
+    "#E8E868",
+    "#E8E8E8",
+    "#F0B030",
+    "#F0F8F8",
+    "#F87800",
+    "#F880A0",
+    "#F89800",
+    "#F8E000",
+    "#F8F880"
+  ]
+}

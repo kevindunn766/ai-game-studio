@@ -1,0 +1,16 @@
+{
+  "filename": "axe-armor-2_005.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/axe-armor-2.png",
+  "width": 5,
+  "height": 7,
+  "bbox": {
+    "x": 465,
+    "y": 563,
+    "w": 5,
+    "h": 7
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

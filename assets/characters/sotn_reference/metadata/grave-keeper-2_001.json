@@ -1,0 +1,27 @@
+{
+  "filename": "grave-keeper-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 83,
+  "height": 164,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 83,
+    "h": 164
+  },
+  "palette_hex_list": [
+    "#502000",
+    "#4F501F",
+    "#A0802F",
+    "#C0A050",
+    "#000000",
+    "#9F501F",
+    "#BF783F",
+    "#2F2810",
+    "#00502F",
+    "#408850",
+    "#2F080F",
+    "#9FB87F",
+    "#4F4F30"
+  ]
+}

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://j1gameplaytweaks"]
+
+[ext_resource type="Script" path="res://tests/test_gameplay_tweaks.gd" id="1_test"]
+
+[node name="TestGameplayTweaks" type="Node3D"]
+script = ExtResource("1_test")

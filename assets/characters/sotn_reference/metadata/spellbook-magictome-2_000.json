@@ -1,0 +1,25 @@
+{
+  "filename": "spellbook-magictome-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 28,
+  "height": 32,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 28,
+    "h": 32
+  },
+  "palette_hex_list": [
+    "#582020",
+    "#401828",
+    "#703020",
+    "#884020",
+    "#A86030",
+    "#C88040",
+    "#301018",
+    "#605020",
+    "#503818",
+    "#806820",
+    "#B09020"
+  ]
+}

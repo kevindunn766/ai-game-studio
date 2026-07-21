@@ -1,0 +1,37 @@
+{
+  "filename": "salome-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/salome-2.png",
+  "width": 66,
+  "height": 255,
+  "bbox": {
+    "x": 530,
+    "y": 4,
+    "w": 66,
+    "h": 255
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#181828",
+    "#202020",
+    "#283030",
+    "#383838",
+    "#404050",
+    "#405061",
+    "#481840",
+    "#503018",
+    "#595020",
+    "#695040",
+    "#718991",
+    "#895018",
+    "#898920",
+    "#A1B250",
+    "#B2BAC2",
+    "#C28120",
+    "#CA8140",
+    "#DADADA",
+    "#EABA69",
+    "#FAC220",
+    "#FAFA00"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "filename": "hippogryph-2_004.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/hippogryph-2.png",
+  "width": 4,
+  "height": 7,
+  "bbox": {
+    "x": 1954,
+    "y": 219,
+    "w": 4,
+    "h": 7
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

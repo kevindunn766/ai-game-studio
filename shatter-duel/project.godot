@@ -1,0 +1,22 @@
+; Shatter Duel — 2-device wireless block-battle PROTOTYPE (grey-box).
+; Working title only; not a final brief-approved game.
+config_version=5
+
+[application]
+
+config/name="Shatter Duel (prototype)"
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[autoload]
+
+Net="*res://scripts/net.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+
+[rendering]
+
+renderer/rendering_method="forward_plus"

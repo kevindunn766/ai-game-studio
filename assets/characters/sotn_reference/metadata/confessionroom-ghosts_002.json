@@ -1,0 +1,28 @@
+{
+  "filename": "confessionroom-ghosts_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 21,
+  "height": 35,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 21,
+    "h": 35
+  },
+  "palette_hex_list": [
+    "#603018",
+    "#984828",
+    "#D07060",
+    "#705018",
+    "#B07840",
+    "#F0B800",
+    "#302818",
+    "#204068",
+    "#286090",
+    "#183040",
+    "#5878A8",
+    "#787878",
+    "#181818",
+    "#102028"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "filename": "creature-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/creature-2.png",
+  "width": 104,
+  "height": 381,
+  "bbox": {
+    "x": 1,
+    "y": 5,
+    "w": 104,
+    "h": 381
+  },
+  "palette_hex_list": [
+    "#00A8F8",
+    "#080808",
+    "#140626",
+    "#1A1951",
+    "#1D292B",
+    "#251529",
+    "#3A0A2E",
+    "#3B3D8F",
+    "#4D2730",
+    "#4D695B",
+    "#6369A5",
+    "#653135",
+    "#78433A",
+    "#850B1F",
+    "#869F79",
+    "#8B4D4D",
+    "#B38B85",
+    "#D2B8B4",
+    "#D5D7BD",
+    "#DA2020"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "filename": "alucard-5_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/alucard-5.gif",
+  "width": 1,
+  "height": 1,
+  "bbox": {
+    "x": 544,
+    "y": 384,
+    "w": 1,
+    "h": 1
+  },
+  "palette_hex_list": [
+    "#7B0000"
+  ]
+}

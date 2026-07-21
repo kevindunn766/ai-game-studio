@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://d92k3p8m2xsn"]
+[gd_scene load_steps=10 format=3 uid="uid://d92k3p8m2xsn"]
 
 [ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_gm"]
 [ext_resource type="Script" path="res://scripts/snake.gd" id="2_snake"]
@@ -6,6 +6,11 @@
 [ext_resource type="Script" path="res://scripts/score_label.gd" id="4_score"]
 [ext_resource type="Script" path="res://scripts/floor_manager.gd" id="5_floor"]
 [ext_resource type="Script" path="res://scripts/camera_controller.gd" id="6_cam"]
+[ext_resource type="Shader" path="res://shaders/tilt_shift.gdshader" id="7_tilt"]
+[ext_resource type="FontFile" path="res://assets/fonts/PressStart2P-Regular.ttf" id="8_font"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ts"]
+shader = ExtResource("7_tilt")
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_gm")
@@ -28,9 +33,8 @@ omni_range = 30.0
 [node name="FloorManager" type="Node3D" parent="."]
 script = ExtResource("5_floor")
 tile_size = 0.9
-obstacle_density = 0.38
-ca_iterations = 4
-spawn_carve_radius = 4
+obstacle_density = 0.25
+spawn_carve_radius = 8
 
 [node name="Snake" type="Node3D" parent="."]
 script = ExtResource("2_snake")
@@ -38,19 +42,35 @@ script = ExtResource("2_snake")
 [node name="Seg0" type="Node3D" parent="Snake"]
 
 [node name="CameraCranePivot" type="Node3D" parent="Snake/Seg0"]
+rotation_degrees = Vector3(0, 45, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="Snake/Seg0/CameraCranePivot"]
-spring_length = 13.9
+rotation_degrees = Vector3(-35.264, 0, 0)
+spring_length = 20.0
 collision_mask = 0
 
 [node name="Camera3D" type="Camera3D" parent="Snake/Seg0/CameraCranePivot/SpringArm3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
 script = ExtResource("6_cam")
-target = NodePath("/root/Main/Snake")
+snake = NodePath("/root/Main/Snake")
+floor_manager = NodePath("/root/Main/FloorManager")
 current = true
-fov = 55.0
+projection = 1
+size = 5.0
 near = 0.1
-far = 150.0
+far = 200.0
+
+[node name="ThirdPersonPivot" type="Node3D" parent="Snake/Seg0"]
+
+[node name="ThirdPersonSpringArm3D" type="SpringArm3D" parent="Snake/Seg0/ThirdPersonPivot"]
+rotation_degrees = Vector3(-14, 0, 0)
+spring_length = 6.5
+collision_mask = 0
+
+[node name="ThirdPersonCamera3D" type="Camera3D" parent="Snake/Seg0/ThirdPersonPivot/ThirdPersonSpringArm3D"]
+current = false
+fov = 68.0
+near = 0.05
+far = 200.0
 
 [node name="Food" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0.55, 11)
@@ -60,6 +80,7 @@ script = ExtResource("3_food")
 script = ExtResource("4_score")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 5.5, -9)
 text = "SCORE: 0"
+font = ExtResource("8_font")
 font_size = 4
 outline_size = 2
 outline_color = Color(0, 0, 0, 1)
@@ -70,13 +91,15 @@ visible = false
 [node name="GameOverTitle" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.5, 0)
 text = "GAME OVER"
+font = ExtResource("8_font")
 font_size = 6
 outline_size = 8
 outline_color = Color(0, 0, 0, 1)
 
 [node name="GameOverRestart" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4.0, 0)
-text = "Press ENTER to restart"
+text = "[ RESET ]"
+font = ExtResource("8_font")
 font_size = 3
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
@@ -84,6 +107,35 @@ outline_color = Color(0, 0, 0, 1)
 [node name="GameOverScore" type="Label3D" parent="GameOverOverlay"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
 text = "High Score: 0"
+font = ExtResource("8_font")
 font_size = 3
 outline_size = 4
 outline_color = Color(0, 0, 0, 1)
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+
+[node name="TiltShiftLayer" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="TiltShiftRect" type="ColorRect" parent="TiltShiftLayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+material = SubResource("ShaderMaterial_ts")
+mouse_filter = 2
+
+[node name="TimerLayer" type="CanvasLayer" parent="."]
+layer = 11
+
+[node name="TimerLabel" type="Label" parent="TimerLayer"]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -164.0
+offset_top = 32.0
+offset_right = -32.0
+offset_bottom = 80.0
+text = "0:00"
+theme_override_font_sizes/font_size = 36

@@ -1,0 +1,43 @@
+{
+  "filename": "tombstone_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/tombstone.png",
+  "width": 110,
+  "height": 148,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 110,
+    "h": 148
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#000800",
+    "#081000",
+    "#1C2323",
+    "#233D3D",
+    "#283008",
+    "#2BC697",
+    "#303830",
+    "#365959",
+    "#497A7A",
+    "#546D8E",
+    "#555549",
+    "#556969",
+    "#606050",
+    "#686830",
+    "#718A8A",
+    "#869F9B",
+    "#888868",
+    "#888888",
+    "#A8A888",
+    "#A8A8A8",
+    "#A8F3E5",
+    "#B1BEBE",
+    "#C6CFCF",
+    "#D8E1E1",
+    "#E1E1E1",
+    "#F7FFFF",
+    "#FFFFFF"
+  ]
+}

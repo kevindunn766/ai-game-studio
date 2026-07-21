@@ -1,0 +1,28 @@
+{
+  "filename": "nova-skeleton-2_008.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/nova-skeleton-2.png",
+  "width": 24,
+  "height": 40,
+  "bbox": {
+    "x": 724,
+    "y": 53,
+    "w": 24,
+    "h": 40
+  },
+  "palette_hex_list": [
+    "#008808",
+    "#00B000",
+    "#00E000",
+    "#080808",
+    "#083810",
+    "#086008",
+    "#101018",
+    "#192121",
+    "#1F3838",
+    "#284840",
+    "#364F36",
+    "#7B7C68",
+    "#F80000"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "filename": "ferryman-3_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/ferryman-3.gif",
+  "width": 115,
+  "height": 44,
+  "bbox": {
+    "x": 198,
+    "y": 54,
+    "w": 115,
+    "h": 44
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#080808",
+    "#100000",
+    "#101000",
+    "#201010",
+    "#302010",
+    "#403020",
+    "#505040",
+    "#606060",
+    "#707070",
+    "#808080",
+    "#909090",
+    "#A00000",
+    "#A0A0A0",
+    "#C0C0C0"
+  ]
+}

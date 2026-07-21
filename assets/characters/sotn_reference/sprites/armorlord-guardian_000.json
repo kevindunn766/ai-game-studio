@@ -1,0 +1,27 @@
+{
+  "filename": "armorlord-guardian_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/armorlord-guardian.gif",
+  "width": 25,
+  "height": 46,
+  "bbox": {
+    "x": 18,
+    "y": 64,
+    "w": 25,
+    "h": 46
+  },
+  "palette_hex_list": [
+    "#100010",
+    "#100820",
+    "#201040",
+    "#400000",
+    "#402070",
+    "#602000",
+    "#6030A0",
+    "#804000",
+    "#9060E0",
+    "#A06000",
+    "#E0A000",
+    "#E0C0F8"
+  ]
+}

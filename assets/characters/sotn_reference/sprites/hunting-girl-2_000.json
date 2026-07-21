@@ -1,0 +1,35 @@
+{
+  "filename": "hunting-girl-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/hunting-girl-2.png",
+  "width": 128,
+  "height": 128,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 128,
+    "h": 128
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#00E0E1",
+    "#101020",
+    "#301110",
+    "#304150",
+    "#404050",
+    "#606141",
+    "#606171",
+    "#606242",
+    "#708180",
+    "#804040",
+    "#806042",
+    "#807041",
+    "#808040",
+    "#90A0A1",
+    "#A08040",
+    "#B07141",
+    "#B09160",
+    "#B0C1C0",
+    "#C0B091"
+  ]
+}

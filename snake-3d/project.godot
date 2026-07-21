@@ -14,11 +14,27 @@ config/name="Snake 3D"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
+[autoload]
+
+Chiptune="*res://scripts/chiptune.gd"
+
 [display]
 
-window/size/viewport_width=1024
-window/size/viewport_height=768
+window/size/viewport_width=1080
+window/size/viewport_height=1920
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[gui]
+
+theme/custom_font="res://assets/fonts/PressStart2P-Regular.ttf"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true

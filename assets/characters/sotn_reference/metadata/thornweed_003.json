@@ -1,0 +1,28 @@
+{
+  "filename": "thornweed_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 146,
+  "height": 30,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 146,
+    "h": 30
+  },
+  "palette_hex_list": [
+    "#008060",
+    "#009870",
+    "#006040",
+    "#004830",
+    "#002810",
+    "#0A0A0A",
+    "#00D000",
+    "#00F800",
+    "#382848",
+    "#D8B0B0",
+    "#503040",
+    "#784058",
+    "#A06060",
+    "#B88880"
+  ]
+}

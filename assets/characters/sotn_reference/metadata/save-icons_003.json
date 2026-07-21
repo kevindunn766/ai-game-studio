@@ -1,0 +1,26 @@
+{
+  "filename": "save-icons_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 16,
+  "height": 64,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 64
+  },
+  "palette_hex_list": [
+    "#400048",
+    "#180000",
+    "#D09028",
+    "#F8C060",
+    "#906000",
+    "#803800",
+    "#502000",
+    "#180028",
+    "#800000",
+    "#980000",
+    "#C81000",
+    "#600000"
+  ]
+}

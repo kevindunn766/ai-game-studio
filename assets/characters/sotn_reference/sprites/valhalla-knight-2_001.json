@@ -1,0 +1,16 @@
+{
+  "filename": "valhalla-knight-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/valhalla-knight-2.gif",
+  "width": 3,
+  "height": 4,
+  "bbox": {
+    "x": 474,
+    "y": 324,
+    "w": 3,
+    "h": 4
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

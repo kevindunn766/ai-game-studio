@@ -1,114 +1,235 @@
-# AI Game Studio — Design Brief
+# Pixel Art Game — Design Brief
 
-**Working directory:** `C:\Users\kevin\game-studio`
-**Engine:** Godot 4.7 (win64, GL Compatibility renderer)
-**Goal:** End-to-end AI game studio — plain-English ideas → fully built games with AI supervision.
-**Git remote:** `https://github.com/kevindunn766/ai-game-studio.git`
+## Governing Rules (Never Broken)
 
----
-
-## Current Projects
-
-### 1. Lemonade Stand (lemonade-stand-godot/) ✅ WORKING
-- 2D idle clicker. User confirmed F5 works.
-- Scene: 1 scene, user://JSON save/load, high-contrast yellow palette.
-- Scripts: `Main.gd` (136 lines). No issues.
-- **Status:** Complete and verified. Ready to ship or iterate on.
-
-### 2. Snake 3D (snake-3d/) 🔧 IN PROGRESS
-- 3D snake on XZ grid,  WASD/arrows, WASD/arrows, 4-directional.
-- Grid-based movement, wall = death, food = grow + score, speed increases.
-- High score persisted via `user://snake3d_highscore.cfg`.
-- Camera: crane-arm follow (SpringArm3D attached to snake head segment).
-- Floor: procedural tile chunks with obstacle density.
-- **User-verified working:** Controls register correctly.
-- **Known issue:** Walls are nearly the same color as the floor wall collision is invisible.
-- **New user request (2026-07-01):** Remove box walls. Replace with endless generating grid of 105%-sized planes within camera view, each with 25% chance of pastel-colored kill block. Camera crane arm 25% closer to snake. Endless obstacle navigation in all directions.
-- Blockers: Python not installed blocks ad-hoc runtime verification.
-
-### 3. Procedural 3D Runner (procedural-3d-godot/) 🔧 BROKEN — NEEDS REWORK or FIX
-- Originally a 3D endless runner: auto-forward, lane switching, jump, slide, procedurally generated platforms.
-- **Current state: heavily broken, user halted overengineering.**
-
-#### Problems Encountered (do not repeat these mistakes):
-1. **Camera override conflict**: Script code kept forcing `look_at()` even though user manually rotated camera in editor to face downward. User mandate: NEVER touch camera in code — let editor setting persist.
-2. **Inline `.new()` in .tscn**: Godot 4.7 refuses inline `SphereMesh.new()` in scene files. Must use named `SubResource("...")` references instead.
-3. **Node path `$../`**: Godot 4 doesn't parse `$../Parent` syntax. Use `get_node("../Parent")` in GDScript.
-4. **Duplicate `add_child()`**: Adding the same collision shape to two parents crashes. Only one parent per node.
-5. **Missing scene nodes**: `World.gd` references `TubeParent` and `BlockParent` that don't exist in the scene. Runtime `null instance` errors cascade from this.
-6. **Stale Godot cache**: After fixes, old error output persists in editor Output tab. Must close and reopen project to see fresh state.
-7. **Godot Output auto-clear**: Editor Output panel can auto-clear on play. Turn off in Editor Settings → Interface → Editor → Output → "Clear output on play". Use dedicated Errors tab for persistent logs.
-8. **`Color()` alpha requirement**: Godot 4 `Color()` always takes 4 args `(r,g,b,a)`. Missing alpha throws parse error in .tscn and .gd.
-9. **No local Python**: Windows machine has no Python interpreter. `python3` is missing. All ad-hoc verification scripts fail. Must use Godot F5 directly, or install Python.
-10. **Git push timeouts**: `git push origin master` times out at 30s on this machine. Use background process with `notify_on_complete=true` for pushes.
-
-#### User Constraints for This Project:
-- Use the existing template as base. Do NOT rebuild files from scratch.
-- Keep it simple — Godot is a game engine, not a coding environment.
-- Camera faces downward along negative Z axis (set in editor, not overridden in code).
-- Core features to retain if rebuilt: distance scoring, 3-crack death system, boundary walls, periodic section color shifts, procedural background.
-- **Pending decision:** Simplify/fix existing code vs. rebuild from locked design brief.
+1. All work proceeds from a design brief created together. The design brief is the single source of truth for every asset, screen, and interaction.
+2. The design brief must provide instructions of use, screen space/location descriptions, and pixel-by-pixel use descriptions for absolutely every detail.
+3. Every graphical element generation must include a highly detailed prompt specifying pixel size, resolution, viewpoint (isometric or otherwise), and an explicit prohibition on text or grid overlays.
+4. Alpha channel use must be stated when necessary. All colors must be pixel-perfect and named with hex values. Transparency is indicated by exact color `#FF00FF` only; all `#FF00FF` pixels represent fully transparent regions. No alpha channels, no white backgrounds for transparency.
+5. Graphical elements are generated one at a time. Each generation cycle is independently prompted and described using the rules above. Final assets are produced by deterministic procedural/code-based pixel generation; AI-generated outputs are allowed only as style drafts and never as final shipped assets.
 
 ---
 
-## Game Production Rules (non-negotiable)
-1. **Design Brief Before Code** — write the brief, get approval, then build.
-2. **Prototype First, No Polish** — ugly grey box is fine. Functionality first.
-3. **Lock the Feature List** — approved features only. No creep.
-4. **Polish Is Separate** — after prototype works, schedule polish as its own phase.
-5. **Playtest Before Export** — F5 in Godot, user confirms, then export.
-6. **Quality Is Non-Negotiable** — colors must have good contrast; no broken input; no crashes.
+## Game Identity
+
+**Title:** `Arcanum Clash`
+**Genre:** 90s-style fantasy battle card game with animated combat resolution
+**Perspective:** Top-down 2D board with 2.5D isometric card art
+**Resolution Target:** 320×200 and 640×400 gameplay UI (authentic retro), cards rendered as crisp scaled sprites
+**Art Style:** Early '90s dark-fantasy retro 3D-era pixel art in the spirit of early isometric dungeon titles — hard pixels, no antialiasing, gothic medieval fantasy
+**Color Key Transparency:** `#FF00FF` / magenta used for every transparency mask; no per-pixel alpha in battle sprites
+**Palette:** 32-color EGA-inspired dungeon palette with 16 reserved colors for UI chrome; creature sprites use 24-color subsets
+**Fonts:** All in-game text rendered as bitmap font in UI layer only; battle animations contain zero text
 
 ---
 
-## Agent Infrastructure
+## Game Concept: `Arcanum Clash`
 
-### Claude Code (Primary)
-- Path: `C:\Users\kevin\AppData\Local\hermes\node\claude.cmd`
-- **Active account:** kevindunn1981@gmail.com (Pro subscription)
-- **Remote Control:** Active. Session URL: `https://claude.ai/code/session_01AQuEMFqunMWUqrDyHjbHtW`
-- Install version: **v2.1.193** (meets v2.1.51+ requirement)
+### Overview
+A two-player fantasy battle card game with a battlefield board and animated miniature-style clash vignettes. The design favors fast 90s arcade pacing: short turns, clear numbers, and visual payoff exactly when needed.
 
-### OpenCode (Routine tasks)
-- Path: `/c/Users/kevin/AppData/Local/hermes/node/opencode`
-- Auth: OpenRouter, `auth.json` at `~/.local/share/opencode/auth.json`
-- Working auth format: `{"openrouter": {"type": "api", "key": "..."}}`
-- Tested: `openrouter/openai/gpt-4o-mini` responds "Okay!"
-
-### Claude.json config
-- Path: `C:\Users\kevin\.claude.json`
-- Contains: GitHub MCP server, auth (firstParty OAuth)
-
-### Godot
-- Binary: `/c/Users/kevin/AppData/Local/Microsoft/WinGet/Links/godot.exe`
-- Version: 4.7.stable.official.5b4e0cb0f
-
-### Hermes Memory (important facts)
-- GitHub email for pushes: kevindunn766@gmail.com
-- Shell: Git Bash (POSIX syntax)
-- Python: NOT installed (blocks ad-hoc scripts)
-- No npm global installs (timeouts)
-- Git push times out — use background process
+### Core Design Philosophy
+- Two layers: the **board layer** showing straightforward game state, and the **battle layer** triggered only for attack resolution.
+- **One animation style only**, reused across fights, with a cooldown so it feels like a power move, not mandatory slowdown.
+- All truths are visible on the board: HP/ATK/DEF, Veinwell line, and phase timer.
 
 ---
 
-## Environment Quirks (do not trip over these)
-- **No Python**: `python3` not found. All `.py` verification scripts fail. Use Godot F5 for runtime checks.
-- **Output auto-clears**: Godot Output panel clears on play. Disable in settings.
-- **ANTHROPIC_BASE_URL**: If set to non-Anthropic host, Remote Control is disabled. Unset it.
-- **CLAUDE.md**: Located at `C:\Users\kevin\game-studio\procedural-3d-godot\AGENTS.md` — Godot development rules, color requirements, anti-patterns, export targets.
-- **4 agent definitions** in `C:\Users\kevin\game-studio\.claude\agents\`:
-  - `game-architect.md`
-  - `godot-coder.md`
-  - `art-generator.md`
-  - `qa-tester.md`
+## Rules of Play
+
+### Players
+- **2 players**, mirrored layout.
+- **Legion Deck:** 40 cards.
+- **Starting LP:** 20.
+- **Starting hand:** 5 cards; **one mulligan** allowed to draw 4 and place 1 face-down **Sigil Ward**.
+
+### Card Types
+- **Creature** — ATK / DEF / HP, Exertion 1–3
+- **Instant Spell** — resolves before attack steps
+- **Trap** — facedown, triggers on condition
+- **Terrain** — persistent 1-slot modifier per side
+
+### Card Anatomy / Board Contract
+- **Name** — top center bitmap font
+- **Veinwell Cost** — top right
+- **Type Line** — top left
+- **Art Rect** — centered **128×128 px**
+- **Power/Defense** — bottom numerals `ATK/DEF`
+- **Exertion track** — bottom icons, max 3 per round
+- **Ability Text** — bottom bitmap text block
+- **Tier ring:** Gray=I / Green=II / Blue=III / Purple=IV / Orange=V / Red=VI
+- **Hover outline:** `#FF00FF` blink
+
+### Veinwell Flow
+- Both sides share a global **Veinwell** that rises automatically each turn; no cards spend Veinwell to enter play. Costs are paid from Veinwell.
+- Maximum Veinwell: **12 tokens**.
+- **Cost rule:** a card’s Tier equals the number of Veinwell tokens it consumes when played.
+- Excess Veinwell above 12 is lost; deficits prevent play.
+- Terrain can increase income or reduce costs; replacing terrain costs **3 Veinwell tokens**.
+
+### Turn Structure
+Short 5-phase loop:
+
+1. **Awaken** — return all exerted creatures; Veinwell +2 tokens
+2. **Draw** — draw 1; if empty deck, lose 1 LP
+3. **Deploy** — play Terrain if empty, then creatures/spells/traps
+4. **Clash** — attacks, blocks, trap windows
+5. **End** — bury destroyed creatures, check triggers
+
+### Combat Flow
+1. Declare attacker.
+2. Opponent may declare **one blocker**.
+3. Simultaneous damage: `remaining DEF HP damage`.
+4. Both corpses enter Graveyard on a tie.
+5. Clash Overlay may play depending on trigger/cooldown settings; otherwise skip.
+6. After animation/cleanup, finalize LP.
+
+### Screen Farming / Speed Rules
+- Attack declared = enters cooldown for that card pair.
+- Repeated attacks between same cards/clones reduce animation chance each time.
+- Player may skip animation after first trigger to accelerate play.
+- Phase timer defaults to **90 seconds**; auto-pass applies.
+
+### Win Conditions
+- Reduce opponent LP to 0.
+- Opponent draws with 0 LP.
+- **Dominion:** control 3 Terrain Objectives simultaneously, if using Tier IV/V terrain.
 
 ---
 
-## Pending Tasks
-1. **Fix snake-3d**: Replace walls with endless obstacle planes (25% spawn, pastel colors, crane camera 75% distance). Verify collision visible.
-2. **Fix/build procedural-3d-godot**: Either fix existing broken files or rebuild clean from brief with user's constraints (camera downward, simple, no overengineering). User decision needed.
-3. **Android SDK setup**: Export templates not yet confirmed installed. Blocking APK export.
-4. **PR management workflow**: Beyond GitHub MCP — formalize PR creation, review, merge workflow.
-5. **Canonical Godot verification**: No project has had a formal playtest + user confirmation since latest edits.
-6. **Git push of latest commits**: Local commits exist for snake-3d scaffold but push keeps timing out.
+## Clash Overlay
+
+### Trigger Policy
+- Triggered ONLY at attack resolution, not on every action.
+- Symmetric for both players; opponent view is rotated 180°.
+- Cooldown by `(attacker_id, defender_id)` pair to avoid spam.
+
+### Animation Spec
+- **Frame budget:** 120 frames @ 30 fps = 4 seconds.
+- **Overlay resolution:** 256×144 px centered on field; board chrome remains visible.
+- **Sprite size:** 32×32 px tiles; heroes 48×48 px.
+- **Parallax:** 2 layers inside overlay only; none on the board layer.
+- **Transparency:** `#FF00FF` only; no alpha channels.
+
+### Motion Style
+- Three short clips only: **lunge/contact/recoil**, **raise/deflect/stagger**, **dissolve/bone-scatter/fade**.
+- No branching text or story moments; purely motion-graphic combat beat.
+
+---
+
+## Keywords / Tooltip Contract
+All keywords shown as a single tooltip line in bitmap font.
+
+| Keyword | Definition |
+|---------|------------|
+| Ready | May act this turn |
+| Exerted | Cannot act until Awaken |
+| Barrier | Ignores first spell/damage per round |
+| Flying | Blocks only by Flying/Tower |
+| Mastery | Acts first in speed ties |
+| Veil | Cannot be targeted by spells/traps |
+| Sunder | Enters play with -1 enemy terrain modifier |
+| Frenzy | On death, destroys one random Ready enemy |
+| Guardian | Can redirect champion attack to self |
+
+---
+
+## Champion Archetypes
+Each defines starting LP, opening Terrain, and one signature ability.
+
+- **Knight:** +5 LP, Keep terrain, **Breaker** — lock one enemy Terrain at round start
+- **Sorcerer:** -3 LP, Arcane Vein terrain, **Weaver** — spend 2 LP to cast an extra spell
+- **Rogue:** 0 LP, Shadow Alley terrain, **Ambush** — one creature per match enters Ready
+- **Cleric:** +8 LP, Sacred Glade terrain, **Aegis** — destroyed creatures can be returned at double Veinwell cost
+
+### Champion Select UI
+- Full-screen modal.
+- Portrait previews at selection size **128×128 px** from **256×256 px** art.
+- Hover plays a single short creature preview from that archetype.
+
+---
+
+## UI Specifications
+
+### 320×200 Boot Screen
+- Internal render: 320×200 → nearest-neighbor integer scale.
+- Animated title portal, menu items at `160,160`, `160,176`, `160,192`.
+
+### Match Setup: 640×400
+- Deck selector: `0,0–255,399`
+- Terrain selector: `384,0–639,240`
+- Champion selector: `384,240–639,399`
+- START button: `272,368`, `96×24` px
+
+### In-Game HUD
+- Top bar: `0,0–639,64`
+- Hand strip: `0,540–639,599`, max 7 cards
+- Central field: `0,64–639,479` = **640×416 px**
+- Tile grid inside field: **16×16 px** tiles, snap-to-grid placement
+
+### Card Drop Zones
+- Integer-div snap to nearest tile center.
+- Valid placement checked against terrain/count limits before drop accepts.
+
+## Trait Interaction Tree
+
+This is a compact reference you can hand to the implementation agent. It focuses on interaction, not lore.
+
+- **Barrier > Spell/Sunder:** Barrier absorbs one incoming spell or -1 modifier.
+- **Veil > Spell/Trap:** Veil negates targeting, but not area globals.
+- **Flying > Ground Blockers:** Flying ignores ground blockers; only Flying/Tower may block.
+- **Mastery > Speed Tie:** Mastery acts first when Speed matches.
+- **Frenzy > Death:** On death, Frenzy checks once for a valid Ready enemy and destroys it.
+- **Guardian > Champion Attacks:** Guardian can intercept an attack aimed at the champion.
+- **Ready/Exerted phases:** Ready means attack/block allowed this turn; Exerted disables action until Awaken.
+
+## Match Loop State Machine
+
+A 6-state loop the agent can implement directly.
+
+1. `Awaken` — reset Ready/Exerted, add Veinwell
+2. `Draw` — draw one; 0 deck = -1 LP
+3. `Deploy` — place terrain/creature/spell/trap
+4. `Clash` — declare attacker → blocker/trap → animation gate → damage eval
+5. `End` — burial, LP updates, AI/input pass
+6. `WinCheck` — 0 LP, empty draw, or Dominion then loop or end match
+
+## Animation Binding Matrix
+
+Use this for coded triggers rather than broad rules.
+
+| Trigger | Animation | Length |
+|--------|-----------|--------|
+| Melee attack | Clash clip | 120 frames |
+| Block | Deflect clip | 120 frames |
+| Death | Dissolve clip | 120 frames |
+| Champion ability | 1-frame flash freeze | 6 frames |
+
+## Modding / Data
+
+Card definition JSON schema:
+
+```json
+{
+  "id": "C-0042",
+  "name": "",
+  "tier": 2,
+  "type": "creature",
+  "atk": 3,
+  "def": 2,
+  "hp": 14,
+  "speed": 2,
+  "abilities": [],
+  "artRect": "128x128",
+  "palette": "warrior_crimson"
+}
+```
+
+- Every `palette` references a named 24-color EGA subset used by clash overlay sprites.
+- Community content must validate against Governing Rules #2–#4 before inclusion.
+
+## Canonical Asset Tooling
+
+- Deterministic pixel assets are generated with `tools/pixel_art_engine.py` under `C:\Users\kevin\game-studio`.
+- The engine uses exact palette-locked `#FF00FF` transparency and supports `tile`, `rect`, and `pixel` commands.
+- AI-generated outputs remain style-draft only and must never ship as final assets.

@@ -1,0 +1,15 @@
+{
+  "filename": "owl_008.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 73,
+  "height": 74,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 73,
+    "h": 74
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

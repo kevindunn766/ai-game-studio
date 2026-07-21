@@ -1,0 +1,16 @@
+{
+  "filename": "cave-troll-2_010.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/cave-troll-2.gif",
+  "width": 2,
+  "height": 73,
+  "bbox": {
+    "x": 428,
+    "y": 46,
+    "w": 2,
+    "h": 73
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

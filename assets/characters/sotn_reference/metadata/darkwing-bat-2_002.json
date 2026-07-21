@@ -1,0 +1,23 @@
+{
+  "filename": "darkwing-bat-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 100,
+  "height": 199,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 100,
+    "h": 199
+  },
+  "palette_hex_list": [
+    "#302020",
+    "#503830",
+    "#906058",
+    "#C09898",
+    "#E8D8B8",
+    "#080808",
+    "#380818",
+    "#780018",
+    "#E01008"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "filename": "count-olrox-4_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 145,
+  "height": 650,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 145,
+    "h": 650
+  },
+  "palette_hex_list": [
+    "#CDCD00",
+    "#CECE00",
+    "#BDBD00",
+    "#E7E700",
+    "#ACAC00",
+    "#ADAD00",
+    "#B5B500",
+    "#B4B400",
+    "#A4A400",
+    "#B8B8C8",
+    "#787888",
+    "#9898A8",
+    "#404050",
+    "#505080",
+    "#606070",
+    "#F8F8F8",
+    "#303050",
+    "#C0C0E0",
+    "#E8E8F0"
+  ]
+}

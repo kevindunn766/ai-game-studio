@@ -1,0 +1,27 @@
+{
+  "filename": "bat-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/bat-2.gif",
+  "width": 16,
+  "height": 29,
+  "bbox": {
+    "x": 37,
+    "y": 3,
+    "w": 16,
+    "h": 29
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#181818",
+    "#300808",
+    "#383838",
+    "#680808",
+    "#684830",
+    "#686868",
+    "#807058",
+    "#808080",
+    "#880808",
+    "#A00858",
+    "#B80808"
+  ]
+}

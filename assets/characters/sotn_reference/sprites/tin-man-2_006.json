@@ -1,0 +1,20 @@
+{
+  "filename": "tin-man-2_006.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/tin-man-2.png",
+  "width": 21,
+  "height": 171,
+  "bbox": {
+    "x": 825,
+    "y": 14,
+    "w": 21,
+    "h": 171
+  },
+  "palette_hex_list": [
+    "#283840",
+    "#405060",
+    "#808080",
+    "#A0C080",
+    "#E0E0A0"
+  ]
+}

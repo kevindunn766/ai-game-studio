@@ -1,0 +1,16 @@
+{
+  "filename": "medusa-3_012.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/medusa-3.gif",
+  "width": 4,
+  "height": 6,
+  "bbox": {
+    "x": 769,
+    "y": 136,
+    "w": 4,
+    "h": 6
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

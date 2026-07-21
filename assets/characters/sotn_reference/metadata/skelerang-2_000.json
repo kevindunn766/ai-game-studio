@@ -1,0 +1,31 @@
+{
+  "filename": "skelerang-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 201,
+  "height": 404,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 201,
+    "h": 404
+  },
+  "palette_hex_list": [
+    "#FFC090",
+    "#904810",
+    "#B0785F",
+    "#D0D0D0",
+    "#2F282F",
+    "#FFF8FF",
+    "#AFA8AF",
+    "#7F787F",
+    "#0F080F",
+    "#404040",
+    "#20080F",
+    "#606060",
+    "#D0C850",
+    "#00A000",
+    "#006000",
+    "#FFFFFF",
+    "#302010"
+  ]
+}

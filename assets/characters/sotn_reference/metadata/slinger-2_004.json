@@ -1,0 +1,29 @@
+{
+  "filename": "slinger-2_004.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 29,
+  "height": 40,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 29,
+    "h": 40
+  },
+  "palette_hex_list": [
+    "#AA8975",
+    "#104018",
+    "#506928",
+    "#91B248",
+    "#202020",
+    "#C6BE9D",
+    "#E2CAB2",
+    "#6D5548",
+    "#3C283C",
+    "#AE0000",
+    "#080808",
+    "#E2C238",
+    "#65444C",
+    "#BE6540",
+    "#892C61"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "filename": "fire-warg_007.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 117,
+  "height": 154,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 117,
+    "h": 154
+  },
+  "palette_hex_list": [
+    "#907868",
+    "#B0A090",
+    "#D0C0B0",
+    "#785040",
+    "#583838",
+    "#302030",
+    "#201030",
+    "#100030",
+    "#100020",
+    "#080010",
+    "#F80000",
+    "#680000",
+    "#808080"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "filename": "succubus-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/succubus-2.gif",
+  "width": 557,
+  "height": 605,
+  "bbox": {
+    "x": 12,
+    "y": 4,
+    "w": 557,
+    "h": 605
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#101010",
+    "#20202F",
+    "#30303F",
+    "#400000",
+    "#402020",
+    "#40404F",
+    "#50505F",
+    "#600000",
+    "#604040",
+    "#60606F",
+    "#70707F",
+    "#800000",
+    "#806060",
+    "#80808F",
+    "#900000",
+    "#902000",
+    "#90909F",
+    "#A08080",
+    "#A0A0AF",
+    "#B0B0BF",
+    "#C0A0A0",
+    "#E06000",
+    "#F0D0D0",
+    "#FFF8FF"
+  ]
+}

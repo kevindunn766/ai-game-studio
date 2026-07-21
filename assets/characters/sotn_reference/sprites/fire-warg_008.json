@@ -1,0 +1,28 @@
+{
+  "filename": "fire-warg_008.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/fire-warg.png",
+  "width": 117,
+  "height": 153,
+  "bbox": {
+    "x": 969,
+    "y": 468,
+    "w": 117,
+    "h": 153
+  },
+  "palette_hex_list": [
+    "#080010",
+    "#100020",
+    "#100030",
+    "#201030",
+    "#302030",
+    "#583838",
+    "#680000",
+    "#785040",
+    "#808080",
+    "#907868",
+    "#B0A090",
+    "#D0C0B0",
+    "#F80000"
+  ]
+}

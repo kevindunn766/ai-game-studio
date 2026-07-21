@@ -1,0 +1,43 @@
+{
+  "filename": "fishhead-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/fishhead-2.png",
+  "width": 142,
+  "height": 145,
+  "bbox": {
+    "x": 37,
+    "y": 3,
+    "w": 142,
+    "h": 145
+  },
+  "palette_hex_list": [
+    "#0040A8",
+    "#0048B0",
+    "#0058B8",
+    "#0060C0",
+    "#0070C8",
+    "#0078D0",
+    "#0090E0",
+    "#00A0E8",
+    "#00B0F0",
+    "#080808",
+    "#202820",
+    "#28B8F0",
+    "#405038",
+    "#405850",
+    "#50C0F0",
+    "#607078",
+    "#780808",
+    "#78C8F0",
+    "#909080",
+    "#A8D0F0",
+    "#B09890",
+    "#B8B0A8",
+    "#D0C8B0",
+    "#D80000",
+    "#D8E0F8",
+    "#F83800",
+    "#F8B020",
+    "#F8F0D8"
+  ]
+}

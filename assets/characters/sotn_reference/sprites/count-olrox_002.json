@@ -1,0 +1,29 @@
+{
+  "filename": "count-olrox_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/count-olrox.gif",
+  "width": 9,
+  "height": 62,
+  "bbox": {
+    "x": 651,
+    "y": 127,
+    "w": 9,
+    "h": 62
+  },
+  "palette_hex_list": [
+    "#100020",
+    "#101030",
+    "#201030",
+    "#303050",
+    "#402050",
+    "#404028",
+    "#505080",
+    "#704880",
+    "#808050",
+    "#9080B0",
+    "#A0A0C0",
+    "#B0B080",
+    "#C0C0E0",
+    "#F8F8C0"
+  ]
+}

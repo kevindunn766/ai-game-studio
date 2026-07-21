@@ -1,0 +1,30 @@
+{
+  "filename": "leather-shield_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 124,
+  "height": 75,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 124,
+    "h": 75
+  },
+  "palette_hex_list": [
+    "#808080",
+    "#A8A8A8",
+    "#D8D8D8",
+    "#707070",
+    "#905830",
+    "#C0A050",
+    "#C0C0C0",
+    "#585860",
+    "#404048",
+    "#989898",
+    "#181820",
+    "#303038",
+    "#E8C0A8",
+    "#785858",
+    "#685838",
+    "#030303"
+  ]
+}

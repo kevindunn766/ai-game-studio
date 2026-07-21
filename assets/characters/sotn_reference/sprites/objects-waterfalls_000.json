@@ -1,0 +1,40 @@
+{
+  "filename": "objects-waterfalls_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/objects-waterfalls.png",
+  "width": 314,
+  "height": 255,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 314,
+    "h": 255
+  },
+  "palette_hex_list": [
+    "#100818",
+    "#100828",
+    "#101838",
+    "#102848",
+    "#1C2323",
+    "#203858",
+    "#233D3D",
+    "#2BC697",
+    "#304868",
+    "#365959",
+    "#405878",
+    "#497A7A",
+    "#555549",
+    "#556969",
+    "#607898",
+    "#718A8A",
+    "#869F9B",
+    "#A8F3E5",
+    "#B1BEBE",
+    "#B5A5D5",
+    "#C6CFCF",
+    "#D8E1E1",
+    "#E1E1E1",
+    "#F7FFFF",
+    "#FFFFFF"
+  ]
+}

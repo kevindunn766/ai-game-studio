@@ -1,0 +1,28 @@
+{
+  "filename": "salem-witch-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 34,
+  "height": 371,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 371
+  },
+  "palette_hex_list": [
+    "#603840",
+    "#986058",
+    "#B89090",
+    "#F0C8B8",
+    "#582808",
+    "#502040",
+    "#F8B068",
+    "#B04818",
+    "#B0C0B0",
+    "#D8D8D8",
+    "#708878",
+    "#E07040",
+    "#405048",
+    "#181028"
+  ]
+}

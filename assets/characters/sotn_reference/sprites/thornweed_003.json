@@ -1,0 +1,29 @@
+{
+  "filename": "thornweed_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/thornweed.gif",
+  "width": 146,
+  "height": 30,
+  "bbox": {
+    "x": 31,
+    "y": 7,
+    "w": 146,
+    "h": 30
+  },
+  "palette_hex_list": [
+    "#002810",
+    "#004830",
+    "#006040",
+    "#008060",
+    "#009870",
+    "#00D000",
+    "#00F800",
+    "#0A0A0A",
+    "#382848",
+    "#503040",
+    "#784058",
+    "#A06060",
+    "#B88880",
+    "#D8B0B0"
+  ]
+}

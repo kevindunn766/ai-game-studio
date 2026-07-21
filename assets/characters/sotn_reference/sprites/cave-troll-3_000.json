@@ -1,0 +1,35 @@
+{
+  "filename": "cave-troll-3_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/cave-troll-3.png",
+  "width": 640,
+  "height": 310,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 640,
+    "h": 310
+  },
+  "palette_hex_list": [
+    "#005000",
+    "#009000",
+    "#020600",
+    "#080808",
+    "#102810",
+    "#20F8F8",
+    "#482818",
+    "#60D868",
+    "#800000",
+    "#804820",
+    "#B01808",
+    "#C06030",
+    "#C08020",
+    "#E0E8E8",
+    "#F09050",
+    "#F84838",
+    "#F88090",
+    "#F8C020",
+    "#F8C898",
+    "#FB06E1"
+  ]
+}

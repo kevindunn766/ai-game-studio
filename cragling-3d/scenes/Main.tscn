@@ -1,0 +1,173 @@
+[gd_scene load_steps=18 format=3 uid="uid://bqx1n4m8crgwal1"]
+
+[ext_resource type="Script" path="res://scripts/grip_field.gd" id="1_grip"]
+[ext_resource type="Script" path="res://scripts/climber.gd" id="2_climber"]
+[ext_resource type="Script" path="res://scripts/limb.gd" id="3_limb"]
+[ext_resource type="Script" path="res://scripts/tap_input.gd" id="4_tap"]
+[ext_resource type="Script" path="res://scripts/waist_spline.gd" id="5_waist"]
+[ext_resource type="Script" path="res://scripts/rope_spline.gd" id="6_rope"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(14, 40, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(14, 40, 1)
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.42, 0.37, 0.32, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(20, 0.2, 20)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ground"]
+albedo_color = Color(0.25, 0.28, 0.22, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ribs"]
+size = Vector3(0.5, 0.34, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ribs"]
+albedo_color = Color(0.3, 0.55, 0.35, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hips"]
+size = Vector3(0.42, 0.3, 0.28)
+
+[sub_resource type="StandardMaterial3D" id="Mat_hips"]
+albedo_color = Color(0.24, 0.42, 0.28, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_head"]
+size = Vector3(0.32, 0.3, 0.28)
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+albedo_color = Color(0.85, 0.7, 0.55, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hair"]
+size = Vector3(0.34, 0.16, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="Mat_hair"]
+albedo_color = Color(0.32, 0.2, 0.12, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_backpack"]
+size = Vector3(0.34, 0.4, 0.18)
+
+[sub_resource type="StandardMaterial3D" id="Mat_backpack"]
+albedo_color = Color(0.8, 0.45, 0.15, 1)
+
+[node name="Main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.85, -0.35, 0.35, 0, 0.7, 0.7, -0.5, -0.6, 0.6, 8, 25, 12)
+light_color = Color(1, 0.97, 0.9, 1)
+light_energy = 1.1
+shadow_enabled = true
+
+[node name="AmbientLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 15, 6)
+light_color = Color(0.55, 0.6, 0.7, 1)
+light_energy = 0.6
+omni_range = 60.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("Mat_ground")
+
+[node name="Wall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 20, -0.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wall"]
+shape = SubResource("BoxShape3D_wall")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Wall"]
+mesh = SubResource("BoxMesh_wall")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="GripField" type="Node3D" parent="Wall"]
+script = ExtResource("1_grip")
+
+[node name="Climber" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.6)
+script = ExtResource("2_climber")
+grip_field_path = NodePath("../Wall/GripField")
+
+[node name="Torso" type="Node3D" parent="Climber"]
+
+[node name="Ribs" type="Node3D" parent="Climber/Torso"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.24, 0)
+
+[node name="RibMesh" type="MeshInstance3D" parent="Climber/Torso/Ribs"]
+mesh = SubResource("BoxMesh_ribs")
+surface_material_override/0 = SubResource("Mat_ribs")
+
+[node name="RibBottom" type="Node3D" parent="Climber/Torso/Ribs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.17, 0)
+
+[node name="Head" type="MeshInstance3D" parent="Climber/Torso/Ribs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("BoxMesh_head")
+surface_material_override/0 = SubResource("Mat_head")
+
+[node name="Hair" type="MeshInstance3D" parent="Climber/Torso/Ribs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.46, 0.05)
+mesh = SubResource("BoxMesh_hair")
+surface_material_override/0 = SubResource("Mat_hair")
+
+[node name="Backpack" type="MeshInstance3D" parent="Climber/Torso/Ribs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0.22)
+mesh = SubResource("BoxMesh_backpack")
+surface_material_override/0 = SubResource("Mat_backpack")
+
+[node name="LeftArm" type="Node3D" parent="Climber/Torso/Ribs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 0.02, -0.05)
+script = ExtResource("3_limb")
+side_sign = -1.0
+
+[node name="RightArm" type="Node3D" parent="Climber/Torso/Ribs"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.02, -0.05)
+script = ExtResource("3_limb")
+side_sign = 1.0
+
+[node name="Hips" type="Node3D" parent="Climber/Torso"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.24, 0)
+
+[node name="HipMesh" type="MeshInstance3D" parent="Climber/Torso/Hips"]
+mesh = SubResource("BoxMesh_hips")
+surface_material_override/0 = SubResource("Mat_hips")
+
+[node name="HipTop" type="Node3D" parent="Climber/Torso/Hips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+
+[node name="LeftLeg" type="Node3D" parent="Climber/Torso/Hips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16, -0.08, -0.05)
+script = ExtResource("3_limb")
+side_sign = -1.0
+is_leg = true
+
+[node name="RightLeg" type="Node3D" parent="Climber/Torso/Hips"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16, -0.08, -0.05)
+script = ExtResource("3_limb")
+side_sign = 1.0
+is_leg = true
+
+[node name="WaistSpline" type="Node3D" parent="Climber/Torso"]
+script = ExtResource("5_waist")
+top_path = NodePath("../Ribs/RibBottom")
+bottom_path = NodePath("../Hips/HipTop")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="Climber/Torso"]
+rotation_degrees = Vector3(-14, 0, 0)
+spring_length = 6.0
+collision_mask = 0
+
+[node name="Camera3D" type="Camera3D" parent="Climber/Torso/SpringArm3D"]
+current = true
+fov = 60.0
+near = 0.05
+far = 150.0
+
+[node name="Rope" type="Node3D" parent="Climber"]
+script = ExtResource("6_rope")
+
+[node name="TapInput" type="Node" parent="."]
+script = ExtResource("4_tap")
+camera_path = NodePath("../Climber/Torso/SpringArm3D/Camera3D")
+climber_path = NodePath("../Climber")

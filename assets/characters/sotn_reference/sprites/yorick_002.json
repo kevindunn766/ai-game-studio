@@ -1,0 +1,23 @@
+{
+  "filename": "yorick_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/yorick.png",
+  "width": 58,
+  "height": 74,
+  "bbox": {
+    "x": 227,
+    "y": 8,
+    "w": 58,
+    "h": 74
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#181818",
+    "#306868",
+    "#384048",
+    "#686868",
+    "#888888",
+    "#A8A8A8",
+    "#D0D0D0"
+  ]
+}

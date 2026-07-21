@@ -1,0 +1,39 @@
+{
+  "filename": "wereskeleton_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/wereskeleton.png",
+  "width": 271,
+  "height": 108,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 271,
+    "h": 108
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#002000",
+    "#009818",
+    "#1C2323",
+    "#233D3D",
+    "#285028",
+    "#2BC697",
+    "#365959",
+    "#497A7A",
+    "#546D8E",
+    "#555549",
+    "#556969",
+    "#718A8A",
+    "#869F9B",
+    "#989878",
+    "#A8F3E5",
+    "#B1BEBE",
+    "#C6CFCF",
+    "#D8D8B8",
+    "#D8E1E1",
+    "#E1E1E1",
+    "#F7FFFF",
+    "#F8F8D8",
+    "#FFFFFF"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "filename": "bone-halberd-2_006.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/bone-halberd-2.gif",
+  "width": 87,
+  "height": 177,
+  "bbox": {
+    "x": 521,
+    "y": 20,
+    "w": 87,
+    "h": 177
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#0F080F",
+    "#202020",
+    "#302F40",
+    "#403F50",
+    "#40404F",
+    "#4F3F5F",
+    "#5F687F",
+    "#6F6870",
+    "#803800",
+    "#8F909F",
+    "#9F5830",
+    "#AF3800",
+    "#B0B8C0",
+    "#CF0000",
+    "#D08020",
+    "#DFE0EF",
+    "#FF5810",
+    "#FF984F"
+  ]
+}

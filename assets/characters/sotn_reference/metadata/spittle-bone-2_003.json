@@ -1,0 +1,26 @@
+{
+  "filename": "spittle-bone-2_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 12,
+  "height": 28,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 28
+  },
+  "palette_hex_list": [
+    "#AFA090",
+    "#CFC8B0",
+    "#4F3830",
+    "#8F8070",
+    "#F0F0F0",
+    "#0F080F",
+    "#2F282F",
+    "#6F5850",
+    "#9F680F",
+    "#CFA070",
+    "#A07050",
+    "#5F482F"
+  ]
+}

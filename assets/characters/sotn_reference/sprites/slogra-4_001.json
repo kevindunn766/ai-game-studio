@@ -1,0 +1,34 @@
+{
+  "filename": "slogra-4_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/slogra-4.png",
+  "width": 67,
+  "height": 61,
+  "bbox": {
+    "x": 1153,
+    "y": 131,
+    "w": 67,
+    "h": 61
+  },
+  "palette_hex_list": [
+    "#001010",
+    "#102929",
+    "#211831",
+    "#2939FF",
+    "#314A84",
+    "#392900",
+    "#425231",
+    "#5A4A00",
+    "#6B849C",
+    "#737373",
+    "#8C84F7",
+    "#948C4A",
+    "#9C7B21",
+    "#ADADAD",
+    "#C6C684",
+    "#CECECE",
+    "#D6D6D6",
+    "#DEC64A",
+    "#E7C65A"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "filename": "dragon-rider-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 36,
+  "height": 37,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 36,
+    "h": 37
+  },
+  "palette_hex_list": [
+    "#2030B0",
+    "#3878F8",
+    "#582818",
+    "#080808",
+    "#C89868",
+    "#081058",
+    "#885830",
+    "#900810",
+    "#C05008",
+    "#505050",
+    "#E0E0E0",
+    "#808080",
+    "#A8A8A8",
+    "#385088",
+    "#282828"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "filename": "bloody-zombie-2_011.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/bloody-zombie-2.png",
+  "width": 7,
+  "height": 72,
+  "bbox": {
+    "x": 329,
+    "y": 240,
+    "w": 7,
+    "h": 72
+  },
+  "palette_hex_list": [
+    "#840010"
+  ]
+}

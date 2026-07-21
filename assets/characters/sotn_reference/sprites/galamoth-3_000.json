@@ -1,0 +1,31 @@
+{
+  "filename": "galamoth-3_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/galamoth-3.png",
+  "width": 5614,
+  "height": 3978,
+  "bbox": {
+    "x": 2,
+    "y": 1,
+    "w": 5614,
+    "h": 3978
+  },
+  "palette_hex_list": [
+    "#22B14C",
+    "#282810",
+    "#384038",
+    "#403808",
+    "#406070",
+    "#584808",
+    "#705818",
+    "#708890",
+    "#887028",
+    "#986838",
+    "#988830",
+    "#A8A040",
+    "#B0B8C0",
+    "#C89028",
+    "#F8C828",
+    "#F8E8A8"
+  ]
+}

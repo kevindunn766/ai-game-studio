@@ -1,0 +1,29 @@
+{
+  "filename": "karasuman-4_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/karasuman-4.png",
+  "width": 106,
+  "height": 757,
+  "bbox": {
+    "x": 3,
+    "y": 33,
+    "w": 106,
+    "h": 757
+  },
+  "palette_hex_list": [
+    "#101010",
+    "#202020",
+    "#303038",
+    "#404048",
+    "#603000",
+    "#606068",
+    "#805000",
+    "#808088",
+    "#A0A0A8",
+    "#B0B0B0",
+    "#C88000",
+    "#F80000",
+    "#F8D000",
+    "#F8F8F8"
+  ]
+}

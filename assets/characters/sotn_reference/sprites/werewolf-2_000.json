@@ -1,0 +1,38 @@
+{
+  "filename": "werewolf-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/werewolf-2.png",
+  "width": 55,
+  "height": 432,
+  "bbox": {
+    "x": 14,
+    "y": 87,
+    "w": 55,
+    "h": 432
+  },
+  "palette_hex_list": [
+    "#080008",
+    "#201828",
+    "#384050",
+    "#485040",
+    "#502870",
+    "#586088",
+    "#603038",
+    "#7830B8",
+    "#806048",
+    "#909088",
+    "#A098D0",
+    "#B858F0",
+    "#B88840",
+    "#B8C000",
+    "#D080F0",
+    "#D088D8",
+    "#D0D0D8",
+    "#E04030",
+    "#E0B870",
+    "#E8C8F0",
+    "#E8E8F0",
+    "#F0B0E8",
+    "#F0F0E8"
+  ]
+}

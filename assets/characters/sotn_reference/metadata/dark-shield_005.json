@@ -1,0 +1,20 @@
+{
+  "filename": "dark-shield_005.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 20,
+  "height": 107,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 107
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#202020",
+    "#0000F8",
+    "#283850",
+    "#305080",
+    "#98D0F8"
+  ]
+}

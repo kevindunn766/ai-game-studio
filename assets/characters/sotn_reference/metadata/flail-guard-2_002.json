@@ -1,0 +1,28 @@
+{
+  "filename": "flail-guard-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 30,
+  "height": 26,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 26
+  },
+  "palette_hex_list": [
+    "#505000",
+    "#101010",
+    "#787878",
+    "#B8B8B8",
+    "#B80000",
+    "#F8F8F8",
+    "#F85028",
+    "#484848",
+    "#480000",
+    "#F88888",
+    "#780028",
+    "#987840",
+    "#282828",
+    "#002800"
+  ]
+}

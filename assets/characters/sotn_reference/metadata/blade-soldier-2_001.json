@@ -1,0 +1,27 @@
+{
+  "filename": "blade-soldier-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 17,
+  "height": 102,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 17,
+    "h": 102
+  },
+  "palette_hex_list": [
+    "#202020",
+    "#40404F",
+    "#6F6870",
+    "#8F909F",
+    "#B0B8C0",
+    "#5F687F",
+    "#804000",
+    "#1F381F",
+    "#107010",
+    "#D0783F",
+    "#FFB050",
+    "#0F080F",
+    "#DFE0EF"
+  ]
+}

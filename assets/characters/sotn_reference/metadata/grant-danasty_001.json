@@ -1,0 +1,28 @@
+{
+  "filename": "grant-danasty_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 16,
+  "height": 29,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 29
+  },
+  "palette_hex_list": [
+    "#212121",
+    "#A53142",
+    "#E74A52",
+    "#AD7B42",
+    "#E7AD73",
+    "#FF849C",
+    "#637331",
+    "#9C5229",
+    "#94A542",
+    "#523921",
+    "#526BA5",
+    "#423163",
+    "#FFD69C",
+    "#5A2929"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "filename": "hammer_007.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/hammer.png",
+  "width": 7,
+  "height": 12,
+  "bbox": {
+    "x": 1414,
+    "y": 321,
+    "w": 7,
+    "h": 12
+  },
+  "palette_hex_list": [
+    "#000000"
+  ]
+}

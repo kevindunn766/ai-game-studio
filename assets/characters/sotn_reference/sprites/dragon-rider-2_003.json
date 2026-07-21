@@ -1,0 +1,30 @@
+{
+  "filename": "dragon-rider-2_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/dragon-rider-2.png",
+  "width": 22,
+  "height": 38,
+  "bbox": {
+    "x": 118,
+    "y": 14,
+    "w": 22,
+    "h": 38
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#081058",
+    "#2030B0",
+    "#282828",
+    "#385088",
+    "#3878F8",
+    "#505050",
+    "#582818",
+    "#808080",
+    "#885830",
+    "#900810",
+    "#A8A8A8",
+    "#C05008",
+    "#C89868",
+    "#E0E0E0"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "filename": "flying-skull_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 20,
+  "height": 30,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 30
+  },
+  "palette_hex_list": [
+    "#080868",
+    "#080888",
+    "#0808B8",
+    "#0808F8",
+    "#484848",
+    "#787878",
+    "#B0B0B0",
+    "#D8E0E0",
+    "#282828",
+    "#080808",
+    "#C00000",
+    "#F85028",
+    "#B80000"
+  ]
+}

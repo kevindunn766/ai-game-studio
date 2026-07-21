@@ -1,0 +1,23 @@
+{
+  "filename": "herald-shield_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/herald-shield.png",
+  "width": 29,
+  "height": 141,
+  "bbox": {
+    "x": 222,
+    "y": 54,
+    "w": 29,
+    "h": 141
+  },
+  "palette_hex_list": [
+    "#0040D0",
+    "#0050D8",
+    "#0060E0",
+    "#2080E8",
+    "#28A0F0",
+    "#58D0F8",
+    "#A8F0F8",
+    "#E0F0F8"
+  ]
+}

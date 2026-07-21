@@ -1,0 +1,27 @@
+{
+  "filename": "bone-scimitar-2_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 11,
+  "height": 24,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 11,
+    "h": 24
+  },
+  "palette_hex_list": [
+    "#E8B860",
+    "#B09020",
+    "#905000",
+    "#101860",
+    "#1038D8",
+    "#B8B8B0",
+    "#E0E0E0",
+    "#484030",
+    "#686858",
+    "#909088",
+    "#202020",
+    "#080808",
+    "#585070"
+  ]
+}

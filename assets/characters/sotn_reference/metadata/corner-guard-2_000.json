@@ -1,0 +1,31 @@
+{
+  "filename": "corner-guard-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 485,
+  "height": 186,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 485,
+    "h": 186
+  },
+  "palette_hex_list": [
+    "#282890",
+    "#4850F8",
+    "#78A0F8",
+    "#787878",
+    "#989898",
+    "#B8B8B8",
+    "#D8D8D8",
+    "#505050",
+    "#101010",
+    "#282828",
+    "#F0F0F0",
+    "#A04010",
+    "#603010",
+    "#C07838",
+    "#F8C090",
+    "#00FF34",
+    "#090909"
+  ]
+}

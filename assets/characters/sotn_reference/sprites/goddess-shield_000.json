@@ -1,0 +1,43 @@
+{
+  "filename": "goddess-shield_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/goddess-shield.png",
+  "width": 94,
+  "height": 114,
+  "bbox": {
+    "x": 6,
+    "y": 16,
+    "w": 94,
+    "h": 114
+  },
+  "palette_hex_list": [
+    "#000008",
+    "#000808",
+    "#000810",
+    "#001010",
+    "#001018",
+    "#001818",
+    "#001820",
+    "#002020",
+    "#002028",
+    "#002828",
+    "#002830",
+    "#003030",
+    "#003038",
+    "#003838",
+    "#101010",
+    "#103010",
+    "#203830",
+    "#205840",
+    "#383030",
+    "#404048",
+    "#503008",
+    "#585860",
+    "#687078",
+    "#886020",
+    "#90A0A0",
+    "#A08850",
+    "#B0C0C0",
+    "#C8D8E0"
+  ]
+}

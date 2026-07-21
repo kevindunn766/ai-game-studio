@@ -1,0 +1,22 @@
+{
+  "filename": "black-panther-3_005.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 55,
+  "height": 100,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 55,
+    "h": 100
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#404040",
+    "#303030",
+    "#282828",
+    "#202020",
+    "#181818",
+    "#101010",
+    "#F80000"
+  ]
+}

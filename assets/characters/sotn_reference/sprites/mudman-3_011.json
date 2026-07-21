@@ -1,0 +1,18 @@
+{
+  "filename": "mudman-3_011.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/mudman-3.png",
+  "width": 2,
+  "height": 35,
+  "bbox": {
+    "x": 548,
+    "y": 72,
+    "w": 2,
+    "h": 35
+  },
+  "palette_hex_list": [
+    "#6B1810",
+    "#8C2829",
+    "#E74918"
+  ]
+}

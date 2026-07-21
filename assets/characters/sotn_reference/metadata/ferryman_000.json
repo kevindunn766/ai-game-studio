@@ -1,0 +1,28 @@
+{
+  "filename": "ferryman_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 94,
+  "height": 27,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 94,
+    "h": 27
+  },
+  "palette_hex_list": [
+    "#949494",
+    "#C6C6C6",
+    "#525242",
+    "#636363",
+    "#312110",
+    "#737373",
+    "#423121",
+    "#848484",
+    "#A5A5A5",
+    "#211010",
+    "#000000",
+    "#100000",
+    "#A50000",
+    "#101000"
+  ]
+}

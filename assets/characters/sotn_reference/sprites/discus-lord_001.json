@@ -1,0 +1,31 @@
+{
+  "filename": "discus-lord_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/discus-lord.png",
+  "width": 175,
+  "height": 254,
+  "bbox": {
+    "x": 459,
+    "y": 3,
+    "w": 175,
+    "h": 254
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#001008",
+    "#008078",
+    "#020600",
+    "#101818",
+    "#184850",
+    "#282848",
+    "#283020",
+    "#383000",
+    "#505068",
+    "#584830",
+    "#705800",
+    "#9090A8",
+    "#A09060",
+    "#B8A028",
+    "#C8D8A8"
+  ]
+}

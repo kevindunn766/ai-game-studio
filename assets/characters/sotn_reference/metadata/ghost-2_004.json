@@ -1,0 +1,19 @@
+{
+  "filename": "ghost-2_004.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 9,
+  "height": 15,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 9,
+    "h": 15
+  },
+  "palette_hex_list": [
+    "#EF8040",
+    "#E0583F",
+    "#F0B04F",
+    "#FFE050",
+    "#A0382F"
+  ]
+}

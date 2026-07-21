@@ -1,0 +1,37 @@
+{
+  "filename": "killer-fish-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/killer-fish-2.png",
+  "width": 246,
+  "height": 136,
+  "bbox": {
+    "x": 136,
+    "y": 0,
+    "w": 246,
+    "h": 136
+  },
+  "palette_hex_list": [
+    "#101008",
+    "#180018",
+    "#202030",
+    "#280820",
+    "#303020",
+    "#383850",
+    "#401028",
+    "#405040",
+    "#406058",
+    "#483838",
+    "#505040",
+    "#505068",
+    "#602030",
+    "#603038",
+    "#608080",
+    "#686860",
+    "#70B0B0",
+    "#8888A0",
+    "#A0A090",
+    "#C0C0B0",
+    "#C0C0E0",
+    "#E0E0D0"
+  ]
+}

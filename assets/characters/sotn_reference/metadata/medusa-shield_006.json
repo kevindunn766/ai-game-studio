@@ -1,0 +1,21 @@
+{
+  "filename": "medusa-shield_006.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 15,
+  "height": 19,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 15,
+    "h": 19
+  },
+  "palette_hex_list": [
+    "#F0A028",
+    "#F8D058",
+    "#F8F0A8",
+    "#E06000",
+    "#983800",
+    "#E88020",
+    "#F8F8F8"
+  ]
+}

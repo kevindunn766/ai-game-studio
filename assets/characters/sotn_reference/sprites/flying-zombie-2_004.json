@@ -1,0 +1,36 @@
+{
+  "filename": "flying-zombie-2_004.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/flying-zombie-2.png",
+  "width": 29,
+  "height": 62,
+  "bbox": {
+    "x": 126,
+    "y": 50,
+    "w": 29,
+    "h": 62
+  },
+  "palette_hex_list": [
+    "#000010",
+    "#000820",
+    "#081030",
+    "#102040",
+    "#200000",
+    "#204050",
+    "#307979",
+    "#400000",
+    "#400018",
+    "#40B291",
+    "#500000",
+    "#500030",
+    "#610048",
+    "#710000",
+    "#910000",
+    "#B21000",
+    "#B22040",
+    "#D25961",
+    "#FA4000",
+    "#FA8100",
+    "#FA9191"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "filename": "dodo_005.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/dodo.png",
+  "width": 29,
+  "height": 28,
+  "bbox": {
+    "x": 195,
+    "y": 12,
+    "w": 29,
+    "h": 28
+  },
+  "palette_hex_list": [
+    "#080800",
+    "#102828",
+    "#201800",
+    "#285040",
+    "#483008",
+    "#589078",
+    "#705018",
+    "#786000",
+    "#80C078",
+    "#987828",
+    "#B8A838",
+    "#C0A048",
+    "#D0C080",
+    "#E07038"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "filename": "gremlin-3_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 131,
+  "height": 102,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 131,
+    "h": 102
+  },
+  "palette_hex_list": [
+    "#C01000",
+    "#080800",
+    "#F86028",
+    "#100800",
+    "#F89848",
+    "#181000",
+    "#F8C850",
+    "#201000",
+    "#F8F098",
+    "#281800",
+    "#000000"
+  ]
+}

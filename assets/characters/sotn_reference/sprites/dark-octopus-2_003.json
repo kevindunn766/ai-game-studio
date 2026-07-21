@@ -1,0 +1,32 @@
+{
+  "filename": "dark-octopus-2_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/dark-octopus-2.png",
+  "width": 63,
+  "height": 19,
+  "bbox": {
+    "x": 409,
+    "y": 4,
+    "w": 63,
+    "h": 19
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#303020",
+    "#480000",
+    "#482010",
+    "#483018",
+    "#485030",
+    "#601810",
+    "#604828",
+    "#786040",
+    "#884018",
+    "#888860",
+    "#A82818",
+    "#B05818",
+    "#C07840",
+    "#D0C068",
+    "#F86818",
+    "#F8B868"
+  ]
+}

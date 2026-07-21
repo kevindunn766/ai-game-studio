@@ -1,0 +1,35 @@
+{
+  "filename": "sniperofgoth-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/sniperofgoth-2.png",
+  "width": 514,
+  "height": 428,
+  "bbox": {
+    "x": 1,
+    "y": 2,
+    "w": 514,
+    "h": 428
+  },
+  "palette_hex_list": [
+    "#006000",
+    "#008800",
+    "#00F8F8",
+    "#181828",
+    "#282830",
+    "#383838",
+    "#384048",
+    "#405060",
+    "#50C850",
+    "#583808",
+    "#586878",
+    "#708890",
+    "#90A0A8",
+    "#B04818",
+    "#B0B8C0",
+    "#C08020",
+    "#D8D8E8",
+    "#E07040",
+    "#F8B068",
+    "#F8C020"
+  ]
+}

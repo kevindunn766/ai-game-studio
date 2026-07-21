@@ -1,0 +1,33 @@
+{
+  "filename": "bomb-knight_005.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/bomb-knight.png",
+  "width": 43,
+  "height": 147,
+  "bbox": {
+    "x": 410,
+    "y": 29,
+    "w": 43,
+    "h": 147
+  },
+  "palette_hex_list": [
+    "#000008",
+    "#281800",
+    "#283000",
+    "#308840",
+    "#385800",
+    "#483000",
+    "#581000",
+    "#601800",
+    "#802800",
+    "#883800",
+    "#885820",
+    "#90D068",
+    "#B05000",
+    "#C06000",
+    "#C8A040",
+    "#D8D090",
+    "#F88800",
+    "#F89000"
+  ]
+}

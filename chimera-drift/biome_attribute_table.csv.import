@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://dt2ccvhn3of6t"
+
+[deps]
+
+files=["res://biome_attribute_table.Structure.translation", "res://biome_attribute_table.View.translation", "res://biome_attribute_table.Gravity.translation", "res://biome_attribute_table.Enemies.translation", "res://biome_attribute_table.Object 1.translation", "res://biome_attribute_table.Object 2.translation", "res://biome_attribute_table.Object 3.translation", "res://biome_attribute_table.Object 4.translation", "res://biome_attribute_table.Object 5.translation", "res://biome_attribute_table.Object 6.translation", "res://biome_attribute_table.Object 7.translation", "res://biome_attribute_table.Object 8.translation", "res://biome_attribute_table.Object 9.translation", "res://biome_attribute_table.Object 10.translation"]
+
+source_file="res://biome_attribute_table.csv"
+dest_files=["res://biome_attribute_table.Structure.translation", "res://biome_attribute_table.View.translation", "res://biome_attribute_table.Gravity.translation", "res://biome_attribute_table.Enemies.translation", "res://biome_attribute_table.Object 1.translation", "res://biome_attribute_table.Object 2.translation", "res://biome_attribute_table.Object 3.translation", "res://biome_attribute_table.Object 4.translation", "res://biome_attribute_table.Object 5.translation", "res://biome_attribute_table.Object 6.translation", "res://biome_attribute_table.Object 7.translation", "res://biome_attribute_table.Object 8.translation", "res://biome_attribute_table.Object 9.translation", "res://biome_attribute_table.Object 10.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

@@ -4,6 +4,24 @@ class_name Food extends Node3D
 @export var pulse_amplitude: float = 0.14
 
 var material: StandardMaterial3D
+var _pop_scale: float = 0.0
+var _pop_tween: Tween
+
+
+func pop_in() -> void:
+	_pop_scale = 0.0
+	if _pop_tween:
+		_pop_tween.kill()
+	_pop_tween = create_tween()
+	_pop_tween.tween_property(self, "_pop_scale", 1.0, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+
+func pop_out_and_free() -> void:
+	if _pop_tween:
+		_pop_tween.kill()
+	_pop_tween = create_tween()
+	_pop_tween.tween_property(self, "_pop_scale", 0.0, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	_pop_tween.tween_callback(queue_free)
 
 
 func _ready() -> void:
@@ -25,4 +43,4 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var s := 1.0 + sin(Time.get_ticks_msec() / 1000.0 * pulse_speed * 6.2831853) * pulse_amplitude
-	scale = Vector3.ONE * s
+	scale = Vector3.ONE * s * _pop_scale

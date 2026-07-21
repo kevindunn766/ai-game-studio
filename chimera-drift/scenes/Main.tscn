@@ -1,0 +1,225 @@
+[gd_scene load_steps=14 format=3 uid="uid://c8h3n2k9wq4t"]
+
+[ext_resource type="Script" path="res://scripts/ship.gd" id="1_ship"]
+[ext_resource type="Script" path="res://scripts/camera_rig_controller.gd" id="2_camrig"]
+[ext_resource type="Script" path="res://scripts/level_corridor.gd" id="4_corridor"]
+[ext_resource type="Script" path="res://scripts/level_surface.gd" id="5_surface"]
+[ext_resource type="Script" path="res://scripts/level_director.gd" id="6_director"]
+[ext_resource type="Script" path="res://scripts/power_up_streamer.gd" id="7_powerup_streamer"]
+[ext_resource type="Script" path="res://scripts/level_open_volume.gd" id="8_openvolume"]
+[ext_resource type="Script" path="res://scripts/level_canyon.gd" id="11_canyon"]
+[ext_resource type="Script" path="res://scripts/level_pillared.gd" id="12_pillared"]
+[ext_resource type="Script" path="res://scripts/game_hud.gd" id="9_hud"]
+[ext_resource type="Script" path="res://scripts/reticle.gd" id="10_reticle"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_detector"]
+radius = 1.0
+
+[node name="Main" type="Node3D"]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.9, -0.3, 0.3, 0, 0.55, 0.83, -0.43, -0.75, 0.5, 14, 14, 14)
+light_color = Color(1, 0.95, 0.9, 1)
+light_energy = 1.0
+
+[node name="AmbientLight3D" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 0)
+light_color = Color(0.2, 0.25, 0.3, 1)
+light_energy = 0.8
+omni_range = 60.0
+
+[node name="CorridorGenerator" type="Node3D" parent="."]
+script = ExtResource("4_corridor")
+ship_path = NodePath("../Ship")
+
+[node name="SurfaceGenerator" type="Node3D" parent="."]
+script = ExtResource("5_surface")
+ship_path = NodePath("../Ship")
+
+[node name="OpenVolumeGenerator" type="Node3D" parent="."]
+script = ExtResource("8_openvolume")
+ship_path = NodePath("../Ship")
+
+[node name="CanyonGenerator" type="Node3D" parent="."]
+script = ExtResource("11_canyon")
+ship_path = NodePath("../Ship")
+
+[node name="PillaredGenerator" type="Node3D" parent="."]
+script = ExtResource("12_pillared")
+ship_path = NodePath("../Ship")
+
+[node name="PowerUpStreamer" type="Node3D" parent="."]
+script = ExtResource("7_powerup_streamer")
+ship_path = NodePath("../Ship")
+
+[node name="Ship" type="Node3D" parent="."]
+script = ExtResource("1_ship")
+
+[node name="Mounts" type="Node3D" parent="Ship"]
+
+[node name="MountFront" type="Marker3D" parent="Ship/Mounts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.2)
+
+[node name="MountRear" type="Marker3D" parent="Ship/Mounts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.2)
+
+[node name="MountLeft" type="Marker3D" parent="Ship/Mounts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0, 0)
+
+[node name="MountRight" type="Marker3D" parent="Ship/Mounts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0, 0)
+
+[node name="MountTop" type="Marker3D" parent="Ship/Mounts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+
+[node name="MountBottom" type="Marker3D" parent="Ship/Mounts"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.6, 0)
+
+[node name="PickupDetector" type="Area3D" parent="Ship"]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ship/PickupDetector"]
+shape = SubResource("SphereShape3D_detector")
+
+[node name="HazardDetector" type="Area3D" parent="Ship"]
+collision_mask = 4
+monitoring = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ship/HazardDetector"]
+shape = SubResource("SphereShape3D_detector")
+
+[node name="CombatDetector" type="Area3D" parent="Ship"]
+collision_layer = 0
+collision_mask = 40
+monitoring = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ship/CombatDetector"]
+shape = SubResource("SphereShape3D_detector")
+
+[node name="HeadLight" type="SpotLight3D" parent="Ship"]
+light_color = Color(0.92, 0.96, 1, 1)
+light_energy = 8.0
+shadow_enabled = false
+spot_range = 60.0
+spot_angle = 42.0
+spot_attenuation = 0.7
+
+[node name="CameraRigs" type="Node3D" parent="Ship"]
+script = ExtResource("2_camrig")
+
+[node name="ThirdPersonPivot" type="Node3D" parent="Ship/CameraRigs"]
+
+[node name="ThirdPersonSpringArm3D" type="SpringArm3D" parent="Ship/CameraRigs/ThirdPersonPivot"]
+rotation_degrees = Vector3(-14, 0, 0)
+spring_length = 6.5
+collision_mask = 0
+
+[node name="ThirdPersonCamera3D" type="Camera3D" parent="Ship/CameraRigs/ThirdPersonPivot/ThirdPersonSpringArm3D"]
+current = true
+fov = 68.0
+near = 0.05
+far = 300.0
+
+[node name="SideScrollPivot" type="Node3D" parent="Ship/CameraRigs"]
+
+[node name="SideScrollCamera3D" type="Camera3D" parent="Ship/CameraRigs/SideScrollPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.5, 0)
+current = false
+fov = 60.0
+near = 0.05
+far = 300.0
+
+[node name="IsometricPivot" type="Node3D" parent="Ship/CameraRigs"]
+
+[node name="IsometricCamera3D" type="Camera3D" parent="Ship/CameraRigs/IsometricPivot"]
+current = false
+projection = 1
+size = 6.0
+near = 0.1
+far = 300.0
+
+[node name="TopDownPivot" type="Node3D" parent="Ship/CameraRigs"]
+
+[node name="TopDownCamera3D" type="Camera3D" parent="Ship/CameraRigs/TopDownPivot"]
+current = false
+projection = 1
+size = 8.0
+near = 0.1
+far = 300.0
+
+[node name="ThreeQuarterPivot" type="Node3D" parent="Ship/CameraRigs"]
+
+[node name="ThreeQuarterCamera3D" type="Camera3D" parent="Ship/CameraRigs/ThreeQuarterPivot"]
+current = false
+fov = 60.0
+near = 0.05
+far = 300.0
+
+[node name="LevelDirector" type="Node" parent="."]
+script = ExtResource("6_director")
+ship_path = NodePath("../Ship")
+corridor_generator_path = NodePath("../CorridorGenerator")
+surface_generator_path = NodePath("../SurfaceGenerator")
+open_volume_generator_path = NodePath("../OpenVolumeGenerator")
+canyon_generator_path = NodePath("../CanyonGenerator")
+pillared_generator_path = NodePath("../PillaredGenerator")
+power_up_streamer_path = NodePath("../PowerUpStreamer")
+sun_light_path = NodePath("../DirectionalLight3D")
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 10
+script = ExtResource("9_hud")
+ship_path = NodePath("../Ship")
+level_director_path = NodePath("../LevelDirector")
+
+[node name="Reticle" type="Control" parent="HUD"]
+script = ExtResource("10_reticle")
+
+[node name="InfoLabel" type="Label" parent="HUD"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 400.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 20
+text = "Distance: 0"
+
+[node name="CrashLabel" type="Label" parent="HUD"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -60.0
+offset_right = 200.0
+offset_bottom = 60.0
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+visible = false
+
+[node name="HealthBar" type="ProgressBar" parent="HUD"]
+modulate = Color(0.4, 0.9, 0.4, 1)
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -62.0
+offset_right = 336.0
+offset_bottom = -38.0
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="ShieldBar" type="ProgressBar" parent="HUD"]
+modulate = Color(0.4, 0.8, 1, 1)
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -34.0
+offset_right = 336.0
+offset_bottom = -16.0
+max_value = 100.0
+value = 0.0
+show_percentage = false
+visible = false

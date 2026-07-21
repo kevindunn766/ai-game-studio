@@ -1,0 +1,28 @@
+{
+  "filename": "axelord-shield_003.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 51,
+  "height": 45,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 45
+  },
+  "palette_hex_list": [
+    "#E83000",
+    "#680800",
+    "#F89050",
+    "#4888B8",
+    "#2038C8",
+    "#D0D0D0",
+    "#202050",
+    "#88A8D0",
+    "#000018",
+    "#888888",
+    "#686868",
+    "#303030",
+    "#883008",
+    "#080808"
+  ]
+}

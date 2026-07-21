@@ -1,0 +1,30 @@
+{
+  "filename": "medusa-shield_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/medusa-shield.png",
+  "width": 23,
+  "height": 24,
+  "bbox": {
+    "x": 38,
+    "y": 45,
+    "w": 23,
+    "h": 24
+  },
+  "palette_hex_list": [
+    "#002800",
+    "#006038",
+    "#006888",
+    "#00A898",
+    "#080808",
+    "#501800",
+    "#606060",
+    "#700000",
+    "#885000",
+    "#A0A0A0",
+    "#B03800",
+    "#C80000",
+    "#C88000",
+    "#C8A000",
+    "#E0C060"
+  ]
+}

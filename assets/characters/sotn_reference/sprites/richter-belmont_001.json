@@ -1,0 +1,28 @@
+{
+  "filename": "richter-belmont_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/richter-belmont.png",
+  "width": 29,
+  "height": 43,
+  "bbox": {
+    "x": 44,
+    "y": 673,
+    "w": 29,
+    "h": 43
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#000060",
+    "#0000F8",
+    "#0060F8",
+    "#286060",
+    "#602800",
+    "#808080",
+    "#A06000",
+    "#A0A0A0",
+    "#B05028",
+    "#E08060",
+    "#E0A080",
+    "#E0E0E0"
+  ]
+}

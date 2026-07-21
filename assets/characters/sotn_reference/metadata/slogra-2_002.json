@@ -1,0 +1,21 @@
+{
+  "filename": "slogra-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 52,
+  "height": 37,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 52,
+    "h": 37
+  },
+  "palette_hex_list": [
+    "#C0C080",
+    "#90884F",
+    "#405030",
+    "#10282F",
+    "#001010",
+    "#6F809F",
+    "#CFC8CF"
+  ]
+}

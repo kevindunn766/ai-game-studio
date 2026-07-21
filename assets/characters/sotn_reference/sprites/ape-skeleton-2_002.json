@@ -1,0 +1,42 @@
+{
+  "filename": "ape-skeleton-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/ape-skeleton-2.png",
+  "width": 66,
+  "height": 164,
+  "bbox": {
+    "x": 568,
+    "y": 128,
+    "w": 66,
+    "h": 164
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#210000",
+    "#212100",
+    "#212121",
+    "#21216B",
+    "#420000",
+    "#420021",
+    "#422100",
+    "#422121",
+    "#424242",
+    "#6B0000",
+    "#6B4221",
+    "#6B4242",
+    "#8C0000",
+    "#8C2100",
+    "#8C6B42",
+    "#8C6B6B",
+    "#B58C6B",
+    "#DE0000",
+    "#DE4200",
+    "#DEB5B5",
+    "#FF4200",
+    "#FF4242",
+    "#FF8C00",
+    "#FFB500",
+    "#FFFF6B",
+    "#FFFFFF"
+  ]
+}

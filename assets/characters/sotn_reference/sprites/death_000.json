@@ -1,0 +1,28 @@
+{
+  "filename": "death_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/death.gif",
+  "width": 60,
+  "height": 45,
+  "bbox": {
+    "x": 10,
+    "y": 317,
+    "w": 60,
+    "h": 45
+  },
+  "palette_hex_list": [
+    "#100008",
+    "#301018",
+    "#303028",
+    "#400000",
+    "#402030",
+    "#483850",
+    "#485048",
+    "#684878",
+    "#788078",
+    "#884800",
+    "#8878A8",
+    "#B89000",
+    "#B8C0B8"
+  ]
+}

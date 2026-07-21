@@ -1,0 +1,27 @@
+{
+  "filename": "maria-renard-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 14,
+  "height": 45,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 14,
+    "h": 45
+  },
+  "palette_hex_list": [
+    "#E8A030",
+    "#985018",
+    "#006000",
+    "#50C850",
+    "#302818",
+    "#F8C018",
+    "#D8D8D8",
+    "#00A000",
+    "#E8C090",
+    "#C88850",
+    "#405060",
+    "#708890",
+    "#B0B8C0"
+  ]
+}

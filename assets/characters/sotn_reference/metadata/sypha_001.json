@@ -1,0 +1,28 @@
+{
+  "filename": "sypha_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 20,
+  "height": 46,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 20,
+    "h": 46
+  },
+  "palette_hex_list": [
+    "#F89018",
+    "#A05828",
+    "#F8B077",
+    "#784028",
+    "#E07830",
+    "#90A0B0",
+    "#202848",
+    "#B0D0E0",
+    "#607080",
+    "#181818",
+    "#68A0E8",
+    "#2058A8",
+    "#5878C0",
+    "#204078"
+  ]
+}

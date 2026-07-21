@@ -1,0 +1,29 @@
+{
+  "filename": "salem-witch-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/salem-witch-2.png",
+  "width": 34,
+  "height": 371,
+  "bbox": {
+    "x": 365,
+    "y": 71,
+    "w": 34,
+    "h": 371
+  },
+  "palette_hex_list": [
+    "#181028",
+    "#405048",
+    "#502040",
+    "#582808",
+    "#603840",
+    "#708878",
+    "#986058",
+    "#B04818",
+    "#B0C0B0",
+    "#B89090",
+    "#D8D8D8",
+    "#E07040",
+    "#F0C8B8",
+    "#F8B068"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "filename": "nova-skeleton-2_008.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 24,
+  "height": 40,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 40
+  },
+  "palette_hex_list": [
+    "#1F3838",
+    "#083810",
+    "#284840",
+    "#00B000",
+    "#F80000",
+    "#00E000",
+    "#080808",
+    "#008808",
+    "#101018",
+    "#192121",
+    "#086008",
+    "#7B7C68",
+    "#364F36"
+  ]
+}

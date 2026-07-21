@@ -1,0 +1,39 @@
+{
+  "filename": "librarian_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/librarian.gif",
+  "width": 284,
+  "height": 195,
+  "bbox": {
+    "x": 1,
+    "y": 1,
+    "w": 284,
+    "h": 195
+  },
+  "palette_hex_list": [
+    "#100010",
+    "#102110",
+    "#102152",
+    "#103121",
+    "#211010",
+    "#215273",
+    "#311021",
+    "#315221",
+    "#423110",
+    "#522121",
+    "#525252",
+    "#526321",
+    "#634210",
+    "#637331",
+    "#733131",
+    "#846321",
+    "#848484",
+    "#946342",
+    "#A56342",
+    "#B59421",
+    "#B59463",
+    "#B5C6C6",
+    "#C6D673",
+    "#E7A573"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "filename": "rock-knight_004.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/rock-knight.png",
+  "width": 55,
+  "height": 220,
+  "bbox": {
+    "x": 415,
+    "y": 4,
+    "w": 55,
+    "h": 220
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#000008",
+    "#000810",
+    "#002808",
+    "#101820",
+    "#104820",
+    "#201008",
+    "#202800",
+    "#283830",
+    "#307850",
+    "#502000",
+    "#504800",
+    "#586050",
+    "#68B080",
+    "#807000",
+    "#984000",
+    "#A0A080",
+    "#C8B058",
+    "#D0C8A0",
+    "#D8D0A0",
+    "#F08030"
+  ]
+}

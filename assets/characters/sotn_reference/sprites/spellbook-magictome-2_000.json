@@ -1,0 +1,26 @@
+{
+  "filename": "spellbook-magictome-2_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/spellbook-magictome-2.gif",
+  "width": 28,
+  "height": 32,
+  "bbox": {
+    "x": 5,
+    "y": 22,
+    "w": 28,
+    "h": 32
+  },
+  "palette_hex_list": [
+    "#301018",
+    "#401828",
+    "#503818",
+    "#582020",
+    "#605020",
+    "#703020",
+    "#806820",
+    "#884020",
+    "#A86030",
+    "#B09020",
+    "#C88040"
+  ]
+}

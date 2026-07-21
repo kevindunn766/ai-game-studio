@@ -1,0 +1,28 @@
+{
+  "filename": "dhuron-2_016.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 51,
+  "height": 111,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 51,
+    "h": 111
+  },
+  "palette_hex_list": [
+    "#E8E0B0",
+    "#988050",
+    "#604018",
+    "#281840",
+    "#604890",
+    "#8078B0",
+    "#D0B8F8",
+    "#C0B080",
+    "#502010",
+    "#400028",
+    "#985840",
+    "#C09878",
+    "#080808",
+    "#C80000"
+  ]
+}

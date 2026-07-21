@@ -1,0 +1,28 @@
+{
+  "filename": "flying-skull_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/flying-skull.png",
+  "width": 20,
+  "height": 29,
+  "bbox": {
+    "x": 71,
+    "y": 7,
+    "w": 20,
+    "h": 29
+  },
+  "palette_hex_list": [
+    "#080808",
+    "#080868",
+    "#080888",
+    "#0808B8",
+    "#0808F8",
+    "#282828",
+    "#484848",
+    "#787878",
+    "#B0B0B0",
+    "#B80000",
+    "#C00000",
+    "#D8E0E0",
+    "#F85028"
+  ]
+}

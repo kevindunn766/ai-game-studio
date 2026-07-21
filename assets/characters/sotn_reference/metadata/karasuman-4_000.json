@@ -1,0 +1,28 @@
+{
+  "filename": "karasuman-4_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 106,
+  "height": 757,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 106,
+    "h": 757
+  },
+  "palette_hex_list": [
+    "#606068",
+    "#808088",
+    "#101010",
+    "#404048",
+    "#303038",
+    "#202020",
+    "#B0B0B0",
+    "#F8F8F8",
+    "#F8D000",
+    "#C88000",
+    "#805000",
+    "#603000",
+    "#A0A0A8",
+    "#F80000"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "filename": "winged-guard_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 200,
+  "height": 130,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 200,
+    "h": 130
+  },
+  "palette_hex_list": [
+    "#FB04D5",
+    "#606060",
+    "#909080",
+    "#303030",
+    "#484848",
+    "#B8B8B8",
+    "#F0F0F0",
+    "#D0D0D0",
+    "#A0A0A0",
+    "#7860A0",
+    "#6078B0",
+    "#202020",
+    "#907838",
+    "#F80000",
+    "#1838A0",
+    "#1860C0",
+    "#000000"
+  ]
+}

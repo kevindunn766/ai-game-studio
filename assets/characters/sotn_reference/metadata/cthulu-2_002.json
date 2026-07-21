@@ -1,0 +1,28 @@
+{
+  "filename": "cthulu-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 115,
+  "height": 311,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 115,
+    "h": 311
+  },
+  "palette_hex_list": [
+    "#506050",
+    "#708878",
+    "#98B898",
+    "#282828",
+    "#C0E0C0",
+    "#404040",
+    "#080808",
+    "#B09050",
+    "#B8B880",
+    "#A87020",
+    "#784818",
+    "#582808",
+    "#F8F800",
+    "#905818"
+  ]
+}

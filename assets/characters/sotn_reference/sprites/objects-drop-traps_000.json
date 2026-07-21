@@ -1,0 +1,42 @@
+{
+  "filename": "objects-drop-traps_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/objects-drop-traps.png",
+  "width": 224,
+  "height": 129,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 224,
+    "h": 129
+  },
+  "palette_hex_list": [
+    "#242C2C",
+    "#281800",
+    "#2C4848",
+    "#34CCA0",
+    "#383010",
+    "#384048",
+    "#404828",
+    "#406464",
+    "#546D8E",
+    "#548484",
+    "#605828",
+    "#606054",
+    "#606068",
+    "#607474",
+    "#707840",
+    "#7C9494",
+    "#809098",
+    "#90A8A4",
+    "#A0A860",
+    "#B0F4E8",
+    "#B8C4C4",
+    "#C0C8D8",
+    "#CCD4D4",
+    "#DCE4E4",
+    "#E4E4E4",
+    "#F8FFFF",
+    "#FFFFFF"
+  ]
+}

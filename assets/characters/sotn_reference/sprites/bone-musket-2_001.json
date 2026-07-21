@@ -1,0 +1,30 @@
+{
+  "filename": "bone-musket-2_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/bone-musket-2.png",
+  "width": 37,
+  "height": 31,
+  "bbox": {
+    "x": 374,
+    "y": 167,
+    "w": 37,
+    "h": 31
+  },
+  "palette_hex_list": [
+    "#000000",
+    "#005820",
+    "#009800",
+    "#280000",
+    "#281028",
+    "#282800",
+    "#500000",
+    "#500078",
+    "#782800",
+    "#787878",
+    "#982898",
+    "#985828",
+    "#B858F8",
+    "#B88858",
+    "#B8B8B8"
+  ]
+}

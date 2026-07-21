@@ -1,0 +1,24 @@
+{
+  "filename": "zombie-2_002.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/zombie-2.gif",
+  "width": 23,
+  "height": 65,
+  "bbox": {
+    "x": 45,
+    "y": 50,
+    "w": 23,
+    "h": 65
+  },
+  "palette_hex_list": [
+    "#003028",
+    "#003830",
+    "#006040",
+    "#080800",
+    "#48B070",
+    "#506038",
+    "#90A860",
+    "#90D8B8",
+    "#D0D090"
+  ]
+}

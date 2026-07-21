@@ -1,0 +1,26 @@
+{
+  "filename": "armorlord-guardian_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "width": 25,
+  "height": 46,
+  "bbox": {
+    "x": 0,
+    "y": 0,
+    "w": 25,
+    "h": 46
+  },
+  "palette_hex_list": [
+    "#602000",
+    "#201040",
+    "#100820",
+    "#100010",
+    "#400000",
+    "#804000",
+    "#A06000",
+    "#E0A000",
+    "#402070",
+    "#6030A0",
+    "#9060E0",
+    "#E0C0F8"
+  ]
+}

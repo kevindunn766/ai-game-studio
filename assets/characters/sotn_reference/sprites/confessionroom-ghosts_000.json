@@ -1,0 +1,28 @@
+{
+  "filename": "confessionroom-ghosts_000.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/confessionroom-ghosts.gif",
+  "width": 14,
+  "height": 46,
+  "bbox": {
+    "x": 7,
+    "y": 6,
+    "w": 14,
+    "h": 46
+  },
+  "palette_hex_list": [
+    "#102028",
+    "#181818",
+    "#183040",
+    "#204068",
+    "#286090",
+    "#302818",
+    "#5878A8",
+    "#603018",
+    "#705018",
+    "#984828",
+    "#B07840",
+    "#D07060",
+    "#F0B800"
+  ]
+}

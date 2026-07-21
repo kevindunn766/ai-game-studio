@@ -1,0 +1,31 @@
+{
+  "filename": "knight-shield_001.png",
+  "source_page": "https://www.castlevaniacrypt.com/sotn-sprites/",
+  "source_sheet": "https://www.castlevaniacrypt.com/wp-content/img/sotn/sprites/knight-shield.png",
+  "width": 124,
+  "height": 69,
+  "bbox": {
+    "x": 134,
+    "y": 37,
+    "w": 124,
+    "h": 69
+  },
+  "palette_hex_list": [
+    "#030303",
+    "#080808",
+    "#202020",
+    "#404038",
+    "#501850",
+    "#605850",
+    "#683070",
+    "#784818",
+    "#785898",
+    "#7890C0",
+    "#807870",
+    "#A09088",
+    "#B07020",
+    "#C0B0A0",
+    "#D8A020",
+    "#E0D0C0"
+  ]
+}
