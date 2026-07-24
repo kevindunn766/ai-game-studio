@@ -1,8 +1,0 @@
-Oak (Quercus robur / European oak), grown to 20 years in The Grove 2.2, then made game-ready.
-
-- 24,999 tris / 19,242 verts (decimated from 489,658 / 345,910)
-- Single material "OakBark": vertex-color only, NO image textures.
-- Bark color baked into COLOR_0 (linear): dark->light height gradient + fine
-  noise crevice darkening. In Godot enable vertex_color_use_as_albedo.
-- Origin at trunk base (0,0,0), +Z up (Y-up in the GLB). Roots dip ~0.33 m below origin.
-- Bare (no leaves): The Grove's twig/leaf library is not installed on this machine.
